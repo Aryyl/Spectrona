@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fundio-inspired Health Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <!-- We'll use Chart.js for the new charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="header-logo" id="header-logo-icon"></div>
+        <h1 class="header-title">HealthCompanion</h1>
+      </div>
+      <nav class="header-nav">
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">History</a>
+        <a href="#">Alerts</a>
+        <a href="#">Settings</a>
+      </nav>
+      <div class="header-meta">
+        <button class="icon-btn" id="search-btn" aria-label="Search"><span id="icon-search"></span></button>
+        <button class="icon-btn" id="notif-btn" aria-label="Notifications"><span id="icon-bell"></span></button>
+        <div class="user-avatar" id="user-avatar">
+          <span id="icon-user"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ Main Dashboard Grid ═════════════════════════════════════════════════ -->
+  <main class="main-grid" id="main-dashboard">
+
+    <!-- ── Welcome Section ──────────────────────────────────────────── -->
+    <section class="welcome-section">
+      <div class="welcome-text">
+        <h2>Welcome back!</h2>
+        <p>Here's a quick overview of your health performance today. Stay informed and healthy.</p>
+      </div>
+      <div class="welcome-actions">
+        <button class="btn">Share <span id="icon-share"></span></button>
+        <button class="btn btn-primary">Export <span id="icon-download"></span></button>
+      </div>
+    </section>
+
+    <!-- ── Vital Metrics (Top Row) ─────────────────────────────────────── -->
+    <!-- Heart Rate -->
+    <section class="card col-3 metric-card">
+      <div class="metric-header">
+        <div class="metric-icon-wrap" id="icon-hr"></div>
+        <div class="metric-label">Heart Rate</div>
+      </div>
+      <div>
+        <div class="metric-value-row">
+          <span class="metric-value" id="val-hr">—</span>
+          <span class="metric-unit">bpm</span>
+        </div>
+        <div class="metric-sub" id="sub-hr">Baseline —</div>
+      </div>
+    </section>
+
+    <!-- SpO2 -->
+    <section class="card col-3 metric-card">
+      <div class="metric-header">
+        <div class="metric-icon-wrap" id="icon-spo2"></div>
+        <div class="metric-label">SpO₂</div>
+      </div>
+      <div>
+        <div class="metric-value-row">
+          <span class="metric-value" id="val-spo2">—</span>
+          <span class="metric-unit">%</span>
+        </div>
+        <div class="metric-sub" id="sub-spo2">Baseline —</div>
+      </div>
+    </section>
+
+    <!-- Body Temp -->
+    <section class="card col-3 metric-card">
+      <div class="metric-header">
+        <div class="metric-icon-wrap" id="icon-btemp"></div>
+        <div class="metric-label">Body Temp</div>
+      </div>
+      <div>
+        <div class="metric-value-row">
+          <span class="metric-value" id="val-btemp">—</span>
+          <span class="metric-unit">°C</span>
+        </div>
+        <div class="metric-sub" id="sub-btemp">Baseline —</div>
+      </div>
+    </section>
+
+    <!-- Environment -->
+    <section class="card col-3 metric-card">
+      <div class="metric-header">
+        <div class="metric-icon-wrap" id="icon-env"></div>
+        <div class="metric-label">Environment</div>
+      </div>
+      <div>
+        <div class="metric-value-row">
+          <span class="metric-value" id="val-rtemp">—</span>
+          <span class="metric-unit">°C</span>
+          <span style="color:var(--text-muted); margin:0 4px">|</span>
+          <span class="metric-value" style="font-size: 1.5rem;" id="val-hum">—</span>
+          <span class="metric-unit">%</span>
+        </div>
+        <div class="metric-sub" style="background:var(--accent-soft); color:var(--accent)">Room Conditions</div>
+      </div>
+    </section>
+
+    <!-- ── Middle Row ─────────────────────────────────────────────────── -->
+    <!-- Risk Gauge (replaces Investment Overview) -->
+    <section class="card col-4">
+      <h2 class="card-title">
+        Current Risk Level
+        <div id="connection-dot" class="dot dot--connecting" title="Connection status"></div>
+      </h2>
+      <div class="gauge-container">
+        <canvas id="gauge-chart" width="200" height="150"></canvas>
+        <div class="gauge-value" id="overall-status">—</div>
+        <div class="gauge-label" id="recommendation">Awaiting data...</div>
+      </div>
+    </section>
+
+    <!-- Trend Chart (replaces Campaign overview) -->
+    <section class="card col-8">
+      <h2 class="card-title">
+        Vitals Trend (Heart Rate)
+        <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal;">Live Updates</span>
+      </h2>
+      <div class="chart-container">
+        <canvas id="trend-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- ── Bottom Row (Table) ─────────────────────────────────────────── -->
+    <section class="card col-full">
+      <h2 class="card-title">
+        Recent Readings
+        <div style="display:flex; gap:0.5rem">
+          <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Filter <span id="icon-filter"></span></button>
+        </div>
+      </h2>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Heart Rate</th>
+              <th>SpO₂</th>
+              <th>Body Temp</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="readings-tbody">
+            <!-- Rows populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ Alert Toast ════════════════════════════════════════════════════════ -->
+  <div id="alert-toast" class="alert-toast">
+    <div class="toast-icon" id="toast-icon"></div>
+    <div class="toast-body">
+      <div class="toast-title" id="toast-title"></div>
+      <div class="toast-msg"   id="toast-msg"></div>
+    </div>
+    <button class="toast-close" id="toast-close">
+      <span id="toast-close-icon"></span>
+    </button>
+  </div>
+
+  <script src="/static/js/icons.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
