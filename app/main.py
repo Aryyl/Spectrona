@@ -48,80 +48,14 @@ from app.storage.repository import insert_reading, insert_risk_state
 _log = logging.getLogger(__name__)
 
 
+from app.pipeline_runner import process_sensor_payload
+
 # ── Pipeline callback (called by MQTT client on every message) ───────────────
 
 def on_sensor_message(payload: dict) -> None:
-    """
-    Full processing pipeline for one incoming MQTT message.
+    """MQTT callback: passes payload to central pipeline runner."""
+    process_sensor_payload(payload)
 
-    Stages:
-      validate → normalize → store raw → update windows → update baseline
-      → compute features → assess risks → fuse → recommend
-      → store risk state → update shared state → notify SSE clients
-    """
-    # 1. Validate + normalize
-    reading = process_raw(payload)
-    if reading is None:
-        state_store.increment_rejected()
-        return
-
-    # 2. Store raw reading in SQLite (fire-and-forget; errors are logged in repo)
-    insert_reading(reading)
-
-    # 3. Update sliding windows
-    sensor_windows.push(reading)
-
-    # 4. Update personal baseline
-    baseline_engine.update(
-        heart_rate=reading.heart_rate,
-        spo2=reading.spo2,
-        body_temperature=reading.body_temperature,
-    )
-    baseline = baseline_engine.current
-
-    # 5. Compute derived features
-    features = compute_features(reading, sensor_windows, baseline)
-
-    # 6. Run risk engines
-    heat_result = assess_heat_risk(features)
-    vital_result = vital_risk_engine.assess(features)
-    resp_result = respiratory_risk_engine.assess(features)
-
-    # 7. Fuse risks → overall status + recommendation
-    fused = fuse_risks(heat_result, vital_result, resp_result)
-
-    _log.info(
-        "Risk | Heat=%s Vital=%s SpO2=%s -> Overall=%s | Device=%s",
-        fused.heat_risk, fused.vital_risk, fused.respiratory_risk,
-        fused.overall_status, reading.device_id,
-    )
-
-    # 8. Persist risk state
-    insert_risk_state(
-        reading=reading,
-        heat_risk=fused.heat_risk,
-        vital_risk=fused.vital_risk,
-        respiratory_risk=fused.respiratory_risk,
-        overall_status=fused.overall_status,
-        recommendation=fused.recommendation,
-        reasons=fused.reasons,
-    )
-
-    # 9. Alert engine (evaluates per-vital thresholds and risk transitions)
-    new_alerts = alert_manager.process(fused=fused, reading=reading, features=features)
-    active_alerts = [a.to_dict() for a in alert_manager.active_alerts]
-    new_alerts_dict = [a.to_dict() for a in new_alerts]
-
-    # 10. Update shared in-memory state (for API fast path & real-time SSE stream)
-    state_store.update(
-        reading=reading,
-        fused_risk=fused,
-        active_alerts=active_alerts,
-        new_alerts=new_alerts_dict,
-    )
-
-    # 11. Notify SSE clients
-    notify_update()
 
 
 # ── Flask app factory ────────────────────────────────────────────────────────

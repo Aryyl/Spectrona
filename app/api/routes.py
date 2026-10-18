@@ -146,69 +146,179 @@ def clear_alerts() -> Response:
 
 @api_bp.route("/alerts/test", methods=["POST"])
 def test_alert() -> Response:
-    """Trigger a simulated test alert to verify notification & sound subsystems."""
-    data = request.get_json(silent=True) or {}
-    severity = data.get("severity", "WARNING").upper()
-    vital = data.get("vital", "heart_rate")
-    
-    test_presets = {
-        "heart_rate": ("Critical Tachycardia", "Heart rate critically high at 134 bpm.", "134 bpm", "60 – 100 bpm", "HIGH"),
-        "spo2": ("Severe Hypoxemia", "Blood oxygen level dropped to 88.5%.", "88.5%", "95 – 100%", "LOW"),
-        "body_temperature": ("High Fever Detected", "Body temperature elevated at 39.1 °C.", "39.1 °C", "36.1 – 37.2 °C", "HIGH"),
-        "blood_pressure": ("Stage 2 Hypertension", "Blood pressure spike measured at 152/98 mmHg.", "152/98 mmHg", "< 120/80 mmHg", "HIGH"),
-    }
-    title, msg, val, norm, direction = test_presets.get(
-        vital, 
-        ("Simulated Test Alert", "Alert notification subsystem test active.", "120 bpm", "60 – 100 bpm", "HIGH")
-    )
-    
-    test_alert_obj = Alert(
-        severity=severity,
-        category="vital",
-        vital=vital,
-        title=f"[TEST] {title}",
-        message=msg,
-        value=val,
-        normal_range=norm,
-        direction=direction,
-        reasons=["User initiated simulated alarm test from Settings."],
-    )
-    if severity in ("CRITICAL", "HIGH", "WARNING", "WATCH"):
-        alert_manager._active_alerts[vital] = test_alert_obj
-    else:
-        alert_manager._active_alerts.pop(vital, None)
-    alert_manager._record_alert(test_alert_obj)
-    
-    # Also push to state_store so SSE clients get notified immediately
+    """Trigger a simulated test alert through the full pipeline."""
     import time
-    from app.ingestion.normalizer import SensorReading
-    from app.risk.fusion import FusedRisk
-    from app.api.websocket import notify_update
+    from app.pipeline_runner import process_sensor_payload
 
-    snap = state_store.snapshot()
-    reading = snap.reading
-    if reading is None:
-        reading = SensorReading(
-            device_id="patient_01",
-            timestamp=time.time(),
-            heart_rate=134.0 if vital == "heart_rate" else 75.0,
-            spo2=88.5 if vital == "spo2" else 98.0,
-            body_temperature=39.1 if vital == "body_temperature" else 36.6,
-            room_temperature=24.0,
-            humidity=50.0,
-            bp_sys=152 if vital == "blood_pressure" else 120,
-            bp_dia=98 if vital == "blood_pressure" else 80,
-        )
+    data = request.get_json(silent=True) or {}
+    severity = str(data.get("severity", "WARNING")).upper()
+    vital = str(data.get("vital", "heart_rate"))
     
-    state_store.update(
-        reading=reading,
-        fused_risk=snap.fused_risk or FusedRisk("LOW", "HIGH" if severity in ("CRITICAL", "HIGH") else "WATCH", "NORMAL", "HIGH" if severity in ("CRITICAL", "HIGH") else "WATCH", ["Test alert"], "Test alarm active"),
-        active_alerts=[a.to_dict() for a in alert_manager.active_alerts],
-        new_alerts=[test_alert_obj.to_dict()],
-    )
-    notify_update()
+    presets = {
+        "heart_rate": {
+            "heart_rate": 134.0,
+            "spo2": 98.0,
+            "body_temperature": 36.6,
+            "room_temperature": 24.5,
+            "humidity": 48.0,
+            "blood_pressure": {"sys": 122, "dia": 78},
+        },
+        "spo2": {
+            "heart_rate": 82.0,
+            "spo2": 88.5,
+            "body_temperature": 36.6,
+            "room_temperature": 24.5,
+            "humidity": 48.0,
+            "blood_pressure": {"sys": 118, "dia": 76},
+        },
+        "body_temperature": {
+            "heart_rate": 108.0,
+            "spo2": 96.5,
+            "body_temperature": 39.2,
+            "room_temperature": 26.0,
+            "humidity": 55.0,
+            "blood_pressure": {"sys": 126, "dia": 82},
+        },
+        "blood_pressure": {
+            "heart_rate": 90.0,
+            "spo2": 98.0,
+            "body_temperature": 36.6,
+            "room_temperature": 24.5,
+            "humidity": 48.0,
+            "blood_pressure": {"sys": 156, "dia": 98},
+        },
+        "normal": {
+            "heart_rate": 72.0,
+            "spo2": 98.5,
+            "body_temperature": 36.6,
+            "room_temperature": 24.5,
+            "humidity": 48.0,
+            "blood_pressure": {"sys": 118, "dia": 76},
+        },
+    }
 
-    return jsonify({"status": "ok", "alert": test_alert_obj.to_dict(), "active_count": len(alert_manager.active_alerts)})
+    if severity == "NORMAL" or vital == "normal":
+        cfg_vital = presets["normal"]
+        payload = {
+            "device_id": "patient_01",
+            "timestamp": int(time.time()),
+            **cfg_vital,
+        }
+        process_sensor_payload(payload)
+        alert_manager.clear_active()
+        return jsonify({
+            "status": "ok",
+            "message": "Telemetry restored to normal baseline.",
+            "active_count": len(alert_manager.active_alerts),
+        })
+
+    cfg_vital = presets.get(vital, presets["heart_rate"])
+    payload = {
+        "device_id": "patient_01",
+        "timestamp": int(time.time()),
+        **cfg_vital,
+    }
+    process_sensor_payload(payload)
+    return jsonify({
+        "status": "ok",
+        "active_count": len(alert_manager.active_alerts),
+        "alerts": [a.to_dict() for a in alert_manager.active_alerts],
+    })
+
+
+@api_bp.route("/telemetry/simulate", methods=["POST"])
+def simulate_telemetry() -> Response:
+    """Inject a simulated sensor telemetry reading through the pipeline."""
+    import time
+    from app.pipeline_runner import process_sensor_payload
+
+    data = request.get_json(silent=True) or {}
+    scenario = data.get("scenario", "combined")
+
+    scenarios = {
+        "normal": {
+            "heart_rate": 72.0,
+            "spo2": 98.5,
+            "body_temperature": 36.6,
+            "room_temperature": 24.0,
+            "humidity": 48.0,
+            "blood_pressure": {"sys": 116, "dia": 76},
+        },
+        "tachycardia": {
+            "heart_rate": 134.0,
+            "spo2": 98.0,
+            "body_temperature": 36.7,
+            "room_temperature": 24.5,
+            "humidity": 49.0,
+            "blood_pressure": {"sys": 128, "dia": 82},
+        },
+        "hypoxemia": {
+            "heart_rate": 86.0,
+            "spo2": 88.5,
+            "body_temperature": 36.6,
+            "room_temperature": 24.0,
+            "humidity": 50.0,
+            "blood_pressure": {"sys": 118, "dia": 76},
+        },
+        "fever": {
+            "heart_rate": 106.0,
+            "spo2": 96.5,
+            "body_temperature": 39.2,
+            "room_temperature": 25.5,
+            "humidity": 52.0,
+            "blood_pressure": {"sys": 124, "dia": 80},
+        },
+        "hypertension": {
+            "heart_rate": 92.0,
+            "spo2": 97.5,
+            "body_temperature": 36.7,
+            "room_temperature": 24.5,
+            "humidity": 48.0,
+            "blood_pressure": {"sys": 156, "dia": 98},
+        },
+        "combined": {
+            "heart_rate": 134.0,
+            "spo2": 89.0,
+            "body_temperature": 38.9,
+            "room_temperature": 38.5,
+            "humidity": 78.0,
+            "blood_pressure": {"sys": 154, "dia": 96},
+        },
+    }
+
+    base = scenarios.get(scenario, scenarios["combined"]).copy()
+    
+    # Allow overriding specific parameters via request body
+    if "heart_rate" in data:
+        base["heart_rate"] = float(data["heart_rate"])
+    if "spo2" in data:
+        base["spo2"] = float(data["spo2"])
+    if "body_temperature" in data:
+        base["body_temperature"] = float(data["body_temperature"])
+    if "room_temperature" in data:
+        base["room_temperature"] = float(data["room_temperature"])
+    if "humidity" in data:
+        base["humidity"] = float(data["humidity"])
+    if "blood_pressure" in data:
+        base["blood_pressure"] = data["blood_pressure"]
+
+    payload = {
+        "device_id": "patient_01",
+        "timestamp": int(time.time()),
+        **base,
+    }
+
+    ok = process_sensor_payload(payload)
+    if not ok:
+        return jsonify({"status": "error", "message": "Payload failed validation"}), 400
+
+    return jsonify({
+        "status": "ok",
+        "scenario": scenario,
+        "payload": payload,
+        "active_alerts": [a.to_dict() for a in alert_manager.active_alerts],
+    })
+
 
 
 @api_bp.route("/baseline", methods=["GET"])

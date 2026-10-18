@@ -429,6 +429,10 @@ class AlertManager:
     def clear_history(self) -> None:
         self._alert_history.clear()
 
+    def clear_active(self) -> None:
+        self._active_alerts.clear()
+
+
     @staticmethod
     def _vital_display_name(key: str) -> str:
         names = {
