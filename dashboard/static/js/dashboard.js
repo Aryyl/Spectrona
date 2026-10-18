@@ -182,6 +182,11 @@ function updateCharts(latestHr, overall) {
 // ── Dashboard update ──────────────────────────────────────────────────────────
 let _prevOverall = null;
 let _prevValues = {};
+let _activeAlerts = [];
+let _historyAlerts = [];
+let _audioCtx = null;
+let _isAudioMuted = localStorage.getItem("jeev_one_audio_muted") === "true";
+let _currentNotifTab = "active";
 
 function applyUpdate(data) {
   const latest = data.latest || data.reading || {};
@@ -200,6 +205,18 @@ function applyUpdate(data) {
     $("sub-hr").textContent    = `Baseline: ${fmt0(bl.heart_rate)} bpm`;
     $("sub-spo2").textContent  = `Baseline: ${fmt1(bl.spo2)}%`;
     $("sub-btemp").textContent = `Baseline: ${fmt1(bl.body_temperature)}°C`;
+  }
+
+  // ── Blood Pressure Sub-label
+  const bpSub = $("sub-bp-display");
+  if (bpSub) {
+    if (latest.bp_sys && latest.bp_dia && latest.bp_sys > 0) {
+      bpSub.textContent = `BP: ${fmt0(latest.bp_sys)}/${fmt0(latest.bp_dia)} mmHg`;
+      bpSub.style.background = "var(--accent-soft)";
+      bpSub.style.color = "var(--accent)";
+    } else {
+      bpSub.textContent = "Room Conditions";
+    }
   }
 
   // ── Overall Status (Gauge)
@@ -254,11 +271,32 @@ function applyUpdate(data) {
     if (counterBadge) counterBadge.textContent = `${tbody.children.length} RECENT PACKETS`;
   }
 
-  // ── Alert toast on status change
-  if (overall !== _prevOverall && _prevOverall !== null) {
+  // ── Alarms & Notifications Handling
+  if (Array.isArray(data.alerts)) {
+    _activeAlerts = data.alerts;
+  }
+  if (Array.isArray(data.new_alerts) && data.new_alerts.length > 0) {
+    data.new_alerts.forEach(newA => {
+      // Prepend to history cache
+      if (!_historyAlerts.some(h => h.id === newA.id)) {
+        _historyAlerts.unshift(newA);
+      }
+      // Play distinct audio chime
+      playAlarmChime(newA.severity);
+      // Send desktop native push notification
+      sendDesktopNotification(newA);
+      // Trigger on-screen visual toast
+      showToast(newA.severity, `${newA.title}: ${newA.message}`);
+    });
+    if (_historyAlerts.length > 60) _historyAlerts = _historyAlerts.slice(0, 60);
+  } else if (overall !== _prevOverall && _prevOverall !== null) {
     showToast(overall, risk.recommendation || "Status changed");
   }
   _prevOverall = overall;
+
+  // Update card alarm glowing states and notification drawer
+  updateCardAlarms(_activeAlerts);
+  renderNotificationList();
 }
 
 function setMetricValue(elId, newVal, trackKey) {
@@ -385,6 +423,474 @@ function fetchHistory() {
       if (counterBadge) counterBadge.textContent = `${tbody.children.length} RECENT PACKETS`;
     })
     .catch(() => {});
+}
+
+// ── Web Audio Chime Alarm Engine ──────────────────────────────────────────────
+function getAudioContext() {
+  if (!_audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) _audioCtx = new AudioContextClass();
+  }
+  if (_audioCtx && _audioCtx.state === "suspended") {
+    _audioCtx.resume();
+  }
+  return _audioCtx;
+}
+
+function playAlarmChime(severity) {
+  if (_isAudioMuted) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const sev = (severity || "").toUpperCase();
+
+    if (sev === "CRITICAL" || sev === "HIGH") {
+      // 2-tone urgent clinical alarm sequence (A5 -> E5, repeated)
+      const playTone = (freq, start, duration) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.35, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+      playTone(880, now, 0.12);
+      playTone(659.25, now + 0.16, 0.16);
+      playTone(880, now + 0.36, 0.12);
+      playTone(659.25, now + 0.52, 0.20);
+    } else if (sev === "WARNING" || sev === "WATCH") {
+      // Dual-frequency cautionary chime (D5 -> G5)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.14);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.30);
+    } else if (sev === "NORMAL") {
+      // Soft single resolved harmonic tone
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.12);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.26);
+    }
+  } catch (e) {
+    console.warn("Audio chime playback error:", e);
+  }
+}
+
+function updateSoundUI() {
+  const iconState = $("icon-sound-state");
+  const settingIcon = $("setting-sound-icon");
+  const settingLabel = $("setting-sound-label");
+
+  if (_isAudioMuted) {
+    if (iconState) iconState.textContent = "🔇";
+    if (settingIcon) settingIcon.textContent = "🔇";
+    if (settingLabel) settingLabel.textContent = "Audio Alarms: OFF (Muted)";
+  } else {
+    if (iconState) iconState.textContent = "🔊";
+    if (settingIcon) settingIcon.textContent = "🔊";
+    if (settingLabel) settingLabel.textContent = "Audio Alarms: ON (Active)";
+  }
+}
+
+function toggleAudioMute() {
+  _isAudioMuted = !_isAudioMuted;
+  localStorage.setItem("jeev_one_audio_muted", _isAudioMuted ? "true" : "false");
+  updateSoundUI();
+  if (!_isAudioMuted) {
+    getAudioContext();
+    playAlarmChime("NORMAL");
+    showToast("Audio alarms unmuted", "Audio Settings");
+  } else {
+    showToast("Audio alarms muted", "Audio Settings");
+  }
+}
+
+// ── Web Desktop Notifications Engine ──────────────────────────────────────────
+function initDesktopPush() {
+  const btn = $("btn-toggle-push-settings");
+  const label = $("setting-push-label");
+  if (!btn || !("Notification" in window)) return;
+
+  function updatePushUI() {
+    if (Notification.permission === "granted") {
+      if (label) label.textContent = "Desktop Notifications: Active";
+      btn.classList.add("btn-primary");
+      btn.classList.remove("btn-outline");
+    } else if (Notification.permission === "denied") {
+      if (label) label.textContent = "Desktop Notifications: Blocked";
+      btn.classList.remove("btn-primary");
+      btn.classList.add("btn-outline");
+    } else {
+      if (label) label.textContent = "Enable Desktop Notifications";
+      btn.classList.remove("btn-primary");
+      btn.classList.add("btn-outline");
+    }
+  }
+
+  updatePushUI();
+
+  btn.addEventListener("click", () => {
+    if (Notification.permission === "granted") {
+      showToast("Desktop notifications are already enabled.", "Notifications");
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        updatePushUI();
+        if (permission === "granted") {
+          new Notification("JEEV_ONE Health Monitor", {
+            body: "Desktop alarm notifications enabled. You will receive immediate alerts when vitals breach safe ranges.",
+            icon: "/static/images/favicon.png"
+          });
+          showToast("Desktop notifications enabled successfully!", "Notifications");
+        }
+      });
+    } else {
+      showToast("Notifications blocked. Please grant permissions in browser address bar.", "Notifications");
+    }
+  });
+}
+
+function sendDesktopNotification(alert) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  try {
+    const isCrit = (alert.severity === "CRITICAL" || alert.severity === "HIGH");
+    const prefix = isCrit ? "🚨 CRITICAL" : "⚠️ WARNING";
+    new Notification(`${prefix}: ${alert.title || "Vital Alert"}`, {
+      body: `${alert.message || "Threshold breached"} | Measured: ${alert.value || "—"}`,
+      icon: "/static/images/favicon.png",
+      tag: alert.vital || "vital_alert"
+    });
+  } catch (e) {
+    console.warn("Desktop notification error:", e);
+  }
+}
+
+// ── Visual Card Alarm Glows & Vital Badges ────────────────────────────────────
+function updateCardAlarms(activeAlerts) {
+  const cards = {
+    heart_rate: $("card-hr"),
+    spo2: $("card-spo2"),
+    body_temperature: $("card-btemp"),
+    blood_pressure: $("card-env"),
+    heat_index: $("card-env")
+  };
+  const tags = {
+    heart_rate: $("tag-hr"),
+    spo2: $("tag-spo2"),
+    body_temperature: $("tag-btemp"),
+    blood_pressure: $("tag-bp"),
+    heat_index: $("tag-bp")
+  };
+
+  // Reset all cards and tags to default
+  Object.values(cards).forEach(c => {
+    if (c) c.classList.remove("card-alarm-critical", "card-alarm-warning");
+  });
+  if (tags.heart_rate) { tags.heart_rate.className = "vital-status-pill normal"; tags.heart_rate.textContent = "NORMAL"; }
+  if (tags.spo2) { tags.spo2.className = "vital-status-pill normal"; tags.spo2.textContent = "NORMAL"; }
+  if (tags.body_temperature) { tags.body_temperature.className = "vital-status-pill normal"; tags.body_temperature.textContent = "NORMAL"; }
+  if (tags.blood_pressure) { tags.blood_pressure.className = "vital-status-pill normal"; tags.blood_pressure.textContent = "NORMAL"; }
+
+  // Apply active alarm glows
+  if (Array.isArray(activeAlerts)) {
+    activeAlerts.forEach(a => {
+      const v = a.vital;
+      const card = cards[v];
+      const tag = tags[v];
+      const isCrit = (a.severity === "CRITICAL" || a.severity === "HIGH");
+      const alarmClass = isCrit ? "card-alarm-critical" : "card-alarm-warning";
+      const pillClass = isCrit ? "vital-status-pill critical" : "vital-status-pill warning";
+
+      if (card) {
+        card.classList.remove("card-alarm-critical", "card-alarm-warning");
+        card.classList.add(alarmClass);
+      }
+      if (tag) {
+        tag.className = pillClass;
+        tag.textContent = a.direction === "HIGH" ? "HIGH" : (a.direction === "LOW" ? "LOW" : "ALERT");
+      }
+    });
+  }
+
+  // Update Settings tab alarm pill
+  const settingsPill = $("alarm-system-status-pill");
+  if (settingsPill) {
+    const count = activeAlerts ? activeAlerts.length : 0;
+    if (count > 0) {
+      settingsPill.className = "status-badge high";
+      settingsPill.textContent = `ALERT • ${count} ACTIVE ALARM${count > 1 ? "S" : ""}`;
+    } else {
+      settingsPill.className = "status-badge normal";
+      settingsPill.textContent = "ACTIVE • 0 ALARMS";
+    }
+  }
+}
+
+// ── Notification Drawer & History Manager ────────────────────────────────────
+function renderNotificationList() {
+  const container = $("notif-list-container");
+  const badge = $("notif-counter-badge");
+  const headerPill = $("notif-header-pill");
+  const activeCountEl = $("notif-tab-active-count");
+  const histCountEl = $("notif-tab-history-count");
+
+  const activeCount = _activeAlerts.length;
+  const histCount = _historyAlerts.length;
+
+  if (badge) {
+    if (activeCount > 0) {
+      badge.textContent = activeCount > 9 ? "9+" : activeCount;
+      badge.style.display = "inline-block";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  if (activeCountEl) activeCountEl.textContent = activeCount;
+  if (histCountEl) histCountEl.textContent = histCount;
+
+  if (headerPill) {
+    if (activeCount > 0) {
+      headerPill.textContent = `${activeCount} ACTIVE ALARM${activeCount > 1 ? "S" : ""}`;
+      headerPill.className = "notif-status-pill alarms-active";
+    } else {
+      headerPill.textContent = "ALL CLEAR";
+      headerPill.className = "notif-status-pill all-clear";
+    }
+  }
+
+  if (!container) return;
+
+  const listToRender = _currentNotifTab === "active" ? _activeAlerts : _historyAlerts;
+
+  if (listToRender.length === 0) {
+    container.innerHTML = `
+      <div class="notif-empty-state">
+        <div class="notif-empty-icon">🛡️</div>
+        <div class="notif-empty-title">${_currentNotifTab === "active" ? "All Vitals Within Normal Limits" : "No Past Alerts Recorded"}</div>
+        <div class="notif-empty-desc">${_currentNotifTab === "active" ? "Continuous edge telemetry is healthy. Threshold breach warnings will appear here instantly." : "Historical threshold alarms will be logged here."}</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = "";
+  listToRender.forEach(a => {
+    const isCrit = (a.severity === "CRITICAL" || a.severity === "HIGH");
+    const isWarn = (a.severity === "WARNING" || a.severity === "WATCH");
+    const sevClass = isCrit ? "critical" : (isWarn ? "warning" : "normal");
+    const sevLabel = isCrit ? "CRITICAL" : (isWarn ? "WARNING" : "NORMAL");
+
+    let timeStr = "Just now";
+    if (a.timestamp) {
+      const diffSec = Math.round((Date.now() / 1000) - a.timestamp);
+      if (diffSec > 120) timeStr = `${Math.round(diffSec / 60)}m ago`;
+      else if (diffSec > 5) timeStr = `${diffSec}s ago`;
+      else timeStr = "Just now";
+    }
+
+    const card = document.createElement("div");
+    card.className = `notif-card ${sevClass}`;
+    card.innerHTML = `
+      <div class="notif-card-header">
+        <div class="notif-card-badges">
+          <span class="notif-badge-pill ${sevClass}">${sevLabel}</span>
+          <span class="notif-card-vital-tag">[${(a.vital || "general").replace("_", " ").toUpperCase()}]</span>
+        </div>
+        <span class="notif-card-time">${timeStr}</span>
+      </div>
+      <div class="notif-card-title">
+        ${isCrit ? "🚨" : (isWarn ? "⚠️" : "✅")} ${a.title || "Health Alert"}
+      </div>
+      <div class="notif-card-msg">${a.message || ""}</div>
+      <div class="notif-card-meta">
+        <div>Measured: <span class="notif-val-highlight">${a.value || "—"}</span></div>
+        <div class="notif-norm-ref">${a.normal_range ? "Ref: " + a.normal_range : ""}</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function fetchAlertsData() {
+  fetch("/api/alerts")
+    .then(r => r.json())
+    .then(data => {
+      if (Array.isArray(data.active)) _activeAlerts = data.active;
+      if (Array.isArray(data.history)) _historyAlerts = data.history;
+      else if (Array.isArray(data.alerts)) _historyAlerts = data.alerts;
+      updateCardAlarms(_activeAlerts);
+      renderNotificationList();
+    })
+    .catch(() => {});
+}
+
+function initNotificationCenter() {
+  const btn = $("notif-btn");
+  const panel = $("notif-dropdown-panel");
+  const closeBtn = $("notif-close-btn");
+  const soundToggleBtn = $("notif-sound-toggle-btn");
+  const soundSettingBtn = $("btn-toggle-sound-settings");
+  const tabActive = $("notif-tab-active");
+  const tabHistory = $("notif-tab-history");
+  const ackAllBtn = $("btn-ack-all");
+  const clearHistoryBtn = $("btn-clear-history");
+
+  if (!btn || !panel) return;
+
+  function togglePanel() {
+    const isOpen = panel.classList.toggle("open");
+    btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    if (isOpen) {
+      getAudioContext();
+      renderNotificationList();
+    }
+  }
+
+  function closePanel() {
+    panel.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+  }
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    togglePanel();
+  });
+
+  if (closeBtn) closeBtn.addEventListener("click", closePanel);
+
+  if (soundToggleBtn) soundToggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleAudioMute();
+  });
+
+  if (soundSettingBtn) soundSettingBtn.addEventListener("click", () => {
+    toggleAudioMute();
+  });
+
+  updateSoundUI();
+
+  // Tab switching
+  if (tabActive) {
+    tabActive.addEventListener("click", () => {
+      _currentNotifTab = "active";
+      tabActive.classList.add("active");
+      if (tabHistory) tabHistory.classList.remove("active");
+      renderNotificationList();
+    });
+  }
+  if (tabHistory) {
+    tabHistory.addEventListener("click", () => {
+      _currentNotifTab = "history";
+      tabHistory.classList.add("active");
+      if (tabActive) tabActive.classList.remove("active");
+      renderNotificationList();
+    });
+  }
+
+  // Acknowledge All
+  if (ackAllBtn) {
+    ackAllBtn.addEventListener("click", () => {
+      fetch("/api/alerts/acknowledge", { method: "POST" })
+        .then(r => r.json())
+        .then(() => {
+          showToast("All active alerts acknowledged", "Alerts");
+          fetchAlertsData();
+        })
+        .catch(() => {});
+    });
+  }
+
+  // Clear History
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener("click", () => {
+      fetch("/api/alerts/clear", { method: "POST" })
+        .then(r => r.json())
+        .then(() => {
+          _historyAlerts = [];
+          showToast("Alert history cleared", "Alerts");
+          renderNotificationList();
+        })
+        .catch(() => {});
+    });
+  }
+
+  // Outside click & Escape
+  document.addEventListener("click", (e) => {
+    const wrapper = $("notif-menu-wrapper");
+    if (wrapper && !wrapper.contains(e.target)) {
+      closePanel();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePanel();
+  });
+}
+
+// ── Interactive Alarm Simulator Hook ──────────────────────────────────────────
+function initAlarmSimulator() {
+  const simButtons = document.querySelectorAll(".sim-btn[data-sim-vital]");
+  const clearTestBtn = $("sim-btn-clear-test");
+
+  simButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const vital = btn.getAttribute("data-sim-vital");
+      const severity = btn.getAttribute("data-sim-sev");
+
+      fetch("/api/alerts/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vital, severity })
+      })
+      .then(r => r.json())
+      .then(resp => {
+        if (resp.alert) {
+          showToast(resp.alert.severity, `${resp.alert.title}: ${resp.alert.message}`);
+          playAlarmChime(resp.alert.severity);
+          sendDesktopNotification(resp.alert);
+          fetchAlertsData();
+        }
+      })
+      .catch(e => console.warn("Simulate alert error:", e));
+    });
+  });
+
+  if (clearTestBtn) {
+    clearTestBtn.addEventListener("click", () => {
+      fetch("/api/alerts/acknowledge", { method: "POST" })
+        .then(() => {
+          _activeAlerts = [];
+          updateCardAlarms([]);
+          renderNotificationList();
+          playAlarmChime("NORMAL");
+          showToast("NORMAL", "All vital alarms normalized & cleared.");
+        })
+        .catch(() => {});
+    });
+  }
 }
 
 // ── Slide Down User Profile Switcher (Demo) ───────────────────────────────────
@@ -1102,12 +1608,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initTheme();
   initTabs();
+  initNotificationCenter();
+  initDesktopPush();
+  initAlarmSimulator();
   initUserSwitcher();
   initCharts();
   initLiveECG();
   initArchiveECG();
   fetchBaseline();
   fetchHistory();
+  fetchAlertsData();
   fetchLatest();
 
   if (typeof EventSource !== "undefined") {

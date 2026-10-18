@@ -107,11 +107,18 @@ def on_sensor_message(payload: dict) -> None:
         reasons=fused.reasons,
     )
 
-    # 9. Update shared in-memory state (for API fast path)
-    state_store.update(reading, fused)
+    # 9. Alert engine (evaluates per-vital thresholds and risk transitions)
+    new_alerts = alert_manager.process(fused=fused, reading=reading, features=features)
+    active_alerts = [a.to_dict() for a in alert_manager.active_alerts]
+    new_alerts_dict = [a.to_dict() for a in new_alerts]
 
-    # 10. Alert engine
-    alert_manager.process(fused)
+    # 10. Update shared in-memory state (for API fast path & real-time SSE stream)
+    state_store.update(
+        reading=reading,
+        fused_risk=fused,
+        active_alerts=active_alerts,
+        new_alerts=new_alerts_dict,
+    )
 
     # 11. Notify SSE clients
     notify_update()

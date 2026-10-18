@@ -13,7 +13,7 @@ from __future__ import annotations
 import threading
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.ingestion.normalizer import SensorReading
 from app.risk.fusion import FusedRisk
@@ -24,6 +24,9 @@ class PipelineState:
     """Current snapshot of the pipeline's latest output."""
     reading: Optional[SensorReading] = None
     fused_risk: Optional[FusedRisk] = None
+    alerts: List[Dict[str, Any]] = field(default_factory=list)
+    new_alerts: List[Dict[str, Any]] = field(default_factory=list)
+    alert_count: int = 0
     last_update: float = 0.0
     total_readings: int = 0
     total_rejected: int = 0
@@ -36,6 +39,9 @@ class PipelineState:
             "reading": reading_dict,
             "latest": reading_dict,
             "risk": self.fused_risk.to_dict() if self.fused_risk else None,
+            "alerts": self.alerts,
+            "new_alerts": self.new_alerts,
+            "alert_count": self.alert_count,
             "last_update": self.last_update,
             "total_readings": self.total_readings,
             "total_rejected": self.total_rejected,
@@ -49,10 +55,19 @@ class _StateStore:
         self._lock = threading.Lock()
         self._state = PipelineState()
 
-    def update(self, reading: SensorReading, fused_risk: FusedRisk) -> None:
+    def update(
+        self,
+        reading: SensorReading,
+        fused_risk: FusedRisk,
+        active_alerts: Optional[List[Dict[str, Any]]] = None,
+        new_alerts: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
         with self._lock:
             self._state.reading = reading
             self._state.fused_risk = fused_risk
+            self._state.alerts = active_alerts if active_alerts is not None else []
+            self._state.new_alerts = new_alerts if new_alerts is not None else []
+            self._state.alert_count = len(self._state.alerts)
             self._state.last_update = time.time()
             self._state.total_readings += 1
 
@@ -62,10 +77,12 @@ class _StateStore:
 
     def snapshot(self) -> PipelineState:
         with self._lock:
-            # Return a shallow copy (dataclass is mutable, but fields are immutable objects)
             return PipelineState(
                 reading=self._state.reading,
                 fused_risk=self._state.fused_risk,
+                alerts=list(self._state.alerts),
+                new_alerts=list(self._state.new_alerts),
+                alert_count=self._state.alert_count,
                 last_update=self._state.last_update,
                 total_readings=self._state.total_readings,
                 total_rejected=self._state.total_rejected,

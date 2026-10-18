@@ -50,7 +50,52 @@
       </nav>
       <div class="header-meta">
         <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Dark / Light Theme"><span id="icon-theme"></span></button>
-        <button class="icon-btn notif-btn" id="notif-btn" aria-label="Notifications" title="Alerts & Notifications"><span id="icon-bell"></span></button>
+        <!-- Notification Center Dropdown Container -->
+        <div class="notif-menu-wrapper" id="notif-menu-wrapper">
+          <button class="icon-btn notif-btn" id="notif-btn" aria-label="Notifications" title="Alerts & Notifications" aria-haspopup="true" aria-expanded="false">
+            <span id="icon-bell"></span>
+            <span class="notif-counter-badge" id="notif-counter-badge" style="display: none;">0</span>
+          </button>
+
+          <!-- Slide Down Notifications Drawer -->
+          <div class="notif-dropdown-panel" id="notif-dropdown-panel" role="region" aria-label="Active Alerts and Notifications">
+            <div class="notif-header">
+              <div class="notif-header-left">
+                <span class="notif-header-title">PATIENT ALERTS</span>
+                <span class="notif-status-pill all-clear" id="notif-header-pill">ALL CLEAR</span>
+              </div>
+              <div class="notif-header-actions">
+                <button class="notif-sound-btn" id="notif-sound-toggle-btn" title="Toggle Alarm Sound" aria-label="Toggle Alarm Sound">
+                  <span id="icon-sound-state">🔊</span>
+                </button>
+                <button class="notif-close-btn" id="notif-close-btn" aria-label="Close Notifications">✕</button>
+              </div>
+            </div>
+
+            <!-- Subnav Tabs -->
+            <div class="notif-tabs">
+              <button class="notif-tab active" id="notif-tab-active" data-notif-tab="active">
+                <span>Active Alarms</span>
+                <span class="notif-tab-badge" id="notif-tab-active-count">0</span>
+              </button>
+              <button class="notif-tab" id="notif-tab-history" data-notif-tab="history">
+                <span>Alert History</span>
+                <span class="notif-tab-badge" id="notif-tab-history-count">0</span>
+              </button>
+            </div>
+
+            <!-- Alerts List Container -->
+            <div class="notif-body custom-scrollbar" id="notif-list-container">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="notif-footer">
+              <button class="notif-action-btn" id="btn-ack-all">Acknowledge All</button>
+              <button class="notif-action-btn text-danger" id="btn-clear-history">Clear History</button>
+            </div>
+          </div>
+        </div>
         <button class="icon-btn settings-btn" id="settings-btn" data-tab="settings" aria-label="Settings" title="Edge Node Settings & API Status"><span id="icon-settings"></span></button>
         
         <!-- User Switcher Dropdown Container -->
@@ -152,10 +197,11 @@
 
       <!-- ── Vital Metrics (Top Row) ─────────────────────────────────────── -->
       <!-- Heart Rate -->
-      <section class="card col-3 metric-card">
+      <section class="card col-3 metric-card" id="card-hr">
         <div class="metric-header">
           <div class="metric-icon-wrap" id="icon-hr"></div>
           <div class="metric-label">Heart Rate</div>
+          <span class="vital-status-pill normal" id="tag-hr">NORMAL</span>
         </div>
         <div>
           <div class="metric-value-row">
@@ -167,10 +213,11 @@
       </section>
 
       <!-- SpO2 -->
-      <section class="card col-3 metric-card">
+      <section class="card col-3 metric-card" id="card-spo2">
         <div class="metric-header">
           <div class="metric-icon-wrap" id="icon-spo2"></div>
           <div class="metric-label">SpO₂</div>
+          <span class="vital-status-pill normal" id="tag-spo2">NORMAL</span>
         </div>
         <div>
           <div class="metric-value-row">
@@ -182,10 +229,11 @@
       </section>
 
       <!-- Body Temp -->
-      <section class="card col-3 metric-card">
+      <section class="card col-3 metric-card" id="card-btemp">
         <div class="metric-header">
           <div class="metric-icon-wrap" id="icon-btemp"></div>
           <div class="metric-label">Body Temp</div>
+          <span class="vital-status-pill normal" id="tag-btemp">NORMAL</span>
         </div>
         <div>
           <div class="metric-value-row">
@@ -196,11 +244,12 @@
         </div>
       </section>
 
-      <!-- Environment -->
-      <section class="card col-3 metric-card">
+      <!-- Environment & Blood Pressure -->
+      <section class="card col-3 metric-card" id="card-env">
         <div class="metric-header">
           <div class="metric-icon-wrap" id="icon-env"></div>
           <div class="metric-label">Environment</div>
+          <span class="vital-status-pill normal" id="tag-bp">NORMAL</span>
         </div>
         <div>
           <div class="metric-value-row">
@@ -210,7 +259,7 @@
             <span class="metric-value" style="font-size: 1.5rem;" id="val-hum">—</span>
             <span class="metric-unit">%</span>
           </div>
-          <div class="metric-sub" style="background:var(--accent-soft); color:var(--accent)">Room Conditions</div>
+          <div class="metric-sub" id="sub-bp-display">Room Conditions</div>
         </div>
       </section>
 
@@ -546,6 +595,116 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             <span>Open API Pipeline Status (/api/status)</span>
           </a>
+        </div>
+      </section>
+
+      <!-- ── Alarm & Notification System Configuration Card (col-12) ── -->
+      <section class="card col-12 alarm-settings-card">
+        <div class="alarm-settings-header">
+          <div>
+            <h3 class="card-title">
+              Alarm & Notification System
+              <span class="status-badge normal" id="alarm-system-status-pill">ACTIVE • 0 ALARMS</span>
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+              Autonomous vital sign alert engine monitoring real-time threshold breaches (Heart Rate, SpO₂, Body Temperature, Blood Pressure, and Heat Strain).
+            </p>
+          </div>
+          <div class="alarm-controls-quick">
+            <button class="btn btn-sm" id="btn-toggle-sound-settings">
+              <span id="setting-sound-icon">🔊</span>
+              <span id="setting-sound-label">Audio Alarms: ON</span>
+            </button>
+            <button class="btn btn-sm btn-outline" id="btn-toggle-push-settings">
+              <span>🔔</span>
+              <span id="setting-push-label">Desktop Notifications</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="alarm-settings-grid">
+          <!-- Thresholds Reference Table -->
+          <div class="alarm-thresholds-panel">
+            <div class="alarm-panel-heading">Clinical Safe Ranges & Breach Thresholds</div>
+            <div class="thresholds-table-wrapper">
+              <table class="thresholds-table">
+                <thead>
+                  <tr>
+                    <th>Vital Parameter</th>
+                    <th>Safe / Normal</th>
+                    <th>Watch (Warning)</th>
+                    <th>Critical Alarm</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Heart Rate</strong></td>
+                    <td><span class="range-pill normal">60 – 100 bpm</span></td>
+                    <td><span class="range-pill watch">100–120 or 45–55</span></td>
+                    <td><span class="range-pill high">≥ 120 or ≤ 45 bpm</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Blood Oxygen (SpO₂)</strong></td>
+                    <td><span class="range-pill normal">95.0 – 100%</span></td>
+                    <td><span class="range-pill watch">90.0 – 94.9%</span></td>
+                    <td><span class="range-pill high">&lt; 90.0%</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Body Temperature</strong></td>
+                    <td><span class="range-pill normal">36.1 – 37.2 °C</span></td>
+                    <td><span class="range-pill watch">37.5–38.4 / 35.1–35.8</span></td>
+                    <td><span class="range-pill high">≥ 38.5 or ≤ 35.0 °C</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Blood Pressure (BP)</strong></td>
+                    <td><span class="range-pill normal">&lt; 120 / &lt; 80 mmHg</span></td>
+                    <td><span class="range-pill watch">130–139 / 85–89</span></td>
+                    <td><span class="range-pill high">≥ 140 / ≥ 90 mmHg</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Heat Index (Ambient)</strong></td>
+                    <td><span class="range-pill normal">&lt; 32.0 °C</span></td>
+                    <td><span class="range-pill watch">32.0 – 40.9 °C</span></td>
+                    <td><span class="range-pill high">≥ 41.0 °C</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Live Alarm Simulator Box -->
+          <div class="alarm-sim-panel">
+            <div class="alarm-panel-heading">Interactive Alarm Simulator</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.4;">
+              Trigger real-time simulated vital alarms to test audio chimes, visual glowing pulses, browser notifications, and notification drawer behavior.
+            </p>
+            <div class="sim-actions-grid">
+              <button class="sim-btn sim-warn" data-sim-vital="heart_rate" data-sim-sev="WARNING" id="sim-btn-hr-warn">
+                <span class="sim-icon">⚠️</span>
+                <span>Test Elevated HR (108 bpm)</span>
+              </button>
+              <button class="sim-btn sim-crit" data-sim-vital="heart_rate" data-sim-sev="CRITICAL" id="sim-btn-hr-crit">
+                <span class="sim-icon">🚨</span>
+                <span>Test Critical Tachycardia (134 bpm)</span>
+              </button>
+              <button class="sim-btn sim-crit" data-sim-vital="spo2" data-sim-sev="CRITICAL" id="sim-btn-spo2-crit">
+                <span class="sim-icon">🫁</span>
+                <span>Test Severe Hypoxemia (88.5%)</span>
+              </button>
+              <button class="sim-btn sim-crit" data-sim-vital="body_temperature" data-sim-sev="CRITICAL" id="sim-btn-temp-crit">
+                <span class="sim-icon">🌡️</span>
+                <span>Test High Fever (39.1 °C)</span>
+              </button>
+              <button class="sim-btn sim-warn" data-sim-vital="blood_pressure" data-sim-sev="CRITICAL" id="sim-btn-bp-crit">
+                <span class="sim-icon">🩸</span>
+                <span>Test Stage 2 Hypertension (152/98)</span>
+              </button>
+              <button class="sim-btn sim-norm" id="sim-btn-clear-test">
+                <span class="sim-icon">✅</span>
+                <span>Simulate Recovery (All Normal)</span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 

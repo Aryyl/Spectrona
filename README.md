@@ -37,6 +37,13 @@ It acquires multi-parameter physiological vitals and environmental metrics from 
   - ⚙️ **Settings & API Services:** Real-time pipeline health check, API endpoint diagnostics, and interface preferences.
 - **Modern Dual Theme:** Seamless switching between high-contrast **OLED Dark Mode** (`#09090b`) and clinical **Light Mode** with instant theme persistence.
 - **Edge Storage & Resilient Streaming:** High-performance SQLite database with Write-Ahead Logging (WAL) and Server-Sent Events (SSE) / REST polling fallback.
+- **Multi-Modal Vital Alert & Notification Engine:**
+  - **Clinical Threshold Surveillance:** Continuous real-time assessment of Heart Rate (Tachycardia / Bradycardia), SpO₂ (Hypoxemia), Temperature (Fever / Hypothermia), Blood Pressure (Hypertension / Hypotension), and Ambient Heat Strain.
+  - **Hospital-Grade Synthesized Audio Chimes:** Dual-tone frequency audio alarms generated client-side via native Web Audio API (zero external audio files or internet required).
+  - **Navbar Notification Center:** Interactive slide-down notification drawer with live counter badge, active vs. history filter tabs, sound mute toggle, and single-click clear.
+  - **Visual Alarm Indicators:** Pulsing red (Critical) and amber (Warning) chassis glow animations on anomalous vital cards with directional tags (e.g. `HIGH 134 BPM`, `LOW 88%`).
+  - **Browser Desktop Push:** Background OS notifications via HTML5 Web Notifications API.
+  - **Interactive Alarm Simulator:** Direct in-dashboard testing controls in the Settings tab for validating alarms, sounds, and recovery sequences.
 - **Adaptive Personal Baselines:** Exponential Moving Average (EMA, $\alpha=0.05$) baseline tracking that adapts dynamically to individual resting vitals while rejecting anomalous spikes.
 
 ---
