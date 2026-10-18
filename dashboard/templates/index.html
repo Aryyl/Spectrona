@@ -264,16 +264,24 @@
       </section>
 
       <!-- ── Middle Row ─────────────────────────────────────────────────── -->
-      <!-- Risk Gauge (replaces Investment Overview) -->
-      <section class="card col-4">
+      <!-- Risk Gauge -->
+      <section class="card col-4 risk-level-card">
         <h2 class="card-title">
-          Current Risk Level
+          <span>Current Risk Level</span>
           <div id="connection-dot" class="dot dot--connecting" title="Connection status"></div>
         </h2>
         <div class="gauge-container">
-          <canvas id="gauge-chart" width="200" height="150"></canvas>
-          <div class="gauge-value" id="overall-status">—</div>
-          <div class="gauge-label" id="recommendation">Awaiting data...</div>
+          <div class="gauge-wrapper">
+            <canvas id="gauge-chart"></canvas>
+            <div class="gauge-value" id="overall-status">—</div>
+          </div>
+          <div class="risk-recommendation-box">
+            <div class="risk-rec-header">
+              <span class="risk-rec-title">Clinical Guidance</span>
+              <span class="risk-rec-tag" id="risk-rec-tag">Live Triage</span>
+            </div>
+            <div class="risk-rec-text" id="recommendation">Awaiting data...</div>
+          </div>
         </div>
       </section>
 

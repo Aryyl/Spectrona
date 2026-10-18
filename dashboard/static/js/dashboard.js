@@ -234,6 +234,23 @@ function applyUpdate(data) {
     recEl.textContent = risk.recommendation || "Monitoring active...";
   }
 
+  const tagEl = $("risk-rec-tag");
+  if (tagEl) {
+    if (overall === "HIGH") {
+      tagEl.textContent = "Critical Priority";
+      tagEl.style.background = "var(--risk-high-soft)";
+      tagEl.style.color = "var(--risk-high)";
+    } else if (overall === "WATCH") {
+      tagEl.textContent = "Caution";
+      tagEl.style.background = "var(--risk-watch-soft)";
+      tagEl.style.color = "var(--risk-watch)";
+    } else {
+      tagEl.textContent = "Stable";
+      tagEl.style.background = "var(--risk-normal-soft)";
+      tagEl.style.color = "var(--risk-normal)";
+    }
+  }
+
   // ── Charts & ECG Updates
   if (latest.heart_rate !== undefined && latest.heart_rate !== null) {
     updateCharts(latest.heart_rate, overall);
