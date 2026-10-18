@@ -15,6 +15,12 @@ def configure_logging(level: str = "INFO", fmt: str | None = None) -> None:
 
     numeric = getattr(logging, level.upper(), logging.INFO)
 
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter(fmt, datefmt="%Y-%m-%d %H:%M:%S"))
 

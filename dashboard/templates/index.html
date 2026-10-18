@@ -3,170 +3,676 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fundio-inspired Health Dashboard</title>
+  <title>JEEV_ONE — Live Monitor Dashboard</title>
+  <link rel="icon" type="image/png" href="/static/images/favicon.png" />
+  <link rel="apple-touch-icon" href="/static/images/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/dashboard.css" />
   <!-- We'll use Chart.js for the new charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Prevent theme flicker -->
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem("jeev_one_theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (saved === "dark" || (!saved && prefersDark) || !saved) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
 
   <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
   <header class="header">
     <div class="header-inner">
-      <div class="header-brand">
-        <div class="header-logo" id="header-logo-icon"></div>
-        <h1 class="header-title">HealthCompanion</h1>
-      </div>
+      <a href="/" class="header-brand" aria-label="JEEV_ONE Home">
+        <img src="/static/images/jeev_one_logo.webp" alt="JEEV_ONE Logo" class="header-logo-img" />
+      </a>
       <nav class="header-nav">
-        <a href="#" class="active">Dashboard</a>
-        <a href="#">History</a>
-        <a href="#">Alerts</a>
-        <a href="#">Settings</a>
+        <a href="/" class="header-nav-link">← Overview</a>
+        <button class="nav-tab-btn active" data-tab="live" id="nav-tab-live">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Live Monitor</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="ecg" id="nav-tab-ecg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 5 12 7 4 9 20 11 12 13 12 15 8 17 16 19 12 22 12"/></svg>
+          <span>ECG Diagnostics</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="readings" id="nav-tab-readings">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          <span>Recent Readings</span>
+        </button>
       </nav>
       <div class="header-meta">
-        <button class="icon-btn" id="search-btn" aria-label="Search"><span id="icon-search"></span></button>
-        <button class="icon-btn" id="notif-btn" aria-label="Notifications"><span id="icon-bell"></span></button>
-        <div class="user-avatar" id="user-avatar">
-          <span id="icon-user"></span>
+        <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Dark / Light Theme"><span id="icon-theme"></span></button>
+        <button class="icon-btn notif-btn" id="notif-btn" aria-label="Notifications" title="Alerts & Notifications"><span id="icon-bell"></span></button>
+        <button class="icon-btn settings-btn" id="settings-btn" data-tab="settings" aria-label="Settings" title="Edge Node Settings & API Status"><span id="icon-settings"></span></button>
+        
+        <!-- User Switcher Dropdown Container -->
+        <div class="user-menu-wrapper" id="user-menu-wrapper">
+          <button class="user-profile-btn" id="user-profile-btn" aria-haspopup="true" aria-expanded="false" aria-label="Switch User Profile" title="Switch User Profile">
+            <div class="user-avatar-badge avatar-blue" id="user-avatar-badge">
+              <span id="user-avatar-initials">AM</span>
+            </div>
+            <div class="user-info-text">
+              <span class="user-name" id="user-name">Alex Mercer</span>
+              <span class="user-role" id="user-role">Subject 01</span>
+            </div>
+            <span class="user-chevron-icon" id="user-chevron-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </button>
+
+          <!-- Slide Down Menu -->
+          <div class="user-dropdown-menu" id="user-dropdown-menu" role="menu" aria-label="User Profiles">
+            <div class="dropdown-header">
+              <div class="dropdown-header-tag">SWITCH ACTIVE SUBJECT</div>
+              <span class="dropdown-badge-demo">Demo Mode</span>
+            </div>
+
+            <div class="dropdown-users-list" id="dropdown-users-list">
+              <div class="user-item active" data-user-id="user_1" role="menuitem" tabindex="0">
+                <div class="user-item-avatar avatar-blue">AM</div>
+                <div class="user-item-info">
+                  <div class="user-item-name">Alex Mercer</div>
+                  <div class="user-item-meta">Subject 01 • Adult Male (34) • Baseline Profile</div>
+                </div>
+                <div class="user-item-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+
+              <div class="user-item" data-user-id="user_2" role="menuitem" tabindex="0">
+                <div class="user-item-avatar avatar-amber">EV</div>
+                <div class="user-item-info">
+                  <div class="user-item-name">Elena Vance</div>
+                  <div class="user-item-meta">Subject 02 • Adult Female (29) • Heat Strain Trial</div>
+                </div>
+                <div class="user-item-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+
+              <div class="user-item" data-user-id="user_3" role="menuitem" tabindex="0">
+                <div class="user-item-avatar avatar-purple">DC</div>
+                <div class="user-item-info">
+                  <div class="user-item-name">David Chen</div>
+                  <div class="user-item-meta">Subject 03 • Adult Male (42) • SpO2 Observation</div>
+                </div>
+                <div class="user-item-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+
+              <div class="user-item" data-user-id="user_4" role="menuitem" tabindex="0">
+                <div class="user-item-avatar avatar-green">MT</div>
+                <div class="user-item-info">
+                  <div class="user-item-name">Dr. Marcus Thorne</div>
+                  <div class="user-item-meta">Field Physician • Triage Override / Admin</div>
+                </div>
+                <div class="user-item-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="dropdown-footer">
+              <span class="dropdown-footer-status">
+                <span class="status-pulse-dot" style="display:inline-block; width:6px; height:6px; background:#22c55e; border-radius:50%; box-shadow:0 0 6px #22c55e; margin-right:5px;"></span>
+                Local Edge Node (No Cloud)
+              </span>
+              <span class="dropdown-footer-action">Demo Profiles</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ══ Main Dashboard Grid ═════════════════════════════════════════════════ -->
-  <main class="main-grid" id="main-dashboard">
+  <!-- ══ Tab 1: Live Monitor ═══════════════════════════════════════════════════ -->
+  <div class="tab-pane active" id="tab-live">
+    <main class="main-grid">
 
-    <!-- ── Welcome Section ──────────────────────────────────────────── -->
-    <section class="welcome-section">
-      <div class="welcome-text">
-        <h2>Welcome back!</h2>
-        <p>Here's a quick overview of your health performance today. Stay informed and healthy.</p>
-      </div>
-      <div class="welcome-actions">
-        <button class="btn">Share <span id="icon-share"></span></button>
-        <button class="btn btn-primary">Export <span id="icon-download"></span></button>
-      </div>
-    </section>
-
-    <!-- ── Vital Metrics (Top Row) ─────────────────────────────────────── -->
-    <!-- Heart Rate -->
-    <section class="card col-3 metric-card">
-      <div class="metric-header">
-        <div class="metric-icon-wrap" id="icon-hr"></div>
-        <div class="metric-label">Heart Rate</div>
-      </div>
-      <div>
-        <div class="metric-value-row">
-          <span class="metric-value" id="val-hr">—</span>
-          <span class="metric-unit">bpm</span>
+      <!-- ── Welcome Section ──────────────────────────────────────────── -->
+      <section class="welcome-section">
+        <div class="welcome-text">
+          <h2>Welcome back!</h2>
+          <p>Here's a quick overview of your health performance today. Stay informed and healthy.</p>
         </div>
-        <div class="metric-sub" id="sub-hr">Baseline —</div>
-      </div>
-    </section>
-
-    <!-- SpO2 -->
-    <section class="card col-3 metric-card">
-      <div class="metric-header">
-        <div class="metric-icon-wrap" id="icon-spo2"></div>
-        <div class="metric-label">SpO₂</div>
-      </div>
-      <div>
-        <div class="metric-value-row">
-          <span class="metric-value" id="val-spo2">—</span>
-          <span class="metric-unit">%</span>
+        <div class="welcome-actions">
+          <button class="btn" id="btn-share-report">Share <span id="icon-share"></span></button>
+          <button class="btn btn-primary" id="btn-export-vitals">Export <span id="icon-download"></span></button>
         </div>
-        <div class="metric-sub" id="sub-spo2">Baseline —</div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Body Temp -->
-    <section class="card col-3 metric-card">
-      <div class="metric-header">
-        <div class="metric-icon-wrap" id="icon-btemp"></div>
-        <div class="metric-label">Body Temp</div>
-      </div>
-      <div>
-        <div class="metric-value-row">
-          <span class="metric-value" id="val-btemp">—</span>
-          <span class="metric-unit">°C</span>
+      <!-- ── Vital Metrics (Top Row) ─────────────────────────────────────── -->
+      <!-- Heart Rate -->
+      <section class="card col-3 metric-card">
+        <div class="metric-header">
+          <div class="metric-icon-wrap" id="icon-hr"></div>
+          <div class="metric-label">Heart Rate</div>
         </div>
-        <div class="metric-sub" id="sub-btemp">Baseline —</div>
-      </div>
-    </section>
-
-    <!-- Environment -->
-    <section class="card col-3 metric-card">
-      <div class="metric-header">
-        <div class="metric-icon-wrap" id="icon-env"></div>
-        <div class="metric-label">Environment</div>
-      </div>
-      <div>
-        <div class="metric-value-row">
-          <span class="metric-value" id="val-rtemp">—</span>
-          <span class="metric-unit">°C</span>
-          <span style="color:var(--text-muted); margin:0 4px">|</span>
-          <span class="metric-value" style="font-size: 1.5rem;" id="val-hum">—</span>
-          <span class="metric-unit">%</span>
+        <div>
+          <div class="metric-value-row">
+            <span class="metric-value" id="val-hr">—</span>
+            <span class="metric-unit">bpm</span>
+          </div>
+          <div class="metric-sub" id="sub-hr">Baseline —</div>
         </div>
-        <div class="metric-sub" style="background:var(--accent-soft); color:var(--accent)">Room Conditions</div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ── Middle Row ─────────────────────────────────────────────────── -->
-    <!-- Risk Gauge (replaces Investment Overview) -->
-    <section class="card col-4">
-      <h2 class="card-title">
-        Current Risk Level
-        <div id="connection-dot" class="dot dot--connecting" title="Connection status"></div>
-      </h2>
-      <div class="gauge-container">
-        <canvas id="gauge-chart" width="200" height="150"></canvas>
-        <div class="gauge-value" id="overall-status">—</div>
-        <div class="gauge-label" id="recommendation">Awaiting data...</div>
-      </div>
-    </section>
-
-    <!-- Trend Chart (replaces Campaign overview) -->
-    <section class="card col-8">
-      <h2 class="card-title">
-        Vitals Trend (Heart Rate)
-        <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal;">Live Updates</span>
-      </h2>
-      <div class="chart-container">
-        <canvas id="trend-chart"></canvas>
-      </div>
-    </section>
-
-    <!-- ── Bottom Row (Table) ─────────────────────────────────────────── -->
-    <section class="card col-full">
-      <h2 class="card-title">
-        Recent Readings
-        <div style="display:flex; gap:0.5rem">
-          <button class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Filter <span id="icon-filter"></span></button>
+      <!-- SpO2 -->
+      <section class="card col-3 metric-card">
+        <div class="metric-header">
+          <div class="metric-icon-wrap" id="icon-spo2"></div>
+          <div class="metric-label">SpO₂</div>
         </div>
-      </h2>
-      <div class="data-table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Heart Rate</th>
-              <th>SpO₂</th>
-              <th>Body Temp</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="readings-tbody">
-            <!-- Rows populated by JS -->
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <div>
+          <div class="metric-value-row">
+            <span class="metric-value" id="val-spo2">—</span>
+            <span class="metric-unit">%</span>
+          </div>
+          <div class="metric-sub" id="sub-spo2">Baseline —</div>
+        </div>
+      </section>
 
-  </main>
+      <!-- Body Temp -->
+      <section class="card col-3 metric-card">
+        <div class="metric-header">
+          <div class="metric-icon-wrap" id="icon-btemp"></div>
+          <div class="metric-label">Body Temp</div>
+        </div>
+        <div>
+          <div class="metric-value-row">
+            <span class="metric-value" id="val-btemp">—</span>
+            <span class="metric-unit">°C</span>
+          </div>
+          <div class="metric-sub" id="sub-btemp">Baseline —</div>
+        </div>
+      </section>
+
+      <!-- Environment -->
+      <section class="card col-3 metric-card">
+        <div class="metric-header">
+          <div class="metric-icon-wrap" id="icon-env"></div>
+          <div class="metric-label">Environment</div>
+        </div>
+        <div>
+          <div class="metric-value-row">
+            <span class="metric-value" id="val-rtemp">—</span>
+            <span class="metric-unit">°C</span>
+            <span style="color:var(--text-muted); margin:0 4px">|</span>
+            <span class="metric-value" style="font-size: 1.5rem;" id="val-hum">—</span>
+            <span class="metric-unit">%</span>
+          </div>
+          <div class="metric-sub" style="background:var(--accent-soft); color:var(--accent)">Room Conditions</div>
+        </div>
+      </section>
+
+      <!-- ── Middle Row ─────────────────────────────────────────────────── -->
+      <!-- Risk Gauge (replaces Investment Overview) -->
+      <section class="card col-4">
+        <h2 class="card-title">
+          Current Risk Level
+          <div id="connection-dot" class="dot dot--connecting" title="Connection status"></div>
+        </h2>
+        <div class="gauge-container">
+          <canvas id="gauge-chart" width="200" height="150"></canvas>
+          <div class="gauge-value" id="overall-status">—</div>
+          <div class="gauge-label" id="recommendation">Awaiting data...</div>
+        </div>
+      </section>
+
+      <!-- Trend Chart (replaces Campaign overview) -->
+      <section class="card col-8">
+        <h2 class="card-title">
+          Vitals Trend (Heart Rate)
+          <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal;">Live Updates</span>
+        </h2>
+        <div class="chart-container">
+          <canvas id="trend-chart"></canvas>
+        </div>
+      </section>
+
+      <!-- ── ECG Level 1 Live Oscilloscope & Telemetry Card (col-full) ─────── -->
+      <section class="card col-full ecg-live-section">
+        <div class="ecg-section-header">
+          <div class="ecg-header-title-wrap">
+            <span class="ecg-lead-badge">LEAD I</span>
+            <div>
+              <h2 class="card-title" style="margin-bottom: 0.2rem;">
+                Electrocardiogram (ECG Level 1)
+                <span class="ecg-hardware-tag">AD8232 / MAX30003 • 250 SPS</span>
+              </h2>
+              <div class="ecg-header-sub">
+                Continuous cardiac vector tracing • Real-time analog front-end telemetry
+              </div>
+            </div>
+          </div>
+          <div class="ecg-header-controls">
+            <div class="ecg-live-status-pill">
+              <span class="status-pulse-dot" style="display:inline-block; width:7px; height:7px; background:#22c55e; border-radius:50%; box-shadow:0 0 8px #22c55e; margin-right:6px;"></span>
+              <span id="ecg-live-rhythm-badge">Normal Sinus Rhythm (NSR)</span>
+            </div>
+            <div class="ecg-lead-status-pill" id="ecg-lead-status-pill">
+              <span style="color:#22c55e">●</span> Leads OK (98%)
+            </div>
+            <button class="btn btn-sm" id="btn-view-ecg-history" data-tab="ecg" style="cursor: pointer;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 12 5 12 7 4 9 20 11 12 13 12 15 8 17 16 19 12 22 12"/></svg>
+              <span>Full ECG Archive →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Medical Oscilloscope Screen -->
+        <div class="ecg-monitor-frame">
+          <div class="ecg-monitor-topbar">
+            <div class="ecg-monitor-channel">CH1: LEAD I (25 mm/s, 10 mm/mV)</div>
+            <div class="ecg-monitor-vitals-overlay">
+              <span class="ecg-overlay-hr"><strong id="ecg-overlay-hr-val">74</strong> <small>BPM</small></span>
+              <span class="ecg-overlay-divider">|</span>
+              <span class="ecg-overlay-item">RR: <strong id="ecg-overlay-rr-val">812 ms</strong></span>
+              <span class="ecg-overlay-divider">|</span>
+              <span class="ecg-overlay-item">QRS: <strong id="ecg-overlay-qrs-val">88 ms</strong></span>
+            </div>
+            <div class="ecg-monitor-notch">NOTCH: 50Hz ON</div>
+          </div>
+          <div class="ecg-canvas-wrapper">
+            <canvas id="live-ecg-canvas" width="1340" height="190"></canvas>
+          </div>
+        </div>
+
+        <!-- ECG Level 1 Metrics Grid -->
+        <div class="ecg-metrics-grid">
+          <div class="ecg-metric-tile">
+            <span class="ecg-metric-title">R-R Interval</span>
+            <div class="ecg-metric-num"><span id="ecg-metric-rr">812</span> <small>ms</small></div>
+            <span class="ecg-metric-note">Regularity: 98% Normal</span>
+          </div>
+
+          <div class="ecg-metric-tile">
+            <span class="ecg-metric-title">PR Interval</span>
+            <div class="ecg-metric-num"><span id="ecg-metric-pr">156</span> <small>ms</small></div>
+            <span class="ecg-metric-note">Norm: 120–200 ms</span>
+          </div>
+
+          <div class="ecg-metric-tile">
+            <span class="ecg-metric-title">QRS Duration</span>
+            <div class="ecg-metric-num"><span id="ecg-metric-qrs">88</span> <small>ms</small></div>
+            <span class="ecg-metric-note">Norm: 60–100 ms</span>
+          </div>
+
+          <div class="ecg-metric-tile">
+            <span class="ecg-metric-title">QTc (Bazett)</span>
+            <div class="ecg-metric-num"><span id="ecg-metric-qtc">408</span> <small>ms</small></div>
+            <span class="ecg-metric-note">Norm: &lt; 440 ms</span>
+          </div>
+
+          <div class="ecg-metric-tile">
+            <span class="ecg-metric-title">R-Peak Amp</span>
+            <div class="ecg-metric-num"><span id="ecg-metric-amp">1.18</span> <small>mV</small></div>
+            <span class="ecg-metric-note">High Signal SNR</span>
+          </div>
+
+          <div class="ecg-metric-tile">
+            <span class="ecg-metric-title">Cardiac Rhythm</span>
+            <div class="ecg-metric-num" style="font-size: 1.1rem; color: #22c55e;"><span id="ecg-metric-rhythm">Sinus</span></div>
+            <span class="ecg-metric-note">P-Q-R-S-T Concordant</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ══ Tab: ECG Diagnostics & History Archive ═══════════════════════════════ -->
+  <div class="tab-pane" id="tab-ecg">
+    <main class="main-grid">
+      <!-- ECG Tab Banner -->
+      <section class="welcome-section">
+        <div class="welcome-text">
+          <h2>ECG Level 1 Diagnostic History & Strip Archive</h2>
+          <p>Continuous Lead I recordings, rhythm interval measurements, and automated cardiac morphology evaluations stored locally.</p>
+        </div>
+        <div class="welcome-actions">
+          <div class="telemetry-buffer-pill">
+            <span class="status-pulse-dot" style="display:inline-block; width:7px; height:7px; background:#22c55e; border-radius:50%; box-shadow:0 0 6px #22c55e; margin-right:6px;"></span>
+            <span>Lead I Analog Front-End (250 Hz)</span>
+          </div>
+          <button class="btn btn-primary" id="btn-export-ecg-csv">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export ECG Data</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Interactive 10-Second High-Resolution ECG Strip Viewer Card -->
+      <section class="card col-full">
+        <div class="table-card-header">
+          <div>
+            <h3 class="card-title" style="margin-bottom: 0.25rem;">
+              Diagnostic Rhythm Strip Reviewer (10 Seconds)
+              <span class="status-badge normal" id="ecg-strip-status-badge">NORMAL SINUS RHYTHM</span>
+            </h3>
+            <span style="font-size: 0.78rem; color: var(--text-muted);" id="ecg-strip-meta-text">
+              Selected Recording: <strong>#ECG-2041</strong> • Calibrated 25 mm/s • 10 mm/mV • Lead I (LA-RA)
+            </span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span class="ecg-calibration-pill">1.0 mV Pulse Active</span>
+            <span class="ecg-calibration-pill">Bandwidth: 0.5 - 40 Hz</span>
+          </div>
+        </div>
+
+        <div class="ecg-archive-monitor-frame" style="margin-top: 1rem;">
+          <div class="ecg-monitor-topbar">
+            <div class="ecg-monitor-channel">LEAD I — CALIBRATED 250 SPS PLAYBACK</div>
+            <div class="ecg-monitor-vitals-overlay">
+              <span>HR: <strong id="strip-overlay-hr">72 bpm</strong></span>
+              <span class="ecg-overlay-divider">|</span>
+              <span>RR: <strong id="strip-overlay-rr">833 ms</strong></span>
+              <span class="ecg-overlay-divider">|</span>
+              <span>PR: <strong id="strip-overlay-pr">158 ms</strong></span>
+              <span class="ecg-overlay-divider">|</span>
+              <span>QRS: <strong id="strip-overlay-qrs">86 ms</strong></span>
+              <span class="ecg-overlay-divider">|</span>
+              <span>QTc: <strong id="strip-overlay-qtc">412 ms</strong></span>
+            </div>
+            <div class="ecg-monitor-notch">GRID: 0.04s / 0.1mV</div>
+          </div>
+          <div class="ecg-canvas-wrapper">
+            <canvas id="archive-ecg-canvas" width="1340" height="210"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Previous ECG Records Table Card (col-8) -->
+      <section class="card col-8">
+        <div class="table-card-header">
+          <div>
+            <h3 class="card-title" style="margin-bottom: 0.25rem;">Previous ECG Telemetry Recordings</h3>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Historical rhythm sessions logged into local edge storage (click row to inspect strip)</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span class="status-badge normal" id="ecg-counter-badge">8 LOGGED SESSIONS</span>
+          </div>
+        </div>
+
+        <div class="data-table-wrapper" style="margin-top: 1rem;">
+          <table class="data-table" id="ecg-history-table">
+            <thead>
+              <tr>
+                <th>Session Time</th>
+                <th>Classification</th>
+                <th>HR</th>
+                <th>R-R</th>
+                <th>PR</th>
+                <th>QRS</th>
+                <th>QTc</th>
+                <th>Quality</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="ecg-history-tbody">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Hardware & Diagnostic Clinical Guide Card (col-4) -->
+      <section class="card col-4">
+        <h3 class="card-title">ECG Hardware & Norms</h3>
+        
+        <div class="node-specs-list">
+          <div class="node-spec-row">
+            <span class="node-spec-key">Front-End IC</span>
+            <span class="node-spec-val">AD8232 / MAX30003</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Lead Type</span>
+            <span class="node-spec-val">Lead I (Bipolar 3-Electrode)</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Sampling Rate</span>
+            <span class="node-spec-val">250 Hz (4 ms period)</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Filters</span>
+            <span class="node-spec-val">50Hz Notch + 0.5-40Hz HP/LP</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Resolution</span>
+            <span class="node-spec-val">12-bit ADC (1 mV / 10mm)</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.65rem; font-family: var(--font-mono); text-transform: uppercase;">
+            Clinical Reference Ranges (Adult)
+          </div>
+          <div class="ecg-norms-grid">
+            <div class="ecg-norm-item">
+              <span class="ecg-norm-label">PR Interval</span>
+              <span class="ecg-norm-val">120 - 200 ms</span>
+            </div>
+            <div class="ecg-norm-item">
+              <span class="ecg-norm-label">QRS Duration</span>
+              <span class="ecg-norm-val">60 - 100 ms</span>
+            </div>
+            <div class="ecg-norm-item">
+              <span class="ecg-norm-label">QTc Interval</span>
+              <span class="ecg-norm-val">&lt; 440 ms (Normal)</span>
+            </div>
+            <div class="ecg-norm-item">
+              <span class="ecg-norm-label">Resting HR</span>
+              <span class="ecg-norm-val">60 - 100 bpm</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ══ Tab 3: Recent Readings ════════════════════════════════════════════════ -->
+  <div class="tab-pane" id="tab-readings">
+    <main class="main-grid">
+      <!-- Readings Tab Header Banner -->
+      <section class="welcome-section">
+        <div class="welcome-text">
+          <h2>Recent Readings Archive</h2>
+          <p>Continuous sequential sensor packets logged locally from the ESP32 node into Raspberry Pi 5 SQLite storage.</p>
+        </div>
+        <div class="welcome-actions">
+          <div class="telemetry-buffer-pill">
+            <span class="status-pulse-dot" style="display:inline-block; width:7px; height:7px; background:#22c55e; border-radius:50%; box-shadow:0 0 6px #22c55e; margin-right:6px;"></span>
+            <span>Local Buffer Active (1 Hz)</span>
+          </div>
+          <a href="/api/history" target="_blank" class="btn btn-primary" style="text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>JSON History</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Full-Width Recent Readings Data Table Card -->
+      <section class="card col-full">
+        <div class="table-card-header">
+          <div>
+            <h3 class="card-title" style="margin-bottom: 0.25rem;">Telemetry Records Log</h3>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Real-time historical timeline of biometric vitals and classification results</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span class="status-badge normal" id="records-counter-badge">10 RECENT PACKETS</span>
+          </div>
+        </div>
+        <div class="data-table-wrapper" style="margin-top: 1rem;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Heart Rate</th>
+                <th>SpO₂</th>
+                <th>Body Temp</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="readings-tbody">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ══ Tab 3: Settings & API Services ════════════════════════════════════════ -->
+  <div class="tab-pane" id="tab-settings">
+    <main class="main-grid">
+      <!-- Settings Header Banner -->
+      <section class="welcome-section">
+        <div class="welcome-text">
+          <h2>Edge Node Settings & API Services</h2>
+          <p>Inspect local microservices, check REST endpoints, and review hardware telemetry configuration.</p>
+        </div>
+        <div class="welcome-actions">
+          <!-- Prominent API Status Button moved here as requested -->
+          <a href="/api/status" target="_blank" class="btn btn-primary api-status-primary-btn" id="settings-api-status-btn" style="text-decoration: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span>Open API Pipeline Status (/api/status)</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- API Services Directory Card (col-8) -->
+      <section class="card col-8">
+        <h3 class="card-title">
+          REST & Streaming API Services
+          <span class="status-badge normal" style="font-size: 0.68rem;">ONLINE • LOCALHOST:8000</span>
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
+          All backend telemetry and risk scoring runs directly on the local Raspberry Pi 5 node with 0% external cloud communication. Use these endpoints to inspect raw payloads and pipeline diagnostics.
+        </p>
+
+        <div class="endpoints-list">
+          <div class="endpoint-item">
+            <div class="endpoint-info">
+              <span class="endpoint-method">GET</span>
+              <span class="endpoint-path">/api/status</span>
+              <span class="endpoint-desc">Comprehensive system health, database reading counts, and pipeline status</span>
+            </div>
+            <a href="/api/status" target="_blank" class="btn btn-sm">Inspect Status →</a>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="endpoint-info">
+              <span class="endpoint-method">GET</span>
+              <span class="endpoint-path">/api/health</span>
+              <span class="endpoint-desc">Lightweight operational uptime and HTTP server heartbeat endpoint</span>
+            </div>
+            <a href="/api/health" target="_blank" class="btn btn-sm">Health Check →</a>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="endpoint-info">
+              <span class="endpoint-method">GET</span>
+              <span class="endpoint-path">/api/latest</span>
+              <span class="endpoint-desc">Latest consolidated telemetry packet in JSON format</span>
+            </div>
+            <a href="/api/latest" target="_blank" class="btn btn-sm">Latest Reading →</a>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="endpoint-info">
+              <span class="endpoint-method">GET</span>
+              <span class="endpoint-path">/api/baseline</span>
+              <span class="endpoint-desc">Active subject physiological baseline calibration values</span>
+            </div>
+            <a href="/api/baseline" target="_blank" class="btn btn-sm">View Baseline →</a>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="endpoint-info">
+              <span class="endpoint-method">GET</span>
+              <span class="endpoint-path">/api/history</span>
+              <span class="endpoint-desc">Historical reading buffer fetched from local SQLite store</span>
+            </div>
+            <a href="/api/history" target="_blank" class="btn btn-sm">History Buffer →</a>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="endpoint-info">
+              <span class="endpoint-method">GET</span>
+              <span class="endpoint-path">/stream</span>
+              <span class="endpoint-desc">Server-Sent Events (SSE) real-time biometric event broadcast</span>
+            </div>
+            <a href="/stream" target="_blank" class="btn btn-sm">Live Stream →</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hardware & Architecture Configuration Card (col-4) -->
+      <section class="card col-4">
+        <h3 class="card-title">Node Configuration</h3>
+        <div class="node-specs-list">
+          <div class="node-spec-row">
+            <span class="node-spec-key">Edge Host</span>
+            <span class="node-spec-val">Raspberry Pi 5</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Sensor Node</span>
+            <span class="node-spec-val">ESP32 Dual-Core</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Storage Engine</span>
+            <span class="node-spec-val">SQLite3 (WAL Mode)</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Cloud Dependency</span>
+            <span class="node-spec-val" style="color: #22c55e;">0% (Full Offline)</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Sampling Rate</span>
+            <span class="node-spec-val">1000 ms (1 Hz)</span>
+          </div>
+          <div class="node-spec-row">
+            <span class="node-spec-key">Local Address</span>
+            <span class="node-spec-val">127.0.0.1:8000</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.65rem; font-family: var(--font-mono); text-transform: uppercase;">
+            Dashboard Appearance
+          </div>
+          <div class="theme-switch-group">
+            <button class="theme-option-btn" data-theme-choice="dark" id="theme-btn-dark">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <span>Dark Theme</span>
+            </button>
+            <button class="theme-option-btn" data-theme-choice="light" id="theme-btn-light">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <span>Light Theme</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem; font-family: var(--font-mono); text-transform: uppercase;">
+            Data Retention Mode
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+            Local buffering stores data securely in the offline WAL SQLite cache without external transmission.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <!-- ══ Alert Toast ════════════════════════════════════════════════════════ -->
   <div id="alert-toast" class="alert-toast">

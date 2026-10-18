@@ -33,3 +33,11 @@ logs/
 
 # Mosquitto persistence
 /tmp/mosquitto_health/
+
+# Executables & Installers
+*.exe
+mosquitto-installer.exe
+
+# Large media files
+*.mp4
+dashboard/static/videos/

@@ -37,6 +37,8 @@ def make_reading(**overrides) -> SensorReading:
         body_temperature=36.6,
         room_temperature=25.0,
         humidity=50.0,
+        bp_sys=0.0,
+        bp_dia=0.0,
     )
     defaults.update(overrides)
     return SensorReading(**defaults)

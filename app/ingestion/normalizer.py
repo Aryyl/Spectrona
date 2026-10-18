@@ -24,11 +24,9 @@ class SensorReading:
     body_temperature: float        # °C
     room_temperature: float        # °C
     humidity: float                # %
-    bp_sys: float                  # mmHg – systolic blood pressure
-    bp_dia: float                  # mmHg – diastolic blood pressure
-
-    # Epoch seconds kept for DB storage
-    timestamp_epoch: float
+    timestamp_epoch: float = 0.0   # Epoch seconds kept for DB storage
+    bp_sys: float = 0.0            # mmHg – systolic blood pressure
+    bp_dia: float = 0.0            # mmHg – diastolic blood pressure
 
     def to_dict(self) -> dict:
         return {

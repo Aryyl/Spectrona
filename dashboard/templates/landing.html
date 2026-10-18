@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JEEV_ONE — Autonomous Edge Health Monitoring Node</title>
+  <meta name="description" content="JEEV_ONE is an edge-computing health telemetry node engineered for real-time vital acquisition, environmental stress assessment, and autonomous AI risk evaluation completely offline." />
+  
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/static/images/favicon.png" />
+  <link rel="apple-touch-icon" href="/static/images/favicon.png" />
+
+  <link rel="stylesheet" href="/static/css/landing.css" />
+</head>
+<body>
+
+  <!-- Ambient background elements -->
+  <div class="ambient-glow"></div>
+  <div class="ambient-grid"></div>
+
+  <!-- ══ Floating Sticky Navbar ═══════════════════════════════════════════════ -->
+  <div class="nav-wrapper">
+    <nav class="floating-nav" id="floating-nav">
+      <a href="/" class="nav-brand" aria-label="JEEV_ONE">
+        <img src="/static/images/jeev_one_logo.webp" alt="JEEV_ONE Logo" class="nav-logo-img" />
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#sensors">Sensors & Hardware</a></li>
+        <li><a href="#video">Demo Video</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/dashboard" class="btn-pill-primary">
+          <span>Live Dashboard</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <main>
+    <!-- ══ Hero Section ══════════════════════════════════════════════════════ -->
+    <section class="hero-section" id="hero">
+      <div class="hero-bg-image" id="hero-bg-image" aria-hidden="true"></div>
+
+      <div class="container hero-content">
+        <h1 class="hero-title">
+          Precision Health Intelligence.<br />
+          <span class="text-muted-gradient">Zero Cloud Reliance.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          <strong>JEEV_ONE</strong> is a high-resilience edge computing health node designed for continuous vital signs acquisition, environmental strain calculation, and AI-assisted risk fusion. Built to function 100% offline during disasters, field operations, and power blackouts.
+        </p>
+
+        <div class="hero-actions">
+          <a href="/dashboard" class="btn-pill-primary">
+            <span>Launch Live Monitor</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#sensors" class="btn-pill-secondary">
+            <span>Explore Sensor Suite</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ About Section (In-Depth Architecture) ═════════════════════════════ -->
+    <section class="section-wrapper" id="about">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">// ARCHITECTURE & CAPABILITIES</span>
+          <h2 class="section-title">Engineered for Extreme Resilience</h2>
+          <p class="section-desc">
+            Most modern health trackers tether your biological telemetry to proprietary cloud servers. JEEV_ONE inverts this paradigm by executing multi-parameter biomedical intelligence entirely at the edge.
+          </p>
+        </div>
+
+        <div class="about-grid">
+          <div class="about-card">
+            <div class="about-card-number">01 / EDGE-NATIVE COMPUTING</div>
+            <h3 class="about-card-title">100% Offline Autonomy</h3>
+            <p class="about-card-text">
+              Zero dependency on external internet connections or third-party servers. All data ingestion, schema validation, normalization, and local SQLite persistence execute directly on the edge node.
+            </p>
+            <div class="about-card-highlight">
+              <span>●</span> Operating during total network outages & disaster zones
+            </div>
+          </div>
+
+          <div class="about-card">
+            <div class="about-card-number">02 / COMPOSITE RISK ENGINE</div>
+            <h3 class="about-card-title">Tri-Domain Risk Fusion</h3>
+            <p class="about-card-text">
+              Isolated metrics can be deceiving. JEEV_ONE concurrently evaluates Environmental Heat Stress (Heat Index & wet-bulb), Vital Signs (hypertension, tachycardia, bradycardia), and Respiratory Strain (hypoxia).
+            </p>
+            <div class="about-card-highlight">
+              <span>●</span> Context-aware clinical heuristics & early warning alerts
+            </div>
+          </div>
+
+          <div class="about-card">
+            <div class="about-card-number">03 / CONTINUOUS CALIBRATION</div>
+            <h3 class="about-card-title">Dynamic Personal Baselines</h3>
+            <p class="about-card-text">
+              Replaces static population averages with adaptive Exponential Moving Averages (EMA). The device learns the individual’s unique physiological resting state while filtering out short-term transient spikes.
+            </p>
+            <div class="about-card-highlight">
+              <span>●</span> Zero false alert fatigue caused by single bad readings
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Hardware & Sensor Suite Section ═══════════════════════════════════ -->
+    <section class="section-wrapper" id="sensors">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">// INTEGRATED SENSOR SUITE</span>
+          <h2 class="section-title">Clinical & Environmental Telemetry</h2>
+          <p class="section-desc">
+            JEEV_ONE interfaces industrial and medical-grade biometric transducers with a high-throughput edge controller for uninterrupted telemetry acquisition.
+          </p>
+        </div>
+
+        <div class="sensors-grid">
+          
+          <!-- Sensor 1: MAX30102 -->
+          <div class="sensor-card">
+            <div>
+              <div class="sensor-top">
+                <span class="sensor-badge">PULSE OXIMETRY</span>
+                <span class="sensor-protocol">I2C BUS</span>
+              </div>
+              <h3 class="sensor-name">MAX30102</h3>
+              <div class="sensor-metric-tag">Blood Oxygen (SpO₂) & Heart Rate</div>
+              <p class="sensor-desc">
+                High-sensitivity optical biosensor featuring integrated dual-wavelength red and infrared LEDs. Captures peripheral capillary photoplethysmography (PPG) waveforms to detect hypoxia and cardiac frequency.
+              </p>
+            </div>
+            <div class="sensor-specs">
+              <div class="spec-item">
+                <span class="spec-label">Range</span>
+                <span class="spec-val">SpO₂ 50–100%</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Protocol</span>
+                <span class="spec-val">I2C (0x57)</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Sample Rate</span>
+                <span class="spec-val">Up to 400 Hz</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor 2: MLX90614 -->
+          <div class="sensor-card">
+            <div>
+              <div class="sensor-top">
+                <span class="sensor-badge">THERMOMETRY</span>
+                <span class="sensor-protocol">I2C BUS</span>
+              </div>
+              <h3 class="sensor-name">MLX90614</h3>
+              <div class="sensor-metric-tag">Medical-Grade Non-Contact Body Temp</div>
+              <p class="sensor-desc">
+                Infrared thermopile thermometer providing instantaneous, non-invasive core physiological temperature assessment with factory calibration for clinical accuracy.
+              </p>
+            </div>
+            <div class="sensor-specs">
+              <div class="spec-item">
+                <span class="spec-label">Accuracy</span>
+                <span class="spec-val">±0.2 °C</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Target Range</span>
+                <span class="spec-val">-70 to 380 °C</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Resolution</span>
+                <span class="spec-val">0.02 °C</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor 3: DHT22 -->
+          <div class="sensor-card">
+            <div>
+              <div class="sensor-top">
+                <span class="sensor-badge">ENVIRONMENTAL</span>
+                <span class="sensor-protocol">1-WIRE BUS</span>
+              </div>
+              <h3 class="sensor-name">DHT22 (AM2302)</h3>
+              <div class="sensor-metric-tag">Ambient Temperature & Humidity</div>
+              <p class="sensor-desc">
+                Calibrated digital relative humidity and temperature sensor. Supplies real-time ambient parameters to compute Heat Index, wet-bulb values, and environmental heat strain.
+              </p>
+            </div>
+            <div class="sensor-specs">
+              <div class="spec-item">
+                <span class="spec-label">Humidity</span>
+                <span class="spec-val">0–100% RH</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Temp Range</span>
+                <span class="spec-val">-40 to 80 °C</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Precision</span>
+                <span class="spec-val">±2% RH</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor 4: Blood Pressure Sensor -->
+          <div class="sensor-card">
+            <div>
+              <div class="sensor-top">
+                <span class="sensor-badge">HEMODYNAMICS</span>
+                <span class="sensor-protocol">UART SERIAL</span>
+              </div>
+              <h3 class="sensor-name">BP Sensor TTL-V3</h3>
+              <div class="sensor-metric-tag">Digital Blood Pressure (Sys / Dia)</div>
+              <p class="sensor-desc">
+                Direct TTL serial-based arterial blood pressure monitoring module. Captures Systolic and Diastolic pressure (mmHg) to diagnose hypertensive crisis and circulatory distress.
+              </p>
+            </div>
+            <div class="sensor-specs">
+              <div class="spec-item">
+                <span class="spec-label">Baud Rate</span>
+                <span class="spec-val">115200 bps</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Sys Range</span>
+                <span class="spec-val">50–250 mmHg</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Dia Range</span>
+                <span class="spec-val">30–150 mmHg</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor 5: AD8232 ECG -->
+          <div class="sensor-card">
+            <div>
+              <div class="sensor-top">
+                <span class="sensor-badge">CARDIAC ELECTROPHYSIOLOGY</span>
+                <span class="sensor-protocol">ANALOG BIO-AMP</span>
+              </div>
+              <h3 class="sensor-name">AD8232 Sensor</h3>
+              <div class="sensor-metric-tag">Single-Lead Electrocardiogram (ECG)</div>
+              <p class="sensor-desc">
+                Integrated biopotential signal conditioning module designed to extract, amplify, and filter biopotential electrical signals from cardiac rhythms in the presence of noisy motion artifacts.
+              </p>
+            </div>
+            <div class="sensor-specs">
+              <div class="spec-item">
+                <span class="spec-label">CMRR</span>
+                <span class="spec-val">80 dB</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Signal</span>
+                <span class="spec-val">P-Q-R-S-T wave</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Bandwidth</span>
+                <span class="spec-val">0.5 to 40 Hz</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hardware 6: Raspberry Pi 5 -->
+          <div class="sensor-card">
+            <div>
+              <div class="sensor-top">
+                <span class="sensor-badge">EDGE PROCESSING</span>
+                <span class="sensor-protocol">HOST COMPUTER</span>
+              </div>
+              <h3 class="sensor-name">Raspberry Pi 5</h3>
+              <div class="sensor-metric-tag">Central Edge Server & AI Engine</div>
+              <p class="sensor-desc">
+                Houses the local MQTT subscriber, SQLite database repository, Flask SSE streaming service, and autonomous risk fusion engines. Drives both the local 3.5" TFT display and network dashboard.
+              </p>
+            </div>
+            <div class="sensor-specs">
+              <div class="spec-item">
+                <span class="spec-label">SoC</span>
+                <span class="spec-val">BCM2712 Quad</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Local Storage</span>
+                <span class="spec-val">SQLite (WAL)</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Stream</span>
+                <span class="spec-val">SSE / WebSockets</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Demo Video Showcase Section ═══════════════════════════════════════ -->
+    <section class="section-wrapper" id="video">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">// PROTOTYPE DEMONSTRATION</span>
+          <h2 class="section-title">See JEEV_ONE In Action</h2>
+          <p class="section-desc">
+            Watch the live hardware deployment walkthrough demonstrating real-time biometric acquisition, edge risk calculation, and fail-safe operation.
+          </p>
+        </div>
+
+        <div class="video-container">
+          <div class="video-player-wrapper" id="video-player-wrapper">
+            <!-- Native HTML5 Video Element with Stream Support -->
+            <video 
+              id="demo-video" 
+              class="demo-video-element"
+              controls 
+              preload="metadata" 
+              playsinline
+              poster="/static/images/prototype1.webp"
+            >
+              <source src="/static/videos/demo.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+
+            <!-- Interactive Click-to-Play Poster Overlay -->
+            <div class="video-screen-overlay" id="video-overlay" role="button" aria-label="Play Demo Video" tabindex="0">
+              <div class="play-button-outer">
+                <div class="play-icon"></div>
+              </div>
+              <div class="video-placeholder-title">JEEV_ONE // Hardware Prototype Demo Video</div>
+              <div class="video-placeholder-desc">Click to play live demonstration walkthrough</div>
+            </div>
+          </div>
+
+          <div class="video-meta-bar">
+            <span>FORMAT: 1080P 60FPS</span>
+            <span>TOPIC: SENSOR TELEMETRY & EDGE RISK ENGINE</span>
+            <div class="video-meta-actions">
+              <a href="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="drive-source-link">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Google Drive Link</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Hardware & Prototype Gallery Section ════════════════════════════ -->
+    <section class="section-wrapper" id="gallery">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">// HARDWARE & SCHEMATICS GALLERY</span>
+          <h2 class="section-title">Physical Artifacts & Schematics</h2>
+          <p class="section-desc">
+            Explore the physical benchtop validation unit, real-world wearable arm deployment, and complete electronic circuit wiring diagram.
+          </p>
+        </div>
+
+        <div class="gallery-grid">
+          <!-- Gallery Item 1: Prototype 1 (Benchtop Assembly) -->
+          <div class="gallery-card" data-full="/static/images/prototype1.webp" data-title="JEEV_ONE Benchtop Validation Assembly" data-desc="Dual-processor edge assembly connecting the ESP32 biometric acquisition node with the Raspberry Pi 5 telemetry host, active cooling stack, and breadboard sensor array." tabindex="0" role="button" aria-label="View Benchtop Validation Assembly">
+            <div class="gallery-img-wrap">
+              <img src="/static/images/prototype1.webp" alt="JEEV_ONE Benchtop Validation Assembly" loading="lazy">
+              <div class="gallery-zoom-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                <span>Expand</span>
+              </div>
+            </div>
+            <div class="gallery-content">
+              <div class="gallery-meta-top">
+                <span class="gallery-tag">BENCHTOP VALIDATION</span>
+                <span class="gallery-id">FIG. 01</span>
+              </div>
+              <h3 class="gallery-item-title">Benchtop Validation Assembly</h3>
+              <p class="gallery-item-desc">
+                Interconnects the ESP32 sensor multiplexer, MLX90614 infrared transducer, DHT22 environmental sensor, TTL blood pressure interface, and Raspberry Pi 5 edge server.
+              </p>
+            </div>
+          </div>
+
+          <!-- Gallery Item 2: Prototype 3 (Wearable Arm Deployment) -->
+          <div class="gallery-card" data-full="/static/images/prototype3.webp" data-title="JEEV_ONE Wearable Field Demo" data-desc="Forearm-mounted working prototype demonstrating concurrent acquisition of blood pressure, SpO2, heart rate, skin temperature, and environmental heat strain." tabindex="0" role="button" aria-label="View Wearable Arm Integration">
+            <div class="gallery-img-wrap">
+              <img src="/static/images/prototype3.webp" alt="JEEV_ONE Wearable Field Prototype" loading="lazy">
+              <div class="gallery-zoom-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                <span>Expand</span>
+              </div>
+            </div>
+            <div class="gallery-content">
+              <div class="gallery-meta-top">
+                <span class="gallery-tag">WORKING DEMO</span>
+                <span class="gallery-id">FIG. 02</span>
+              </div>
+              <h3 class="gallery-item-title">Wearable Arm Integration</h3>
+              <p class="gallery-item-desc">
+                Live working demonstration attached to human subject showing forearm sensor band, MAX30102 optical PPG probe, MLX90614 core temp transducer, and wrist BP cuff.
+              </p>
+            </div>
+          </div>
+
+          <!-- Gallery Item 3: Circuit Diagram -->
+          <div class="gallery-card" data-full="/static/images/circuit_diagram.webp" data-title="JEEV_ONE Full Circuit & Schematic Diagram" data-desc="Complete electronic inter-component schematic depicting I2C, UART, 1-Wire, and GPIO signal routing to ESP-32 and Raspberry Pi 5 with 3.5-inch touch LCD." tabindex="0" role="button" aria-label="View System Circuit Wiring Diagram">
+            <div class="gallery-img-wrap gallery-img-schematic">
+              <img src="/static/images/circuit_diagram.webp" alt="JEEV_ONE Circuit Wiring Diagram" loading="lazy">
+              <div class="gallery-zoom-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                <span>Expand</span>
+              </div>
+            </div>
+            <div class="gallery-content">
+              <div class="gallery-meta-top">
+                <span class="gallery-tag">ELECTRONIC SCHEMATIC</span>
+                <span class="gallery-id">FIG. 03</span>
+              </div>
+              <h3 class="gallery-item-title">System Circuit Wiring Diagram</h3>
+              <p class="gallery-item-desc">
+                Full engineering schematic specifying pin assignments, I2C pull-up architecture, UART RX/TX serial lines, 5V power rails, and 3.5" TFT display pinout.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══ Minimalist Footer ═══════════════════════════════════════════════════ -->
+  <footer class="landing-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="/" class="footer-logo-link" aria-label="JEEV_ONE">
+            <img src="/static/images/jeev_one_logo.webp" alt="JEEV_ONE Logo" class="footer-logo-img" />
+          </a>
+          <p class="footer-brand-desc">
+            Autonomous, privacy-first edge health monitor. Empowering medical resilience and vital intelligence without external network dependencies.
+          </p>
+        </div>
+
+        <div class="footer-links-group">
+          <div>
+            <div class="footer-column-title">Platform</div>
+            <ul class="footer-column-links">
+              <li><a href="/dashboard">Live Dashboard</a></li>
+              <li><a href="#about">Overview</a></li>
+              <li><a href="#sensors">Sensors</a></li>
+              <li><a href="#video">Demo Video</a></li>
+              <li><a href="#gallery">Gallery</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 JEEV_ONE Project. All rights reserved. Open Architecture Health Computing.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══ Lightbox Modal for Gallery Images ════════════════════════════════════ -->
+  <div id="gallery-lightbox" class="gallery-lightbox" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+    <div class="lightbox-dialog">
+      <button class="lightbox-close-btn" id="lightbox-close-btn" aria-label="Close expanded view">&times;</button>
+      <div class="lightbox-image-wrap">
+        <img id="lightbox-img" src="" alt="Expanded hardware view">
+      </div>
+      <div class="lightbox-details">
+        <h4 id="lightbox-title" class="lightbox-title"></h4>
+        <p id="lightbox-desc" class="lightbox-desc"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/landing.js"></script>
+</body>
+</html>

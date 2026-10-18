@@ -31,8 +31,10 @@ class PipelineState:
     def to_dict(self) -> dict:
         if self.reading is None:
             return {"status": "no_data"}
+        reading_dict = self.reading.to_dict()
         return {
-            "reading": self.reading.to_dict(),
+            "reading": reading_dict,
+            "latest": reading_dict,
             "risk": self.fused_risk.to_dict() if self.fused_risk else None,
             "last_update": self.last_update,
             "total_readings": self.total_readings,

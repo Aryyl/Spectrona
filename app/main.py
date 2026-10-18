@@ -91,7 +91,7 @@ def on_sensor_message(payload: dict) -> None:
     fused = fuse_risks(heat_result, vital_result, resp_result)
 
     _log.info(
-        "Risk | Heat=%s Vital=%s SpO₂=%s → Overall=%s | Device=%s",
+        "Risk | Heat=%s Vital=%s SpO2=%s -> Overall=%s | Device=%s",
         fused.heat_risk, fused.vital_risk, fused.respiratory_risk,
         fused.overall_status, reading.device_id,
     )
@@ -121,12 +121,19 @@ def on_sensor_message(payload: dict) -> None:
 
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="../dashboard/templates", static_folder="../dashboard/static")
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
     CORS(app)
     app.register_blueprint(api_bp)
     app.register_blueprint(ws_bp)
 
-    # Serve dashboard index
+    # Serve landing page
     @app.route("/")
+    def home():
+        from flask import render_template
+        return render_template("landing.html")
+
+    # Serve live dashboard
+    @app.route("/dashboard")
     def dashboard():
         from flask import render_template
         return render_template("index.html")
