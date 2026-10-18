@@ -326,27 +326,15 @@
 
         <div class="video-container">
           <div class="video-player-wrapper" id="video-player-wrapper">
-            <!-- Native HTML5 Video Element with Stream Support -->
-            <video 
-              id="demo-video" 
-              class="demo-video-element"
-              controls 
-              preload="metadata" 
-              playsinline
-              poster="/static/images/prototype1.webp"
-            >
-              <source src="/static/videos/demo.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-
-            <!-- Interactive Click-to-Play Poster Overlay -->
-            <div class="video-screen-overlay" id="video-overlay" role="button" aria-label="Play Demo Video" tabindex="0">
-              <div class="play-button-outer">
-                <div class="play-icon"></div>
-              </div>
-              <div class="video-placeholder-title">JEEV_ONE // Hardware Prototype Demo Video</div>
-              <div class="video-placeholder-desc">Click to play live demonstration walkthrough</div>
-            </div>
+            <iframe 
+              id="demo-video-iframe" 
+              class="demo-video-iframe"
+              src="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/preview" 
+              allow="autoplay; encrypted-media; fullscreen" 
+              allowfullscreen
+              loading="lazy"
+              title="JEEV_ONE Prototype Demonstration Video"
+            ></iframe>
           </div>
 
           <div class="video-meta-bar">
