@@ -1980,7 +1980,7 @@ function initPWA() {
             if (installing) {
               installing.addEventListener("statechange", () => {
                 if (installing.state === "installed" && navigator.serviceWorker.controller) {
-                  showToast("App Shell Updated", "A new version of Spectrona is ready.", "info");
+                  showToast("App Shell Updated", "A new version of Jeev One is ready.", "info");
                 }
               });
             }
@@ -2055,7 +2055,7 @@ function initPWA() {
       deferredInstallPrompt.prompt();
       deferredInstallPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
-          showToast("Installing App", "Spectrona is being added to your device.", "success");
+          showToast("Installing App", "Jeev One is being added to your device.", "success");
         }
         deferredInstallPrompt = null;
         if (installBtnNav) installBtnNav.style.display = "none";
@@ -2064,7 +2064,7 @@ function initPWA() {
       openIosModal();
     } else {
       showToast(
-        "Install Spectrona",
+        "Install Jeev One",
         "To install on mobile, tap your browser's menu (⋮ or Share) and choose 'Install App' or 'Add to Home screen'.",
         "info"
       );
@@ -2076,7 +2076,7 @@ function initPWA() {
 
   // Installed event
   window.addEventListener("appinstalled", () => {
-    console.log("[PWA] Spectrona was installed successfully");
+    console.log("[PWA] Jeev One was installed successfully");
     deferredInstallPrompt = null;
     document.body.classList.add("pwa-standalone");
     if (installBtnNav) installBtnNav.style.display = "none";
@@ -2085,7 +2085,7 @@ function initPWA() {
       pwaStatusBadge.textContent = "STANDALONE ACTIVE";
       pwaStatusBadge.className = "status-badge normal";
     }
-    showToast("Spectrona App Installed", "Launch anytime directly from your mobile home screen.", "success");
+    showToast("Jeev One App Installed", "Launch anytime directly from your mobile home screen.", "success");
   });
 }
 

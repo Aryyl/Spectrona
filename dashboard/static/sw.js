@@ -134,7 +134,7 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
   try {
     const payload = event.data.json();
-    const title = payload.title || "Spectrona Health Alert";
+    const title = payload.title || "Jeev One Health Alert";
     const options = {
       body: payload.message || "Vital parameter threshold breach detected.",
       icon: "/static/icons/icon-192x192.png",

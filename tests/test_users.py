@@ -128,7 +128,8 @@ def test_pwa_endpoints():
     assert res_manifest.status_code == 200
     assert "application/manifest+json" in res_manifest.content_type
     manifest_data = res_manifest.get_json()
-    assert manifest_data["short_name"] == "Spectrona"
+    assert manifest_data["short_name"] == "Jeev One"
+    assert "Jeev One" in manifest_data["name"]
     assert manifest_data["display"] == "standalone"
     assert manifest_data["scope"] == "/dashboard"
     assert "/dashboard" in manifest_data["start_url"]
