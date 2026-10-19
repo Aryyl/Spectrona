@@ -1,2 +1,22 @@
+[project]
+name = "jeev-one"
+version = "1.0.0"
+description = "Jeev One – Personal Health Companion dashboard and API"
+requires-python = ">=3.10"
+dependencies = [
+    "paho-mqtt>=2.0.0",
+    "flask>=3.0.0",
+    "flask-cors>=4.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "SQLAlchemy>=2.0.0",
+    "PyYAML>=6.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.24.0",
+    "flask-sock>=0.7.0",
+    "Pillow>=10.0.0",
+    "httpx>=0.25.0",
+]
+
 [tool.vercel]
 entrypoint = "api.index:app"
