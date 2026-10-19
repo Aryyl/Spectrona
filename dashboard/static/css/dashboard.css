@@ -565,7 +565,7 @@ body {
 }
 
 /* Column spans */
-.col-full   { grid-column: 1 / -1; }
+.col-full, .col-12 { grid-column: 1 / -1; }
 .col-3      { grid-column: span 3; }
 .col-4      { grid-column: span 4; }
 .col-8      { grid-column: span 8; }
@@ -573,11 +573,11 @@ body {
 
 @media (max-width: 1024px) {
   .col-3, .col-4 { grid-column: span 6; }
-  .col-8 { grid-column: 1 / -1; }
+  .col-8, .col-full, .col-12 { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
   .main-grid { padding: 0 1rem; }
-  .col-3, .col-4, .col-8, .col-6 { grid-column: 1 / -1; }
+  .col-3, .col-4, .col-8, .col-6, .col-full, .col-12 { grid-column: 1 / -1; }
 }
 
 .card-title {
@@ -1929,4 +1929,424 @@ body, .header, .card, .welcome-section, .btn, .endpoint-item, .data-table td, .d
 .sim-icon {
   font-size: 1rem;
 }
+
+/* ── Multi-Patient Account & Dual-User Synchronous Monitoring ──────────────── */
+.avatar-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.multi-patient-card {
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+.multi-patient-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.patient-account-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.patient-account-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+.patient-chips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.patient-chip {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--surface2);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.patient-chip:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.patient-chip.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 0 1px #3b82f6, 0 4px 18px rgba(59, 130, 246, 0.15);
+}
+
+.patient-chip-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.patient-chip-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.patient-chip-row-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.patient-chip-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.patient-chip-role {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.patient-chip-indicator {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.patient-chip.active .patient-chip-indicator {
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.patient-chip:not(.active) .patient-chip-indicator {
+  background: var(--glass-border);
+  color: var(--text-dim);
+}
+
+.patient-chip-vitals-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+
+.chip-vital-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.chip-vital-val {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chip-sep {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.chip-risk-pill {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  margin-left: auto;
+}
+
+/* ── Collapsible Dual Matrix ───────────────────────────────────────────────── */
+.dual-matrix-container {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--glass-border);
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.dual-matrix-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.dual-matrix-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dual-matrix-tag {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.dual-matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.dual-matrix-col {
+  background: var(--surface2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dual-col-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.dual-col-user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dual-col-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dual-col-role {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.dual-vitals-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dual-vital-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dual-vital-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.dual-vital-val {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dual-focus-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+/* ── User Settings Card & Profile Forms ────────────────────────────────────── */
+.user-settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.user-settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.user-settings-account-badge {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.user-profiles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.user-profile-edit-box {
+  background: var(--surface2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-box-top {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.profile-box-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.profile-box-role {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.profile-box-tag {
+  margin-left: auto;
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+  font-weight: 500;
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-group label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text);
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.profile-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.dropdown-footer-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.15s ease;
+}
+
+.dropdown-footer-link:hover {
+  opacity: 0.85;
+}
+
+@media (max-width: 900px) {
+  .patient-chips-grid {
+    grid-template-columns: 1fr;
+  }
+  .dual-matrix-grid {
+    grid-template-columns: 1fr;
+  }
+  .user-profiles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 

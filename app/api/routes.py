@@ -20,10 +20,21 @@ import logging
 
 from flask import Blueprint, jsonify, request, Response
 
-from app.alerts.manager import Alert, alert_manager
 from app.pipeline_state import state_store
 from app.processing.baseline import baseline_engine
-from app.storage.repository import get_recent_readings, get_recent_risk_states
+from app.alerts.manager import Alert, alert_manager
+from app.users import (
+    load_user_store,
+    update_user_profile,
+    set_active_user,
+    get_active_user,
+    DEFAULT_PROFILES,
+)
+from app.storage.repository import (
+    get_recent_readings,
+    get_recent_risk_states,
+    get_latest_reading_for_device,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -52,7 +63,43 @@ def status() -> Response:
 @api_bp.route("/latest", methods=["GET"])
 def latest() -> Response:
     """Latest reading and risk state from in-memory store (fast path)."""
+    device_id = request.args.get("device_id")
     snap = state_store.snapshot()
+    
+    # If device_id requested and matches in-memory reading, return fast
+    if snap.reading is not None:
+        if not device_id or snap.reading.device_id == device_id:
+            return jsonify({
+                "latest": snap.reading.to_dict(),
+                "risk": snap.fused_risk.to_dict() if snap.fused_risk else None,
+                "last_update": snap.last_update,
+            })
+
+    # Otherwise query database for this specific device
+    if device_id:
+        try:
+            rec = get_latest_reading_for_device(device_id)
+        except Exception as exc:
+            _log.debug("Database query for device %s failed: %s", device_id, exc)
+            rec = None
+        if rec:
+            return jsonify({
+                "latest": {
+                    "timestamp": rec.timestamp_iso,
+                    "timestamp_epoch": rec.timestamp_epoch,
+                    "device_id": rec.device_id,
+                    "heart_rate": rec.heart_rate,
+                    "spo2": rec.spo2,
+                    "body_temperature": rec.body_temperature,
+                    "room_temperature": rec.room_temperature,
+                    "humidity": rec.humidity,
+                    "bp_sys": rec.bp_sys,
+                    "bp_dia": rec.bp_dia,
+                },
+                "risk": None,
+                "last_update": rec.timestamp_epoch,
+            })
+
     if snap.reading is None:
         return jsonify({"status": "no_data", "message": "No readings received yet"}), 200
 
@@ -75,9 +122,30 @@ def risk() -> Response:
 
 @api_bp.route("/history", methods=["GET"])
 def history() -> Response:
-    """Recent sensor readings from the database (last 60 by default)."""
+    """Recent sensor readings from the database (last 60 by default), optionally filtered by device_id."""
     try:
-        records = get_recent_readings(limit=60)
+        device_id = request.args.get("device_id")
+        records = get_recent_readings(limit=60, device_id=device_id)
+        data = [
+            {
+                "id": r.id,
+                "timestamp": r.timestamp_iso,
+                "device_id": r.device_id,
+                "heart_rate": r.heart_rate,
+                "spo2": r.spo2,
+                "body_temperature": r.body_temperature,
+                "room_temperature": r.room_temperature,
+                "humidity": r.humidity,
+                "bp_sys": r.bp_sys,
+                "bp_dia": r.bp_dia,
+            }
+            for r in records
+        ]
+        return jsonify({"count": len(data), "readings": data})
+    except Exception as exc:
+        _log.error("Error fetching history: %s", exc)
+        return jsonify({"error": "Database error"}), 500
+
         data = [
             {
                 "id": r.id,
@@ -302,8 +370,16 @@ def simulate_telemetry() -> Response:
     if "blood_pressure" in data:
         base["blood_pressure"] = data["blood_pressure"]
 
+    dev_id = data.get("device_id")
+    if not dev_id:
+        user_id = data.get("user_id")
+        if user_id == "user_2":
+            dev_id = "patient_02"
+        else:
+            dev_id = "patient_01"
+
     payload = {
-        "device_id": "patient_01",
+        "device_id": dev_id,
         "timestamp": int(time.time()),
         **base,
     }
@@ -320,6 +396,117 @@ def simulate_telemetry() -> Response:
     })
 
 
+# ── User Profiles & Multi-Patient API ────────────────────────────────────────
+
+@api_bp.route("/users", methods=["GET"])
+def get_users() -> Response:
+    """Return all registered user profiles and the currently active profile."""
+    store = load_user_store()
+    return jsonify({
+        "status": "ok",
+        "active_user_id": store.get("active_user_id", "user_1"),
+        "users": store.get("users", {}),
+    })
+
+
+@api_bp.route("/users", methods=["POST"])
+def update_user() -> Response:
+    """Update a specific user profile (e.g. rename Aryyaman, Hirok)."""
+    data = request.get_json(silent=True) or {}
+    user_id = data.get("user_id") or data.get("id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "user_id is required"}), 400
+
+    updated = update_user_profile(user_id, data)
+    if not updated:
+        return jsonify({"status": "error", "message": f"User {user_id} not found"}), 404
+
+    return jsonify({"status": "ok", "user": updated})
+
+
+@api_bp.route("/users/active", methods=["POST"])
+def change_active_user() -> Response:
+    """Switch active monitoring patient."""
+    data = request.get_json(silent=True) or {}
+    user_id = data.get("user_id") or data.get("id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "user_id is required"}), 400
+
+    success = set_active_user(user_id)
+    if not success:
+        return jsonify({"status": "error", "message": f"User {user_id} not found"}), 404
+
+    return jsonify({"status": "ok", "active_user_id": user_id})
+
+
+@api_bp.route("/users/telemetry", methods=["GET"])
+def multi_user_telemetry() -> Response:
+    """
+    Return synchronized telemetry snapshots for all registered account users (minimum 2 users).
+    """
+    store = load_user_store()
+    active_id = store.get("active_user_id", "user_1")
+    users_dict = store.get("users", {})
+    snap = state_store.snapshot()
+
+    result = {}
+    for uid, udata in users_dict.items():
+        dev_id = udata.get("device_id", "patient_01")
+        reading_data = None
+        risk_data = None
+
+        # Check if in-memory reading matches this user's device
+        if snap.reading and snap.reading.device_id == dev_id:
+            reading_data = snap.reading.to_dict()
+            risk_data = snap.fused_risk.to_dict() if snap.fused_risk else None
+        else:
+            # Query recent reading from DB for this user
+            try:
+                rec = get_latest_reading_for_device(dev_id)
+            except Exception as exc:
+                _log.debug("Database query for device %s failed: %s", dev_id, exc)
+                rec = None
+            if rec:
+                reading_data = {
+                    "timestamp": rec.timestamp_iso,
+                    "timestamp_epoch": rec.timestamp_epoch,
+                    "device_id": rec.device_id,
+                    "heart_rate": rec.heart_rate,
+                    "spo2": rec.spo2,
+                    "body_temperature": rec.body_temperature,
+                    "room_temperature": rec.room_temperature,
+                    "humidity": rec.humidity,
+                    "bp_sys": rec.bp_sys,
+                    "bp_dia": rec.bp_dia,
+                }
+            else:
+                # Fallback to user baseline default
+                bl = udata.get("baseline", {})
+                reading_data = {
+                    "timestamp": "",
+                    "timestamp_epoch": 0,
+                    "device_id": dev_id,
+                    "heart_rate": bl.get("heart_rate", 74.0),
+                    "spo2": bl.get("spo2", 98.2),
+                    "body_temperature": bl.get("body_temperature", 36.6),
+                    "room_temperature": 24.0,
+                    "humidity": 48.0,
+                    "bp_sys": bl.get("bp_sys", 118),
+                    "bp_dia": bl.get("bp_dia", 76),
+                }
+
+        result[uid] = {
+            "profile": udata,
+            "latest": reading_data,
+            "risk": risk_data,
+        }
+
+    return jsonify({
+        "status": "ok",
+        "active_user_id": active_id,
+        "users": result,
+    })
+
 
 @api_bp.route("/baseline", methods=["GET"])
 def baseline() -> Response:
@@ -332,3 +519,4 @@ def baseline() -> Response:
         "sample_count": bl.sample_count,
         "is_established": bl.is_established,
     })
+

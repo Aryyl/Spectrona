@@ -37,25 +37,35 @@ def insert_reading(reading: SensorReading) -> None:
     _execute_write(record)
 
 
-def get_latest_reading() -> Optional[SensorReadingRecord]:
-    """Return the most recent sensor reading, or None."""
+def get_latest_reading(device_id: Optional[str] = None) -> Optional[SensorReadingRecord]:
+    """Return the most recent sensor reading, optionally filtered by device_id."""
     with get_session() as session:
+        q = session.query(SensorReadingRecord)
+        if device_id:
+            q = q.filter(SensorReadingRecord.device_id == device_id)
         return (
-            session.query(SensorReadingRecord)
-            .order_by(SensorReadingRecord.timestamp_epoch.desc())
+            q.order_by(SensorReadingRecord.timestamp_epoch.desc())
             .first()
         )
 
 
-def get_recent_readings(limit: int = 60) -> List[SensorReadingRecord]:
-    """Return the `limit` most recent readings, newest first."""
+def get_latest_reading_for_device(device_id: str) -> Optional[SensorReadingRecord]:
+    """Return the most recent sensor reading for a specific device/patient, or None."""
+    return get_latest_reading(device_id=device_id)
+
+
+def get_recent_readings(limit: int = 60, device_id: Optional[str] = None) -> List[SensorReadingRecord]:
+    """Return the `limit` most recent readings, newest first, optionally filtered by device_id."""
     with get_session() as session:
+        q = session.query(SensorReadingRecord)
+        if device_id:
+            q = q.filter(SensorReadingRecord.device_id == device_id)
         return (
-            session.query(SensorReadingRecord)
-            .order_by(SensorReadingRecord.timestamp_epoch.desc())
+            q.order_by(SensorReadingRecord.timestamp_epoch.desc())
             .limit(limit)
             .all()
         )
+
 
 
 # ── Risk states ─────────────────────────────────────────────────────────────

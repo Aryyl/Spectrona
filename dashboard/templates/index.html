@@ -102,10 +102,10 @@
         <div class="user-menu-wrapper" id="user-menu-wrapper">
           <button class="user-profile-btn" id="user-profile-btn" aria-haspopup="true" aria-expanded="false" aria-label="Switch User Profile" title="Switch User Profile">
             <div class="user-avatar-badge avatar-blue" id="user-avatar-badge">
-              <span id="user-avatar-initials">AM</span>
+              <span id="user-avatar-initials">AR</span>
             </div>
             <div class="user-info-text">
-              <span class="user-name" id="user-name">Alex Mercer</span>
+              <span class="user-name" id="user-name">Aryyaman</span>
               <span class="user-role" id="user-role">Subject 01</span>
             </div>
             <span class="user-chevron-icon" id="user-chevron-icon">
@@ -116,16 +116,16 @@
           <!-- Slide Down Menu -->
           <div class="user-dropdown-menu" id="user-dropdown-menu" role="menu" aria-label="User Profiles">
             <div class="dropdown-header">
-              <div class="dropdown-header-tag">SWITCH ACTIVE SUBJECT</div>
-              <span class="dropdown-badge-demo">Demo Mode</span>
+              <div class="dropdown-header-tag">ACCOUNT SUBJECTS (2 REGISTERED)</div>
+              <span class="dropdown-badge-demo">Multi-User Active</span>
             </div>
 
             <div class="dropdown-users-list" id="dropdown-users-list">
               <div class="user-item active" data-user-id="user_1" role="menuitem" tabindex="0">
-                <div class="user-item-avatar avatar-blue">AM</div>
+                <div class="user-item-avatar avatar-blue" id="dropdown-avatar-1">AR</div>
                 <div class="user-item-info">
-                  <div class="user-item-name">Alex Mercer</div>
-                  <div class="user-item-meta">Subject 01 • Adult Male (34) • Baseline Profile</div>
+                  <div class="user-item-name" id="dropdown-name-1">Aryyaman</div>
+                  <div class="user-item-meta" id="dropdown-meta-1">Subject 01 • Adult Male (24) • Primary Node</div>
                 </div>
                 <div class="user-item-check">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -133,32 +133,10 @@
               </div>
 
               <div class="user-item" data-user-id="user_2" role="menuitem" tabindex="0">
-                <div class="user-item-avatar avatar-amber">EV</div>
+                <div class="user-item-avatar avatar-emerald" id="dropdown-avatar-2">HK</div>
                 <div class="user-item-info">
-                  <div class="user-item-name">Elena Vance</div>
-                  <div class="user-item-meta">Subject 02 • Adult Female (29) • Heat Strain Trial</div>
-                </div>
-                <div class="user-item-check">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              </div>
-
-              <div class="user-item" data-user-id="user_3" role="menuitem" tabindex="0">
-                <div class="user-item-avatar avatar-purple">DC</div>
-                <div class="user-item-info">
-                  <div class="user-item-name">David Chen</div>
-                  <div class="user-item-meta">Subject 03 • Adult Male (42) • SpO2 Observation</div>
-                </div>
-                <div class="user-item-check">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              </div>
-
-              <div class="user-item" data-user-id="user_4" role="menuitem" tabindex="0">
-                <div class="user-item-avatar avatar-green">MT</div>
-                <div class="user-item-info">
-                  <div class="user-item-name">Dr. Marcus Thorne</div>
-                  <div class="user-item-meta">Field Physician • Triage Override / Admin</div>
+                  <div class="user-item-name" id="dropdown-name-2">Hirok</div>
+                  <div class="user-item-meta" id="dropdown-meta-2">Subject 02 • Adult Male (25) • Secondary Node</div>
                 </div>
                 <div class="user-item-check">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -171,7 +149,9 @@
                 <span class="status-pulse-dot" style="display:inline-block; width:6px; height:6px; background:#22c55e; border-radius:50%; box-shadow:0 0 6px #22c55e; margin-right:5px;"></span>
                 Local Edge Node (No Cloud)
               </span>
-              <span class="dropdown-footer-action">Demo Profiles</span>
+              <button class="dropdown-footer-link" id="btn-dropdown-edit-settings" data-tab="settings" title="Edit patient names and profiles in Settings">
+                ⚙️ Change Name in Settings →
+              </button>
             </div>
           </div>
         </div>
@@ -192,6 +172,148 @@
         <div class="welcome-actions">
           <button class="btn" id="btn-share-report">Share <span id="icon-share"></span></button>
           <button class="btn btn-primary" id="btn-export-vitals">Export <span id="icon-download"></span></button>
+        </div>
+      </section>
+
+      <!-- ── Multi-Patient Account Bar (Minimum 2 Users Synchronized) ───── -->
+      <section class="card col-full multi-patient-card" id="multi-patient-card">
+        <div class="multi-patient-header">
+          <div class="multi-patient-title-wrap">
+            <span class="patient-account-badge">ACCOUNT PATIENTS</span>
+            <span class="patient-account-subtitle">Synchronized 2-Subject Monitoring • Click to switch telemetry target</span>
+          </div>
+          <div class="multi-patient-controls">
+            <button class="btn btn-sm" id="btn-toggle-dual-matrix" title="Toggle Synchronous Side-by-Side Comparison Matrix">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>
+              <span id="btn-toggle-dual-text">Dual-Patient Comparison View</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2 Patient Quick-Select Chips -->
+        <div class="patient-chips-grid">
+          <!-- Patient 1 Chip: Aryyaman -->
+          <div class="patient-chip active" id="patient-chip-1" data-user-id="user_1" role="button" tabindex="0">
+            <div class="patient-chip-avatar avatar-blue" id="chip-avatar-1">AR</div>
+            <div class="patient-chip-body">
+              <div class="patient-chip-row-top">
+                <span class="patient-chip-name" id="chip-name-1">Aryyaman</span>
+                <span class="patient-chip-role" id="chip-role-1">Subject 01</span>
+                <span class="patient-chip-indicator" id="chip-badge-1">ACTIVE PATIENT</span>
+              </div>
+              <div class="patient-chip-vitals-row">
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-hr-1">--</span> <span class="chip-vital-unit">bpm</span></span>
+                <span class="chip-sep">•</span>
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-spo2-1">--</span> <span class="chip-vital-unit">% SpO₂</span></span>
+                <span class="chip-sep">•</span>
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-temp-1">--</span> <span class="chip-vital-unit">°C</span></span>
+                <span class="chip-sep">•</span>
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-bp-1">--/--</span> <span class="chip-vital-unit">mmHg</span></span>
+                <span class="status-badge normal chip-risk-pill" id="chip-risk-1">NORMAL</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient 2 Chip: Hirok -->
+          <div class="patient-chip" id="patient-chip-2" data-user-id="user_2" role="button" tabindex="0">
+            <div class="patient-chip-avatar avatar-emerald" id="chip-avatar-2">HK</div>
+            <div class="patient-chip-body">
+              <div class="patient-chip-row-top">
+                <span class="patient-chip-name" id="chip-name-2">Hirok</span>
+                <span class="patient-chip-role" id="chip-role-2">Subject 02</span>
+                <span class="patient-chip-indicator" id="chip-badge-2">SELECT PATIENT</span>
+              </div>
+              <div class="patient-chip-vitals-row">
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-hr-2">--</span> <span class="chip-vital-unit">bpm</span></span>
+                <span class="chip-sep">•</span>
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-spo2-2">--</span> <span class="chip-vital-unit">% SpO₂</span></span>
+                <span class="chip-sep">•</span>
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-temp-2">--</span> <span class="chip-vital-unit">°C</span></span>
+                <span class="chip-sep">•</span>
+                <span class="chip-vital-stat"><span class="chip-vital-val" id="chip-bp-2">--/--</span> <span class="chip-vital-unit">mmHg</span></span>
+                <span class="status-badge normal chip-risk-pill" id="chip-risk-2">NORMAL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Dual-Patient Synchronous Comparison Matrix -->
+        <div class="dual-matrix-container" id="dual-matrix-container" style="display: none;">
+          <div class="dual-matrix-header">
+            <span class="dual-matrix-title">Dual-Subject Live Physiological Comparison</span>
+            <span class="dual-matrix-tag">Multi-User Account Telemetry</span>
+          </div>
+          <div class="dual-matrix-grid">
+            <!-- User 1 Column: Aryyaman -->
+            <div class="dual-matrix-col" id="dual-col-1">
+              <div class="dual-col-header">
+                <div class="user-avatar-badge avatar-blue" id="dual-avatar-1">AR</div>
+                <div class="dual-col-user-info">
+                  <span class="dual-col-name" id="dual-name-1">Aryyaman</span>
+                  <span class="dual-col-role" id="dual-role-1">Subject 01 (Primary)</span>
+                </div>
+                <span class="status-badge normal" id="dual-risk-badge-1">STABLE</span>
+              </div>
+              <div class="dual-vitals-table">
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Heart Rate</span>
+                  <span class="dual-vital-val" id="dual-hr-1">74 bpm</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Blood Oxygen (SpO₂)</span>
+                  <span class="dual-vital-val" id="dual-spo2-1">98.2%</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Body Temperature</span>
+                  <span class="dual-vital-val" id="dual-temp-1">36.6 °C</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Blood Pressure</span>
+                  <span class="dual-vital-val" id="dual-bp-1">118/76 mmHg</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Overall Status</span>
+                  <span class="dual-vital-val" id="dual-status-1">NORMAL</span>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline dual-focus-btn" data-user-id="user_1">Focus Aryyaman's Oscilloscope</button>
+            </div>
+
+            <!-- User 2 Column: Hirok -->
+            <div class="dual-matrix-col" id="dual-col-2">
+              <div class="dual-col-header">
+                <div class="user-avatar-badge avatar-emerald" id="dual-avatar-2">HK</div>
+                <div class="dual-col-user-info">
+                  <span class="dual-col-name" id="dual-name-2">Hirok</span>
+                  <span class="dual-col-role" id="dual-role-2">Subject 02 (Secondary)</span>
+                </div>
+                <span class="status-badge normal" id="dual-risk-badge-2">STABLE</span>
+              </div>
+              <div class="dual-vitals-table">
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Heart Rate</span>
+                  <span class="dual-vital-val" id="dual-hr-2">80 bpm</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Blood Oxygen (SpO₂)</span>
+                  <span class="dual-vital-val" id="dual-spo2-2">97.8%</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Body Temperature</span>
+                  <span class="dual-vital-val" id="dual-temp-2">36.7 °C</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Blood Pressure</span>
+                  <span class="dual-vital-val" id="dual-bp-2">122/80 mmHg</span>
+                </div>
+                <div class="dual-vital-row">
+                  <span class="dual-vital-label">Overall Status</span>
+                  <span class="dual-vital-val" id="dual-status-2">NORMAL</span>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline dual-focus-btn" data-user-id="user_2">Focus Hirok's Oscilloscope</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -606,8 +728,117 @@
         </div>
       </section>
 
-      <!-- ── Alarm & Notification System Configuration Card (col-12) ── -->
-      <section class="card col-12 alarm-settings-card">
+      <!-- ── User Profiles & Account Management Configuration Card (col-full) ── -->
+      <section class="card col-full user-settings-card" id="user-settings-card">
+        <div class="user-settings-header">
+          <div>
+            <h3 class="card-title">
+              User Profiles & Account Management
+              <span class="status-badge normal">2 REGISTERED SUBJECTS</span>
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+              Manage individual patient identities, edit full display names, assign clinical roles, and configure multi-patient telemetry on this node.
+            </p>
+          </div>
+          <div class="user-settings-account-badge">
+            <span class="status-pulse-dot" style="display:inline-block; width:7px; height:7px; background:#3b82f6; border-radius:50%; box-shadow:0 0 8px #3b82f6; margin-right:6px;"></span>
+            <span>Multi-User Account Active</span>
+          </div>
+        </div>
+
+        <div class="user-profiles-grid">
+          <!-- Profile 1: Aryyaman -->
+          <div class="user-profile-edit-box" id="profile-box-1">
+            <div class="profile-box-top">
+              <div class="user-avatar-badge avatar-blue" id="settings-avatar-1">AR</div>
+              <div class="profile-box-title-info">
+                <h4 class="profile-box-name" id="settings-name-display-1">Aryyaman</h4>
+                <span class="profile-box-role" id="settings-role-display-1">Subject 01 (Primary Node)</span>
+              </div>
+              <span class="status-pill-subtle">Patient #1</span>
+            </div>
+
+            <form class="profile-edit-form" id="form-edit-user-1">
+              <div class="form-group">
+                <label for="input-name-1">Patient Full Name</label>
+                <input type="text" id="input-name-1" class="form-input" value="Aryyaman" placeholder="Enter patient name..." required autocomplete="off">
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label for="input-role-1">Clinical ID / Label</label>
+                  <input type="text" id="input-role-1" class="form-input" value="Subject 01" placeholder="e.g. Subject 01">
+                </div>
+                <div class="form-group">
+                  <label for="input-age-1">Demographics / Age</label>
+                  <input type="text" id="input-age-1" class="form-input" value="24, Adult Male" placeholder="e.g. 24, Male">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="input-notes-1">Clinical Notes & Telemetry Node</label>
+                <input type="text" id="input-notes-1" class="form-input" value="Primary Node • Baseline Telemetry" placeholder="Clinical notes...">
+              </div>
+
+              <div class="profile-form-footer">
+                <button type="submit" class="btn btn-sm btn-primary" id="btn-save-user-1">
+                  <span>Save Aryyaman's Profile</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline btn-switch-patient" data-user-id="user_1">
+                  <span>Set as Active Patient</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Profile 2: Hirok -->
+          <div class="user-profile-edit-box" id="profile-box-2">
+            <div class="profile-box-top">
+              <div class="user-avatar-badge avatar-emerald" id="settings-avatar-2">HK</div>
+              <div class="profile-box-title-info">
+                <h4 class="profile-box-name" id="settings-name-display-2">Hirok</h4>
+                <span class="profile-box-role" id="settings-role-display-2">Subject 02 (Secondary Node)</span>
+              </div>
+              <span class="status-pill-subtle">Patient #2</span>
+            </div>
+
+            <form class="profile-edit-form" id="form-edit-user-2">
+              <div class="form-group">
+                <label for="input-name-2">Patient Full Name</label>
+                <input type="text" id="input-name-2" class="form-input" value="Hirok" placeholder="Enter patient name..." required autocomplete="off">
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label for="input-role-2">Clinical ID / Label</label>
+                  <input type="text" id="input-role-2" class="form-input" value="Subject 02" placeholder="e.g. Subject 02">
+                </div>
+                <div class="form-group">
+                  <label for="input-age-2">Demographics / Age</label>
+                  <input type="text" id="input-age-2" class="form-input" value="25, Adult Male" placeholder="e.g. 25, Male">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="input-notes-2">Clinical Notes & Telemetry Node</label>
+                <input type="text" id="input-notes-2" class="form-input" value="Secondary Node • Dynamic Stress Observation" placeholder="Clinical notes...">
+              </div>
+
+              <div class="profile-form-footer">
+                <button type="submit" class="btn btn-sm btn-primary" id="btn-save-user-2">
+                  <span>Save Hirok's Profile</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline btn-switch-patient" data-user-id="user_2">
+                  <span>Set as Active Patient</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Alarm & Notification System Configuration Card (col-full) ── -->
+      <section class="card col-full alarm-settings-card">
         <div class="alarm-settings-header">
           <div>
             <h3 class="card-title">

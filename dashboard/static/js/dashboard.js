@@ -375,7 +375,16 @@ function startSSE() {
     try {
       const data = JSON.parse(ev.data);
       if (data.event_type === "heartbeat") return;
-      if (data.reading || data.latest) applyUpdate(data);
+      if (data.reading || data.latest) {
+        const item = data.latest || data.reading;
+        const currentDev = (typeof PROFILES !== "undefined" && PROFILES[_activeUserId]) ? PROFILES[_activeUserId].device_id : "patient_01";
+        if (!item.device_id || item.device_id === currentDev) {
+          applyUpdate(data);
+        }
+        if (typeof updateDualTelemetry === "function") {
+          updateDualTelemetry();
+        }
+      }
       fetchBaseline();
     } catch (e) { console.warn("SSE parse error", e); }
   };
@@ -392,15 +401,16 @@ function startPolling() {
   setInterval(fetchLatest, 5000);
 }
 
-function fetchLatest() {
-  fetch("/api/latest")
+function fetchLatest(deviceId) {
+  const dev = deviceId || (typeof PROFILES !== "undefined" && PROFILES[_activeUserId] ? PROFILES[_activeUserId].device_id : "patient_01");
+  fetch(`/api/latest?device_id=${encodeURIComponent(dev)}`)
     .then(r => r.json())
     .then(data => {
       if (data.latest || data.reading) applyUpdate(data);
       fetchBaseline();
       $("connection-dot").className = "dot dot--connected";
     })
-    .catch(e => {
+    .catch(() => {
       $("connection-dot").className = "dot dot--error";
     });
 }
@@ -412,16 +422,18 @@ function fetchBaseline() {
     .catch(() => {});
 }
 
-function fetchHistory() {
-  fetch("/api/history")
+function fetchHistory(deviceId) {
+  const dev = deviceId || (typeof PROFILES !== "undefined" && PROFILES[_activeUserId] ? PROFILES[_activeUserId].device_id : "patient_01");
+  fetch(`/api/history?device_id=${encodeURIComponent(dev)}`)
     .then(r => r.json())
     .then(records => {
-      if (!Array.isArray(records) || records.length === 0) return;
+      const dataList = Array.isArray(records) ? records : (records.readings || []);
+      if (!Array.isArray(dataList) || dataList.length === 0) return;
       const tbody = $("readings-tbody");
       if (!tbody) return;
       tbody.innerHTML = "";
       // Populate table with existing records (newest to oldest)
-      const recent = records.slice(0, 25);
+      const recent = dataList.slice(0, 25);
       for (const rec of recent) {
         if (!rec.timestamp) continue;
         const parsed = new Date(rec.timestamp);
@@ -910,7 +922,285 @@ function initAlarmSimulator() {
   }
 }
 
-// ── Slide Down User Profile Switcher (Demo) ───────────────────────────────────
+// ── Multi-Patient & Account Profiles (Aryyaman & Hirok) ───────────────────────
+let PROFILES = {
+  user_1: {
+    id: "user_1",
+    device_id: "patient_01",
+    name: "Aryyaman",
+    role: "Subject 01",
+    demographics: "24, Adult Male",
+    initials: "AR",
+    bgClass: "avatar-blue",
+    notes: "Primary Node • Baseline Telemetry",
+    welcomeSubtitle: "Viewing real-time biometric telemetry and edge risk evaluation for Aryyaman.",
+    baseline: { heart_rate: 74, spo2: 98.2, body_temperature: 36.6, bp_sys: 118, bp_dia: 76 }
+  },
+  user_2: {
+    id: "user_2",
+    device_id: "patient_02",
+    name: "Hirok",
+    role: "Subject 02",
+    demographics: "25, Adult Male",
+    initials: "HK",
+    bgClass: "avatar-emerald",
+    notes: "Secondary Node • Dynamic Observation",
+    welcomeSubtitle: "Viewing real-time biometric telemetry and edge risk evaluation for Hirok.",
+    baseline: { heart_rate: 80, spo2: 97.8, body_temperature: 36.7, bp_sys: 122, bp_dia: 80 }
+  }
+};
+let _activeUserId = "user_1";
+
+function deriveInitials(name) {
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function updateUserUI(userId) {
+  const p = PROFILES[userId] || PROFILES.user_1;
+  const p1 = PROFILES.user_1;
+  const p2 = PROFILES.user_2;
+
+  // 1. Header Profile Badge & Button
+  const nameEl = $("user-name");
+  const roleEl = $("user-role");
+  const badgeEl = $("user-avatar-badge");
+  const initialsEl = $("user-avatar-initials");
+  if (nameEl) nameEl.textContent = p.name;
+  if (roleEl) roleEl.textContent = p.role;
+  if (initialsEl) initialsEl.textContent = p.initials;
+  if (badgeEl) badgeEl.className = `user-avatar-badge ${p.bgClass}`;
+
+  // 2. Welcome Banner
+  const welcomeH2 = document.querySelector(".welcome-text h2");
+  const welcomeP = document.querySelector(".welcome-text p");
+  if (welcomeH2) welcomeH2.textContent = `Welcome back, ${p.name.split(" ")[0]}!`;
+  if (welcomeP) welcomeP.textContent = p.welcomeSubtitle;
+
+  // 3. Dropdown Menu Items
+  const items = document.querySelectorAll(".user-item");
+  items.forEach(el => {
+    el.classList.toggle("active", el.getAttribute("data-user-id") === userId);
+  });
+  const dropName1 = $("dropdown-name-1");
+  const dropAvatar1 = $("dropdown-avatar-1");
+  const dropMeta1 = $("dropdown-meta-1");
+  if (dropName1) dropName1.textContent = p1.name;
+  if (dropAvatar1) dropAvatar1.textContent = p1.initials;
+  if (dropMeta1) dropMeta1.textContent = `${p1.role} • ${p1.demographics} • Primary Node`;
+
+  const dropName2 = $("dropdown-name-2");
+  const dropAvatar2 = $("dropdown-avatar-2");
+  const dropMeta2 = $("dropdown-meta-2");
+  if (dropName2) dropName2.textContent = p2.name;
+  if (dropAvatar2) dropAvatar2.textContent = p2.initials;
+  if (dropMeta2) dropMeta2.textContent = `${p2.role} • ${p2.demographics} • Secondary Node`;
+
+  // 4. Patient Chips in Live Monitor
+  const chip1 = $("patient-chip-1");
+  const chip2 = $("patient-chip-2");
+  if (chip1) chip1.classList.toggle("active", userId === "user_1");
+  if (chip2) chip2.classList.toggle("active", userId === "user_2");
+
+  const chipName1 = $("chip-name-1");
+  const chipRole1 = $("chip-role-1");
+  const chipAvatar1 = $("chip-avatar-1");
+  const chipBadge1 = $("chip-badge-1");
+  if (chipName1) chipName1.textContent = p1.name;
+  if (chipRole1) chipRole1.textContent = p1.role;
+  if (chipAvatar1) chipAvatar1.textContent = p1.initials;
+  if (chipBadge1) chipBadge1.textContent = userId === "user_1" ? "ACTIVE PATIENT" : "SELECT PATIENT";
+
+  const chipName2 = $("chip-name-2");
+  const chipRole2 = $("chip-role-2");
+  const chipAvatar2 = $("chip-avatar-2");
+  const chipBadge2 = $("chip-badge-2");
+  if (chipName2) chipName2.textContent = p2.name;
+  if (chipRole2) chipRole2.textContent = p2.role;
+  if (chipAvatar2) chipAvatar2.textContent = p2.initials;
+  if (chipBadge2) chipBadge2.textContent = userId === "user_2" ? "ACTIVE PATIENT" : "SELECT PATIENT";
+
+  // 5. Settings Edit Boxes
+  const setDispName1 = $("settings-name-display-1");
+  const setDispRole1 = $("settings-role-display-1");
+  const setAvatar1 = $("settings-avatar-1");
+  const inputName1 = $("input-name-1");
+  const inputRole1 = $("input-role-1");
+  const inputAge1 = $("input-age-1");
+  const inputNotes1 = $("input-notes-1");
+  if (setDispName1) setDispName1.textContent = p1.name;
+  if (setDispRole1) setDispRole1.textContent = `${p1.role} (Primary Node)`;
+  if (setAvatar1) setAvatar1.textContent = p1.initials;
+  if (inputName1 && document.activeElement !== inputName1) inputName1.value = p1.name;
+  if (inputRole1 && document.activeElement !== inputRole1) inputRole1.value = p1.role;
+  if (inputAge1 && document.activeElement !== inputAge1) inputAge1.value = p1.demographics;
+  if (inputNotes1 && document.activeElement !== inputNotes1) inputNotes1.value = p1.notes;
+
+  const setDispName2 = $("settings-name-display-2");
+  const setDispRole2 = $("settings-role-display-2");
+  const setAvatar2 = $("settings-avatar-2");
+  const inputName2 = $("input-name-2");
+  const inputRole2 = $("input-role-2");
+  const inputAge2 = $("input-age-2");
+  const inputNotes2 = $("input-notes-2");
+  if (setDispName2) setDispName2.textContent = p2.name;
+  if (setDispRole2) setDispRole2.textContent = `${p2.role} (Secondary Node)`;
+  if (setAvatar2) setAvatar2.textContent = p2.initials;
+  if (inputName2 && document.activeElement !== inputName2) inputName2.value = p2.name;
+  if (inputRole2 && document.activeElement !== inputRole2) inputRole2.value = p2.role;
+  if (inputAge2 && document.activeElement !== inputAge2) inputAge2.value = p2.demographics;
+  if (inputNotes2 && document.activeElement !== inputNotes2) inputNotes2.value = p2.notes;
+
+  // 6. Dual Matrix Titles
+  const dualName1 = $("dual-name-1");
+  const dualRole1 = $("dual-role-1");
+  const dualAvatar1 = $("dual-avatar-1");
+  if (dualName1) dualName1.textContent = p1.name;
+  if (dualRole1) dualRole1.textContent = `${p1.role} (Primary)`;
+  if (dualAvatar1) dualAvatar1.textContent = p1.initials;
+
+  const dualName2 = $("dual-name-2");
+  const dualRole2 = $("dual-role-2");
+  const dualAvatar2 = $("dual-avatar-2");
+  if (dualName2) dualName2.textContent = p2.name;
+  if (dualRole2) dualRole2.textContent = `${p2.role} (Secondary)`;
+  if (dualAvatar2) dualAvatar2.textContent = p2.initials;
+}
+
+function selectUser(userId, notify = true) {
+  if (!PROFILES[userId]) return;
+  _activeUserId = userId;
+  localStorage.setItem("jeev_one_user_id", userId);
+  updateUserUI(userId);
+
+  // Sync to server active user
+  fetch("/api/users/active", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId })
+  }).catch(() => {});
+
+  // Fetch telemetry for this specific patient
+  const targetDevice = PROFILES[userId].device_id;
+  fetchLatest(targetDevice);
+  fetchHistory(targetDevice);
+  updateDualTelemetry();
+
+  if (notify) {
+    showToast("normal", `Switched active subject to ${PROFILES[userId].name} (${PROFILES[userId].role})`);
+  }
+}
+
+function saveUserProfile(userId, updates) {
+  if (!PROFILES[userId]) return;
+  const p = PROFILES[userId];
+
+  if (updates.name && updates.name.trim()) {
+    p.name = updates.name.trim();
+    p.initials = deriveInitials(p.name);
+    p.welcomeSubtitle = `Viewing real-time biometric telemetry and edge risk evaluation for ${p.name.split(" ")[0]}.`;
+  }
+  if (updates.role) p.role = updates.role.trim();
+  if (updates.demographics) p.demographics = updates.demographics.trim();
+  if (updates.notes) p.notes = updates.notes.trim();
+
+  // Save to localStorage
+  localStorage.setItem("jeev_one_profiles", JSON.stringify(PROFILES));
+
+  // Sync to backend API
+  fetch("/api/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, ...updates })
+  }).catch(e => console.warn("Failed saving profile to server:", e));
+
+  updateUserUI(_activeUserId);
+  showToast("normal", `Profile for ${p.name} updated successfully.`);
+}
+
+function updateDualTelemetry() {
+  fetch("/api/users/telemetry")
+    .then(r => r.json())
+    .then(res => {
+      if (!res.users) return;
+      const u1 = res.users.user_1;
+      const u2 = res.users.user_2;
+
+      // Update User 1 (Aryyaman) Vitals
+      if (u1 && u1.latest) {
+        const d1 = u1.latest;
+        const hr1 = $("chip-hr-1");
+        const spo21 = $("chip-spo2-1");
+        const temp1 = $("chip-temp-1");
+        const bp1 = $("chip-bp-1");
+        const risk1 = $("chip-risk-1");
+        if (hr1) hr1.textContent = fmt0(d1.heart_rate);
+        if (spo21) spo21.textContent = fmt1(d1.spo2);
+        if (temp1) temp1.textContent = fmt1(d1.body_temperature);
+        if (bp1) bp1.textContent = d1.bp_sys ? `${fmt0(d1.bp_sys)}/${fmt0(d1.bp_dia)}` : "--/--";
+        const r1 = u1.risk ? u1.risk.overall_status : "NORMAL";
+        if (risk1) {
+          risk1.textContent = r1;
+          risk1.className = `status-badge ${r1.toLowerCase()} chip-risk-pill`;
+        }
+
+        const dhr1 = $("dual-hr-1");
+        const dspo21 = $("dual-spo2-1");
+        const dtemp1 = $("dual-temp-1");
+        const dbp1 = $("dual-bp-1");
+        const dstat1 = $("dual-status-1");
+        const driskBadge1 = $("dual-risk-badge-1");
+        if (dhr1) dhr1.textContent = `${fmt0(d1.heart_rate)} bpm`;
+        if (dspo21) dspo21.textContent = `${fmt1(d1.spo2)}%`;
+        if (dtemp1) dtemp1.textContent = `${fmt1(d1.body_temperature)} °C`;
+        if (dbp1) dbp1.textContent = d1.bp_sys ? `${fmt0(d1.bp_sys)}/${fmt0(d1.bp_dia)} mmHg` : "--/-- mmHg";
+        if (dstat1) dstat1.textContent = r1;
+        if (driskBadge1) {
+          driskBadge1.textContent = r1 === "HIGH" ? "CRITICAL RISK" : (r1 === "WATCH" ? "CAUTION" : "STABLE");
+          driskBadge1.className = `status-badge ${r1.toLowerCase()}`;
+        }
+      }
+
+      // Update User 2 (Hirok) Vitals
+      if (u2 && u2.latest) {
+        const d2 = u2.latest;
+        const hr2 = $("chip-hr-2");
+        const spo22 = $("chip-spo2-2");
+        const temp2 = $("chip-temp-2");
+        const bp2 = $("chip-bp-2");
+        const risk2 = $("chip-risk-2");
+        if (hr2) hr2.textContent = fmt0(d2.heart_rate);
+        if (spo22) spo22.textContent = fmt1(d2.spo2);
+        if (temp2) temp2.textContent = fmt1(d2.body_temperature);
+        if (bp2) bp2.textContent = d2.bp_sys ? `${fmt0(d2.bp_sys)}/${fmt0(d2.bp_dia)}` : "--/--";
+        const r2 = u2.risk ? u2.risk.overall_status : "NORMAL";
+        if (risk2) {
+          risk2.textContent = r2;
+          risk2.className = `status-badge ${r2.toLowerCase()} chip-risk-pill`;
+        }
+
+        const dhr2 = $("dual-hr-2");
+        const dspo22 = $("dual-spo2-2");
+        const dtemp2 = $("dual-temp-2");
+        const dbp2 = $("dual-bp-2");
+        const dstat2 = $("dual-status-2");
+        const driskBadge2 = $("dual-risk-badge-2");
+        if (dhr2) dhr2.textContent = `${fmt0(d2.heart_rate)} bpm`;
+        if (dspo22) dspo22.textContent = `${fmt1(d2.spo2)}%`;
+        if (dtemp2) dtemp2.textContent = `${fmt1(d2.body_temperature)} °C`;
+        if (dbp2) dbp2.textContent = d2.bp_sys ? `${fmt0(d2.bp_sys)}/${fmt0(d2.bp_dia)} mmHg` : "--/-- mmHg";
+        if (dstat2) dstat2.textContent = r2;
+        if (driskBadge2) {
+          driskBadge2.textContent = r2 === "HIGH" ? "CRITICAL RISK" : (r2 === "WATCH" ? "CAUTION" : "STABLE");
+          driskBadge2.className = `status-badge ${r2.toLowerCase()}`;
+        }
+      }
+    })
+    .catch(() => {});
+}
+
 function initUserSwitcher() {
   const wrapper = $("user-menu-wrapper");
   const btn = $("user-profile-btn");
@@ -919,66 +1209,29 @@ function initUserSwitcher() {
 
   if (!btn || !menu) return;
 
-  const PROFILES = {
-    user_1: {
-      name: "Alex Mercer",
-      role: "Subject 01",
-      initials: "AM",
-      bgClass: "avatar-blue",
-      welcomeSubtitle: "Viewing real-time biometric telemetry and edge risk evaluation for Subject 01."
-    },
-    user_2: {
-      name: "Elena Vance",
-      role: "Subject 02",
-      initials: "EV",
-      bgClass: "avatar-amber",
-      welcomeSubtitle: "Viewing heat strain trial telemetry and core biometrics for Subject 02."
-    },
-    user_3: {
-      name: "David Chen",
-      role: "Subject 03",
-      initials: "DC",
-      bgClass: "avatar-purple",
-      welcomeSubtitle: "Viewing continuous SpO2 and hemodynamic stability for Subject 03."
-    },
-    user_4: {
-      name: "Dr. Marcus Thorne",
-      role: "Field Physician",
-      initials: "MT",
-      bgClass: "avatar-green",
-      welcomeSubtitle: "Administrator triage mode • Field node live monitor active."
+  // Restore profiles from localStorage if available
+  try {
+    const cached = localStorage.getItem("jeev_one_profiles");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.user_1 && parsed.user_2) PROFILES = parsed;
     }
-  };
+  } catch (_) {}
 
-  function selectUser(userId, notify = true) {
-    const p = PROFILES[userId];
-    if (!p) return;
-
-    items.forEach(el => {
-      el.classList.toggle("active", el.getAttribute("data-user-id") === userId);
+  // Fetch server profiles
+  fetch("/api/users")
+    .then(r => r.json())
+    .then(res => {
+      if (res.users && res.users.user_1 && res.users.user_2) {
+        PROFILES = res.users;
+        if (res.active_user_id) _activeUserId = res.active_user_id;
+      }
+      updateUserUI(_activeUserId);
+      updateDualTelemetry();
+    })
+    .catch(() => {
+      updateUserUI(_activeUserId);
     });
-
-    const nameEl = $("user-name");
-    const roleEl = $("user-role");
-    const badgeEl = $("user-avatar-badge");
-    const welcomeH2 = document.querySelector(".welcome-text h2");
-    const welcomeP = document.querySelector(".welcome-text p");
-
-    if (nameEl) nameEl.textContent = p.name;
-    if (roleEl) roleEl.textContent = p.role;
-    if (badgeEl) {
-      badgeEl.innerHTML = `<span>${p.initials}</span>`;
-      badgeEl.className = `user-avatar-badge ${p.bgClass}`;
-    }
-    if (welcomeH2) welcomeH2.textContent = `Welcome back, ${p.name.split(" ")[0]}!`;
-    if (welcomeP) welcomeP.textContent = p.welcomeSubtitle;
-
-    localStorage.setItem("jeev_one_user_id", userId);
-    closeMenu();
-    if (notify) {
-      showToast(`Active profile switched to ${p.name} (${p.role})`);
-    }
-  }
 
   function toggleMenu() {
     const isOpen = menu.classList.toggle("open");
@@ -999,15 +1252,30 @@ function initUserSwitcher() {
     item.addEventListener("click", () => {
       const id = item.getAttribute("data-user-id");
       selectUser(id, true);
+      closeMenu();
     });
     item.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         const id = item.getAttribute("data-user-id");
         selectUser(id, true);
+        closeMenu();
       }
     });
   });
+
+  const dropdownSettingsBtn = $("btn-dropdown-edit-settings");
+  if (dropdownSettingsBtn) {
+    dropdownSettingsBtn.addEventListener("click", () => {
+      closeMenu();
+      const settingsBtn = $("settings-btn");
+      if (settingsBtn) settingsBtn.click();
+      const settingsCard = $("user-settings-card");
+      if (settingsCard) {
+        settingsCard.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
 
   document.addEventListener("click", (e) => {
     if (wrapper && !wrapper.contains(e.target)) {
@@ -1019,11 +1287,87 @@ function initUserSwitcher() {
     if (e.key === "Escape") closeMenu();
   });
 
-  // Restore saved profile
-  const saved = localStorage.getItem("jeev_one_user_id");
-  if (saved && PROFILES[saved]) {
-    selectUser(saved, false);
+  // Patient Chips Click Events in Live Monitor
+  const chip1 = $("patient-chip-1");
+  const chip2 = $("patient-chip-2");
+  if (chip1) {
+    chip1.addEventListener("click", () => selectUser("user_1", true));
   }
+  if (chip2) {
+    chip2.addEventListener("click", () => selectUser("user_2", true));
+  }
+
+  // Settings Edit Form 1 (Aryyaman)
+  const form1 = $("form-edit-user-1");
+  if (form1) {
+    form1.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = $("input-name-1")?.value || "Aryyaman";
+      const role = $("input-role-1")?.value || "Subject 01";
+      const demographics = $("input-age-1")?.value || "";
+      const notes = $("input-notes-1")?.value || "";
+      saveUserProfile("user_1", { name, role, demographics, notes });
+    });
+  }
+
+  // Settings Edit Form 2 (Hirok)
+  const form2 = $("form-edit-user-2");
+  if (form2) {
+    form2.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = $("input-name-2")?.value || "Hirok";
+      const role = $("input-role-2")?.value || "Subject 02";
+      const demographics = $("input-age-2")?.value || "";
+      const notes = $("input-notes-2")?.value || "";
+      saveUserProfile("user_2", { name, role, demographics, notes });
+    });
+  }
+
+  // Switch patient buttons in Settings forms
+  document.querySelectorAll(".btn-switch-patient").forEach(b => {
+    b.addEventListener("click", () => {
+      const uid = b.getAttribute("data-user-id");
+      selectUser(uid, true);
+    });
+  });
+
+  // Dual Comparison Toggle Button
+  const toggleDualBtn = $("btn-toggle-dual-matrix");
+  const dualContainer = $("dual-matrix-container");
+  const toggleDualText = $("btn-toggle-dual-text");
+  if (toggleDualBtn && dualContainer) {
+    toggleDualBtn.addEventListener("click", () => {
+      const isHidden = dualContainer.style.display === "none";
+      dualContainer.style.display = isHidden ? "block" : "none";
+      if (toggleDualText) {
+        toggleDualText.textContent = isHidden ? "Hide Dual Comparison" : "Dual-Patient Comparison View";
+      }
+      if (isHidden) {
+        updateDualTelemetry();
+      }
+    });
+  }
+
+  // Focus buttons in Dual Comparison
+  document.querySelectorAll(".dual-focus-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      const uid = b.getAttribute("data-user-id");
+      selectUser(uid, true);
+      const liveBtn = document.querySelector("[data-tab='live']");
+      if (liveBtn) liveBtn.click();
+    });
+  });
+
+  // Restore saved active profile
+  const savedId = localStorage.getItem("jeev_one_user_id");
+  if (savedId && PROFILES[savedId]) {
+    selectUser(savedId, false);
+  } else {
+    updateUserUI(_activeUserId);
+  }
+
+  // Poll dual telemetry periodically
+  setInterval(updateDualTelemetry, 5000);
 }
 
 // ── Tab Management ─────────────────────────────────────────────────────────────
