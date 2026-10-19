@@ -1,0 +1,9 @@
+.venv/
+tests/
+esp32/
+data/
+mosquitto-installer.exe
+Circuit Diagram.png
+Prototype Demo.png
+*.pyc
+__pycache__/

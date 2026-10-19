@@ -17,7 +17,7 @@ import yaml
 _log = logging.getLogger(__name__)
 
 # Resolve project root relative to this file's location: app/ → project root
-_PROJECT_ROOT = Path(__file__).parent.parent
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _CONFIG_FILE = _PROJECT_ROOT / "config" / "config.yaml"
 
 
@@ -87,6 +87,8 @@ class Config:
 
     @property
     def db_path(self) -> Path:
+        if os.getenv("VERCEL") and not os.getenv("DB_PATH"):
+            return Path("/tmp/health.db")
         raw = self._raw["database"]["path"]
         p = Path(raw)
         if not p.is_absolute():
@@ -144,11 +146,16 @@ class Config:
     # ── Internal helpers ────────────────────────────────────────────────────
 
     def _load_yaml(self) -> dict:
-        if not _CONFIG_FILE.exists():
-            raise FileNotFoundError(f"Config file not found: {_CONFIG_FILE}")
-        with _CONFIG_FILE.open() as fh:
+        config_path = _CONFIG_FILE
+        if not config_path.exists():
+            alt = Path.cwd() / "config" / "config.yaml"
+            if alt.exists():
+                config_path = alt
+            else:
+                raise FileNotFoundError(f"Config file not found: {_CONFIG_FILE}")
+        with config_path.open() as fh:
             data = yaml.safe_load(fh)
-        _log.debug("Loaded config from %s", _CONFIG_FILE)
+        _log.debug("Loaded config from %s", config_path)
         return data
 
     def _apply_env_overrides(self) -> None:

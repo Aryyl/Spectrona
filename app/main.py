@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from pathlib import Path
 
 from flask import Flask
 from flask_cors import CORS
@@ -61,11 +62,30 @@ def on_sensor_message(payload: dict) -> None:
 # ── Flask app factory ────────────────────────────────────────────────────────
 
 def create_app() -> Flask:
-    app = Flask(__name__, template_folder="../dashboard/templates", static_folder="../dashboard/static")
+    base_dir = Path(__file__).resolve().parent.parent
+    template_dir = base_dir / "dashboard" / "templates"
+    static_dir = base_dir / "dashboard" / "static"
+    if not template_dir.exists():
+        alt_template = Path.cwd() / "dashboard" / "templates"
+        if alt_template.exists():
+            template_dir = alt_template
+    if not static_dir.exists():
+        alt_static = Path.cwd() / "dashboard" / "static"
+        if alt_static.exists():
+            static_dir = alt_static
+
+    app = Flask(
+        __name__,
+        template_folder=str(template_dir),
+        static_folder=str(static_dir),
+    )
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     CORS(app)
     app.register_blueprint(api_bp)
     app.register_blueprint(ws_bp)
+
+    # Initialise database tables (idempotent)
+    init_db()
 
     # Serve landing page
     @app.route("/")
@@ -101,6 +121,10 @@ def create_app() -> Flask:
     return app
 
 
+# Expose top-level app instance for WSGI / Serverless environments (e.g. Vercel)
+app = create_app()
+
+
 # ── Main entry point ─────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -111,7 +135,7 @@ def main() -> None:
     init_db()
 
     # Start Flask in a daemon thread
-    flask_app = create_app()
+    flask_app = app
 
     def run_flask():
         _log.info("API server starting at http://%s:%d", cfg.api_host, cfg.api_port)

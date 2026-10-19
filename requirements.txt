@@ -7,8 +7,6 @@ paho-mqtt>=2.0.0
 # Web framework & server
 flask>=3.0.0
 flask-cors>=4.0.0
-fastapi>=0.100.0
-uvicorn[standard]>=0.24.0
 
 # Data validation
 pydantic>=2.0.0

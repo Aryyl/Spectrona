@@ -25,6 +25,8 @@ _SessionFactory = None
 def init_db() -> None:
     """Create the SQLite file and all tables (idempotent)."""
     global _engine, _SessionFactory
+    if _SessionFactory is not None:
+        return
 
     db_path: Path = cfg.db_path
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -41,8 +43,11 @@ def init_db() -> None:
     # Enable WAL mode for better concurrent read/write performance
     @event.listens_for(_engine, "connect")
     def set_wal(dbapi_conn, _record):
-        dbapi_conn.execute("PRAGMA journal_mode=WAL")
-        dbapi_conn.execute("PRAGMA synchronous=NORMAL")
+        try:
+            dbapi_conn.execute("PRAGMA journal_mode=WAL")
+            dbapi_conn.execute("PRAGMA synchronous=NORMAL")
+        except Exception:
+            pass
 
     Base.metadata.create_all(_engine)
     _SessionFactory = sessionmaker(bind=_engine, expire_on_commit=False)
@@ -51,6 +56,7 @@ def init_db() -> None:
 
 def get_session() -> Session:
     """Return a new database session. Caller is responsible for closing it."""
+    global _SessionFactory
     if _SessionFactory is None:
-        raise RuntimeError("Database not initialised – call init_db() first")
+        init_db()
     return _SessionFactory()
