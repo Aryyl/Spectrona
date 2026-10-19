@@ -80,6 +80,7 @@ def create_app() -> Flask:
         static_folder=str(static_dir),
     )
     app.config["TEMPLATES_AUTO_RELOAD"] = True
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
     CORS(app)
     app.register_blueprint(api_bp)
     app.register_blueprint(ws_bp)

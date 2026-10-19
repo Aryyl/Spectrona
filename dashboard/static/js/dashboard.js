@@ -1067,6 +1067,28 @@ function updateUserUI(userId) {
   if (dualName2) dualName2.textContent = p2.name;
   if (dualRole2) dualRole2.textContent = `${p2.role} (Secondary)`;
   if (dualAvatar2) dualAvatar2.textContent = p2.initials;
+
+  // 7. Mobile Drawer Patient Selector Pills
+  const mobP1 = $("mob-patient-1");
+  const mobP2 = $("mob-patient-2");
+  if (mobP1) {
+    mobP1.classList.toggle("active", userId === "user_1");
+    const check1 = mobP1.querySelector(".mob-patient-check");
+    if (check1) check1.textContent = userId === "user_1" ? "✓ Active" : "Select";
+  }
+  if (mobP2) {
+    mobP2.classList.toggle("active", userId === "user_2");
+    const check2 = mobP2.querySelector(".mob-patient-check");
+    if (check2) check2.textContent = userId === "user_2" ? "✓ Active" : "Select";
+  }
+  const mobName1 = $("mob-patient-name-1");
+  const mobName2 = $("mob-patient-name-2");
+  const mobAvatar1 = $("mob-avatar-1");
+  const mobAvatar2 = $("mob-avatar-2");
+  if (mobName1) mobName1.textContent = p1.name;
+  if (mobName2) mobName2.textContent = p2.name;
+  if (mobAvatar1) mobAvatar1.textContent = p1.initials;
+  if (mobAvatar2) mobAvatar2.textContent = p2.initials;
 }
 
 function selectUser(userId, notify = true) {
@@ -1383,11 +1405,16 @@ function initTabs() {
       pane.classList.toggle("active", pane.id === `tab-${tabId}`);
     });
 
-    // Toggle button active classes
-    tabButtons.forEach(btn => {
+    // Toggle button active classes across all tab buttons (header, drawer, bottom nav)
+    document.querySelectorAll("[data-tab]").forEach(btn => {
       const targetTab = btn.getAttribute("data-tab");
       btn.classList.toggle("active", targetTab === tabId);
     });
+
+    // Close mobile drawer if open
+    if (window.closeMobileDrawer) {
+      window.closeMobileDrawer();
+    }
 
     // Resize charts and canvases when entering tabs
     if (tabId === "live") {
@@ -2025,6 +2052,8 @@ function initPWA() {
     if (installBtnSettings) {
       installBtnSettings.style.display = "inline-flex";
     }
+    const installBtnDrawer = $("mob-btn-install-pwa");
+    if (installBtnDrawer) installBtnDrawer.style.display = "inline-flex";
     console.log("[PWA] beforeinstallprompt event captured");
   });
 
@@ -2059,6 +2088,8 @@ function initPWA() {
         }
         deferredInstallPrompt = null;
         if (installBtnNav) installBtnNav.style.display = "none";
+        const installBtnDrawer = $("mob-btn-install-pwa");
+        if (installBtnDrawer) installBtnDrawer.style.display = "none";
       });
     } else if (isIOS) {
       openIosModal();
@@ -2073,6 +2104,13 @@ function initPWA() {
 
   if (installBtnNav) installBtnNav.addEventListener("click", triggerInstall);
   if (installBtnSettings) installBtnSettings.addEventListener("click", triggerInstall);
+  const installBtnDrawer = $("mob-btn-install-pwa");
+  if (installBtnDrawer) {
+    installBtnDrawer.addEventListener("click", () => {
+      triggerInstall();
+      if (window.closeMobileDrawer) window.closeMobileDrawer();
+    });
+  }
 
   // Installed event
   window.addEventListener("appinstalled", () => {
@@ -2081,6 +2119,8 @@ function initPWA() {
     document.body.classList.add("pwa-standalone");
     if (installBtnNav) installBtnNav.style.display = "none";
     if (installBtnSettings) installBtnSettings.style.display = "none";
+    const installBtnDrawer = $("mob-btn-install-pwa");
+    if (installBtnDrawer) installBtnDrawer.style.display = "none";
     if (pwaStatusBadge) {
       pwaStatusBadge.textContent = "STANDALONE ACTIVE";
       pwaStatusBadge.className = "status-badge normal";
@@ -2088,6 +2128,91 @@ function initPWA() {
     showToast("Jeev One App Installed", "Launch anytime directly from your mobile home screen.", "success");
   });
 }
+
+// ── Mobile Navigation Drawer Controller ─────────────────────────────────────────
+function initMobileNav() {
+  const menuBtn = $("mobile-menu-btn");
+  const drawer = $("mobile-nav-drawer");
+  const backdrop = $("mobile-drawer-backdrop");
+  const iconOpen = $("icon-menu-open");
+  const iconClose = $("icon-menu-close");
+
+  if (!menuBtn || !drawer) return;
+
+  function openDrawer() {
+    drawer.classList.add("open");
+    if (backdrop) backdrop.classList.add("open");
+    menuBtn.setAttribute("aria-expanded", "true");
+    if (iconOpen) iconOpen.style.display = "none";
+    if (iconClose) iconClose.style.display = "block";
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
+    if (iconOpen) iconOpen.style.display = "block";
+    if (iconClose) iconClose.style.display = "none";
+  }
+
+  window.closeMobileDrawer = closeDrawer;
+
+  menuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (drawer.classList.contains("open")) {
+      closeDrawer();
+    } else {
+      openDrawer();
+    }
+  });
+
+  if (backdrop) {
+    backdrop.addEventListener("click", closeDrawer);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawer.classList.contains("open")) {
+      closeDrawer();
+    }
+  });
+
+  // Mobile drawer tabs: close drawer on click
+  const drawerTabs = drawer.querySelectorAll("[data-tab]");
+  drawerTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      closeDrawer();
+    });
+  });
+
+  // Mobile drawer patient buttons
+  const mobPatient1 = $("mob-patient-1");
+  const mobPatient2 = $("mob-patient-2");
+  if (mobPatient1) {
+    mobPatient1.addEventListener("click", () => {
+      selectUser("user_1", true);
+      closeDrawer();
+    });
+  }
+  if (mobPatient2) {
+    mobPatient2.addEventListener("click", () => {
+      selectUser("user_2", true);
+      closeDrawer();
+    });
+  }
+}
+
+// Handle window resizing and orientation changes dynamically
+window.addEventListener("resize", () => {
+  if (gaugeChart) gaugeChart.resize();
+  if (trendChart) trendChart.resize();
+  const liveCanvas = $("live-ecg-canvas");
+  if (liveCanvas && liveCanvas.parentElement) {
+    const w = liveCanvas.parentElement.clientWidth;
+    if (w > 0) {
+      liveCanvas.width = w * (window.devicePixelRatio || 1);
+    }
+  }
+});
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -2100,6 +2225,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initTheme();
   initTabs();
+  initMobileNav();
   initPWA();
   initNotificationCenter();
   initDesktopPush();
