@@ -3,13 +3,7 @@
   "framework": "flask",
   "functions": {
     "api/index.py": {
-      "includeFiles": "{config/**,dashboard/**}"
+      "includeFiles": "{config/**,dashboard/**,app/**}"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index"
-    }
-  ]
+  }
 }
