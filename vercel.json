@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "flask",
   "functions": {
     "api/index.py": {
       "includeFiles": "{config/**,dashboard/**}"
