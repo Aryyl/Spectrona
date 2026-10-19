@@ -1,0 +1,76 @@
+{
+  "id": "/dashboard",
+  "name": "Spectrona — Jeev One Health Companion",
+  "short_name": "Spectrona",
+  "description": "Autonomous edge-computing health telemetry node for real-time vitals, ECG diagnostics, and multi-patient physiological monitoring.",
+  "start_url": "/dashboard?source=pwa",
+  "scope": "/dashboard",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "any",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": [
+    "medical",
+    "health",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/static/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Monitor",
+      "short_name": "Monitor",
+      "description": "View live telemetry and synchronized dual-patient vitals",
+      "url": "/dashboard?tab=live",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ECG Diagnostics",
+      "short_name": "ECG",
+      "description": "High-resolution 250 Hz diagnostic ECG strip viewer",
+      "url": "/dashboard?tab=ecg",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Recent Readings",
+      "short_name": "Readings",
+      "description": "Continuous sequential sensor packets logged locally",
+      "url": "/dashboard?tab=readings",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Settings & Profiles",
+      "short_name": "Settings",
+      "description": "Manage user accounts (Aryyaman, Hirok) and telemetry node",
+      "url": "/dashboard?tab=settings",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

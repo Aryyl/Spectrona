@@ -79,6 +79,25 @@ def create_app() -> Flask:
         from flask import render_template
         return render_template("index.html")
 
+    # Progressive Web App (PWA) routes
+    @app.route("/sw.js")
+    def service_worker():
+        from flask import send_from_directory, make_response
+        resp = make_response(send_from_directory(app.static_folder, "sw.js"))
+        resp.headers["Content-Type"] = "application/javascript"
+        resp.headers["Service-Worker-Allowed"] = "/"
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return resp
+
+    @app.route("/manifest.json")
+    @app.route("/manifest.webmanifest")
+    def manifest():
+        from flask import send_from_directory, make_response
+        resp = make_response(send_from_directory(app.static_folder, "manifest.json"))
+        resp.headers["Content-Type"] = "application/manifest+json"
+        resp.headers["Cache-Control"] = "public, max-age=3600"
+        return resp
+
     return app
 
 

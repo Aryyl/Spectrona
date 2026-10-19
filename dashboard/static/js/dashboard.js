@@ -1433,10 +1433,14 @@ function initTabs() {
     });
   });
 
-  // Check URL hash or localStorage
+  // Check URL query param (?tab=...), hash (#...), or localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramTab = urlParams.get("tab");
   const hash = window.location.hash.replace("#", "");
   let initialTab = "live";
-  if (hash && $(`tab-${hash}`)) {
+  if (paramTab && $(`tab-${paramTab}`)) {
+    initialTab = paramTab;
+  } else if (hash && $(`tab-${hash}`)) {
     initialTab = hash;
   } else {
     try {
@@ -1958,6 +1962,133 @@ function initArchiveECG() {
   }
 }
 
+// ── Progressive Web App (PWA) Registration & Install Prompt ──────────────────
+let deferredInstallPrompt = null;
+
+function initPWA() {
+  // 1. Register Service Worker with root scope
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          console.log("[PWA] Service Worker registered with root scope:", reg.scope);
+          
+          // Check for worker updates
+          reg.addEventListener("updatefound", () => {
+            const installing = reg.installing;
+            if (installing) {
+              installing.addEventListener("statechange", () => {
+                if (installing.state === "installed" && navigator.serviceWorker.controller) {
+                  showToast("App Shell Updated", "A new version of Spectrona is ready.", "info");
+                }
+              });
+            }
+          });
+        })
+        .catch((err) => {
+          console.warn("[PWA] Service Worker registration failed:", err);
+        });
+    });
+  }
+
+  // 2. Standalone Mode Detection
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  const pwaStatusBadge = $("pwa-status-badge");
+  const installBtnNav = $("btn-install-pwa");
+  const installBtnSettings = $("btn-install-settings-pwa");
+
+  if (isStandalone) {
+    document.body.classList.add("pwa-standalone");
+    if (pwaStatusBadge) {
+      pwaStatusBadge.textContent = "STANDALONE ACTIVE";
+      pwaStatusBadge.className = "status-badge normal";
+    }
+    if (installBtnNav) installBtnNav.style.display = "none";
+    if (installBtnSettings) installBtnSettings.style.display = "none";
+    console.log("[PWA] Running as installed standalone app");
+    return;
+  } else {
+    if (pwaStatusBadge) {
+      pwaStatusBadge.textContent = "STANDALONE READY";
+    }
+  }
+
+  // 3. iOS detection
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  // 4. Capture native install prompt
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (installBtnNav) installBtnNav.style.display = "inline-flex";
+    if (installBtnSettings) {
+      installBtnSettings.style.display = "inline-flex";
+    }
+    console.log("[PWA] beforeinstallprompt event captured");
+  });
+
+  // Modal controls for iOS
+  const iosModal = $("ios-install-modal");
+  const closeIosBtn = $("btn-close-ios-modal");
+  const dismissIosBtn = $("btn-dismiss-ios-modal");
+
+  function openIosModal() {
+    if (iosModal) iosModal.style.display = "flex";
+  }
+
+  function closeIosModal() {
+    if (iosModal) iosModal.style.display = "none";
+  }
+
+  if (closeIosBtn) closeIosBtn.addEventListener("click", closeIosModal);
+  if (dismissIosBtn) dismissIosBtn.addEventListener("click", closeIosModal);
+  if (iosModal) {
+    iosModal.addEventListener("click", (e) => {
+      if (e.target === iosModal) closeIosModal();
+    });
+  }
+
+  // Trigger installation
+  function triggerInstall() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          showToast("Installing App", "Spectrona is being added to your device.", "success");
+        }
+        deferredInstallPrompt = null;
+        if (installBtnNav) installBtnNav.style.display = "none";
+      });
+    } else if (isIOS) {
+      openIosModal();
+    } else {
+      showToast(
+        "Install Spectrona",
+        "To install on mobile, tap your browser's menu (⋮ or Share) and choose 'Install App' or 'Add to Home screen'.",
+        "info"
+      );
+    }
+  }
+
+  if (installBtnNav) installBtnNav.addEventListener("click", triggerInstall);
+  if (installBtnSettings) installBtnSettings.addEventListener("click", triggerInstall);
+
+  // Installed event
+  window.addEventListener("appinstalled", () => {
+    console.log("[PWA] Spectrona was installed successfully");
+    deferredInstallPrompt = null;
+    document.body.classList.add("pwa-standalone");
+    if (installBtnNav) installBtnNav.style.display = "none";
+    if (installBtnSettings) installBtnSettings.style.display = "none";
+    if (pwaStatusBadge) {
+      pwaStatusBadge.textContent = "STANDALONE ACTIVE";
+      pwaStatusBadge.className = "status-badge normal";
+    }
+    showToast("Spectrona App Installed", "Launch anytime directly from your mobile home screen.", "success");
+  });
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   injectIcons();
@@ -1969,6 +2100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initTheme();
   initTabs();
+  initPWA();
   initNotificationCenter();
   initDesktopPush();
   initAlarmSimulator();

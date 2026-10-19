@@ -4,8 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JEEV_ONE — Live Monitor Dashboard</title>
+  
+  <!-- Progressive Web App (PWA) Manifest & Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spectrona" />
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/icons/favicon.png" />
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
-  <link rel="apple-touch-icon" href="/static/images/favicon.png" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -96,6 +108,13 @@
             </div>
           </div>
         </div>
+        
+        <!-- PWA Install Button (prompts when installable) -->
+        <button class="btn btn-sm btn-install-pwa" id="btn-install-pwa" style="display: none;" title="Install Spectrona App on your mobile phone or PC">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Install App</span>
+        </button>
+
         <button class="icon-btn settings-btn" id="settings-btn" data-tab="settings" aria-label="Settings" title="Edge Node Settings & API Status"><span id="icon-settings"></span></button>
         
         <!-- User Switcher Dropdown Container -->
@@ -1068,6 +1087,23 @@
             Local buffering stores data securely in the offline WAL SQLite cache without external transmission.
           </div>
         </div>
+
+        <!-- Mobile App & PWA Section -->
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+            <div style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase;">
+              Mobile App & PWA
+            </div>
+            <span class="status-badge normal" id="pwa-status-badge">STANDALONE READY</span>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.85rem;">
+            Install Spectrona on Android, iPhone, or PC to launch in full-screen standalone mode with offline caching.
+          </div>
+          <button class="btn btn-sm btn-primary" id="btn-install-settings-pwa" style="width: 100%; justify-content: center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Install Spectrona App</span>
+          </button>
+        </div>
       </section>
     </main>
   </div>
@@ -1082,6 +1118,47 @@
     <button class="toast-close" id="toast-close">
       <span id="toast-close-icon"></span>
     </button>
+  </div>
+
+  <!-- ══ iOS PWA Install Instructions Modal ════════════════════════════════ -->
+  <div id="ios-install-modal" class="ios-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="ios-modal-title">
+    <div class="ios-modal-box">
+      <div class="ios-modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <img src="/static/icons/icon-192x192.png" alt="Spectrona App Icon" style="width: 38px; height: 38px; border-radius: 9px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" />
+          <div>
+            <h4 id="ios-modal-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text);">Install on iPhone / iPad</h4>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Add to Home Screen as a standalone App</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-ios-modal" aria-label="Close" style="background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer;">✕</button>
+      </div>
+      <div class="ios-modal-body">
+        <div class="ios-step-list">
+          <div class="ios-step-item">
+            <div class="ios-step-num">1</div>
+            <div class="ios-step-text">
+              In Safari, tap the <strong>Share</strong> button <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin: 0 3px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> in the bottom browser bar.
+            </div>
+          </div>
+          <div class="ios-step-item">
+            <div class="ios-step-num">2</div>
+            <div class="ios-step-text">
+              Scroll down the share sheet and tap <strong>"Add to Home Screen"</strong> (with the <strong>[+]</strong> icon).
+            </div>
+          </div>
+          <div class="ios-step-item">
+            <div class="ios-step-num">3</div>
+            <div class="ios-step-text">
+              Tap <strong>"Add"</strong> in the top-right corner. Spectrona will launch directly from your home screen in full screen!
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ios-modal-footer">
+        <button class="btn btn-sm btn-primary" id="btn-dismiss-ios-modal" style="width: 100%; justify-content: center;">Got it</button>
+      </div>
+    </div>
   </div>
 
   <script src="/static/js/icons.js"></script>

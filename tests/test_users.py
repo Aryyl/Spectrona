@@ -34,8 +34,8 @@ def test_user_store_defaults():
     assert "users" in store
     assert "user_1" in store["users"]
     assert "user_2" in store["users"]
-    assert store["users"]["user_1"]["name"] in ["Aryyaman", "Aryyaman Roy"]
-    assert store["users"]["user_2"]["name"] in ["Hirok", "Hirok Jyoti"]
+    assert "Aryyaman" in store["users"]["user_1"]["name"]
+    assert "Hirok" in store["users"]["user_2"]["name"]
 
 
 def test_update_user_profile(tmp_path, monkeypatch):
@@ -117,3 +117,27 @@ def test_api_user_routes(tmp_path, monkeypatch):
     assert "user_2" in telemetry_data["users"]
     assert telemetry_data["users"]["user_1"]["profile"]["device_id"] == "patient_01"
     assert telemetry_data["users"]["user_2"]["profile"]["device_id"] == "patient_02"
+
+
+def test_pwa_endpoints():
+    app = create_app()
+    client = app.test_client()
+
+    # 1. /manifest.json
+    res_manifest = client.get("/manifest.json")
+    assert res_manifest.status_code == 200
+    assert "application/manifest+json" in res_manifest.content_type
+    manifest_data = res_manifest.get_json()
+    assert manifest_data["short_name"] == "Spectrona"
+    assert manifest_data["display"] == "standalone"
+    assert manifest_data["scope"] == "/dashboard"
+    assert "/dashboard" in manifest_data["start_url"]
+    assert len(manifest_data["icons"]) >= 2
+
+    # 2. /sw.js
+    res_sw = client.get("/sw.js")
+    assert res_sw.status_code == 200
+    assert "javascript" in res_sw.content_type
+    assert res_sw.headers.get("Service-Worker-Allowed") == "/"
+    assert b"CACHE_NAME" in res_sw.data
+

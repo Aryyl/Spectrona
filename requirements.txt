@@ -27,5 +27,8 @@ numpy>=1.24.0
 # WebSocket support (dashboard real-time updates)
 flask-sock>=0.7.0
 
+# Image generation & asset processing (PWA icons)
+Pillow>=10.0.0
+
 # HTTP async client (optional; used in tests)
 httpx>=0.25.0
