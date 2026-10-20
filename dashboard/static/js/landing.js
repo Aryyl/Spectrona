@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function initHeroAboutTransition() {
   const heroSection = document.querySelector(".hero-section");
   const heroBgImage = document.getElementById("hero-bg-image");
-  const aboutSection = document.getElementById("about");
+  const aboutSection = document.getElementById("architecture") || document.getElementById("about");
   const aboutContainer = aboutSection ? aboutSection.querySelector(".container") : null;
 
   if (!heroSection || !aboutSection) return;
