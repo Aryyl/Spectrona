@@ -9,13 +9,13 @@
   <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
   <link rel="apple-touch-icon" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=2.6.4" />
 </head>
 <body>
 
@@ -34,8 +34,8 @@
         <li><a href="#about">About</a></li>
         <li><a href="#architecture">Architecture</a></li>
         <li><a href="#sensors">Sensors</a></li>
-        <li><a href="#use-cases">Use Cases</a></li>
-        <li><a href="#comparison">Compare</a></li>
+        <li><a href="#insights">Insights</a></li>
+        <li><a href="#video">Demo Video</a></li>
         <li><a href="#gallery">Gallery</a></li>
       </ul>
 
@@ -70,11 +70,9 @@
         <li><a href="#architecture" class="drawer-nav-item"><span class="drawer-nav-num">02</span><span class="drawer-nav-label">System Architecture</span></a></li>
         <li><a href="#sensors" class="drawer-nav-item"><span class="drawer-nav-num">03</span><span class="drawer-nav-label">Sensors & Biometrics</span></a></li>
         <li><a href="#edge-system" class="drawer-nav-item"><span class="drawer-nav-num">04</span><span class="drawer-nav-label">ESP32 & Raspberry Pi 5</span></a></li>
-        <li><a href="#use-cases" class="drawer-nav-item"><span class="drawer-nav-num">05</span><span class="drawer-nav-label">Everyday Use Cases</span></a></li>
-        <li><a href="#target-patients" class="drawer-nav-item"><span class="drawer-nav-num">06</span><span class="drawer-nav-label">Target Groups</span></a></li>
-        <li><a href="#comparison" class="drawer-nav-item"><span class="drawer-nav-num">07</span><span class="drawer-nav-label">System Comparison</span></a></li>
-        <li><a href="#video" class="drawer-nav-item"><span class="drawer-nav-num">08</span><span class="drawer-nav-label">Prototype Demo Video</span></a></li>
-        <li><a href="#gallery" class="drawer-nav-item"><span class="drawer-nav-num">09</span><span class="drawer-nav-label">Hardware Gallery</span></a></li>
+        <li><a href="#insights" class="drawer-nav-item"><span class="drawer-nav-num">05</span><span class="drawer-nav-label">Deployment Insights</span></a></li>
+        <li><a href="#video" class="drawer-nav-item"><span class="drawer-nav-num">06</span><span class="drawer-nav-label">Prototype Demo Video</span></a></li>
+        <li><a href="#gallery" class="drawer-nav-item"><span class="drawer-nav-num">07</span><span class="drawer-nav-label">Hardware Gallery</span></a></li>
       </ul>
       <div class="drawer-cta-wrap">
         <a href="/dashboard" class="btn-pill-primary drawer-dashboard-btn">
@@ -635,296 +633,238 @@
       </div>
     </section>
 
-    <!-- ══ Section 5: Real-World Daily Life Impact ═══════════════════════════ -->
-    <section class="section-wrapper" id="use-cases">
+    <!-- ══ Section: Platform & Deployment Insights (Editorial Accordion) ══════ -->
+    <section class="section-wrapper" id="insights">
       <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 5: REAL-WORLD IMPACT</span>
-          <h2 class="section-title">How Jeev One Can Help People in Daily Life</h2>
-          <p class="section-desc">
-            The value of a wearable health monitor is not simply collecting numbers. It is helping people and caregivers notice changes over time and make better-informed decisions.
+        <div class="editorial-header">
+          <h2 class="editorial-title">DEPLOYMENT INSIGHTS</h2>
+          <p class="editorial-desc">
+            Bridging edge embedded engineering and everyday clinical care. Here is how Jeev One transitions from hardware prototype to real-world impact.
           </p>
         </div>
 
-        <div class="usecase-grid">
-          <!-- Use Case A -->
-          <div class="usecase-card">
-            <div>
-              <div class="usecase-tag">CASE 01 // INDEPENDENT LIVING</div>
-              <h3 class="usecase-title">Older Adults Living Independently</h3>
-              <p class="usecase-desc">
-                A caregiver can review recorded heart rate, oxygen saturation, and temperature trends remotely. Environmental readings provide critical context during hot weather.
-              </p>
-            </div>
-            <div class="usecase-benefit-box">
-              <strong>Potential benefit:</strong> Greater visibility into day-to-day health trends without requiring a caregiver to be physically present for every measurement.
-            </div>
-          </div>
-
-          <!-- Use Case B -->
-          <div class="usecase-card">
-            <div>
-              <div class="usecase-tag">CASE 02 // CHRONIC CARE</div>
-              <h3 class="usecase-title">People with Chronic Conditions</h3>
-              <p class="usecase-desc">
-                People with hypertension, respiratory conditions, or known cardiac conditions benefit from recording relevant measurements over time with clinician guidance.
-              </p>
-            </div>
-            <div class="usecase-benefit-box">
-              <strong>Potential benefit:</strong> Organized longitudinal records that support clinical discussions and help identify trends that deserve medical attention.
-            </div>
-          </div>
-
-          <!-- Use Case C -->
-          <div class="usecase-card">
-            <div>
-              <div class="usecase-tag">CASE 03 // POST-OP CARE</div>
-              <h3 class="usecase-title">Patients Recovering at Home</h3>
-              <p class="usecase-desc">
-                Under a clinician-directed care plan, healthcare teams can review selected readings remotely instead of relying exclusively on occasional manual reports.
-              </p>
-            </div>
-            <div class="usecase-benefit-box">
-              <strong>Potential benefit:</strong> Easier access to longitudinal readings and earlier follow-up when concerning physiological changes are detected.
-            </div>
-          </div>
-
-          <!-- Use Case D -->
-          <div class="usecase-card">
-            <div>
-              <div class="usecase-tag">CASE 04 // INDUSTRIAL SAFETY</div>
-              <h3 class="usecase-title">Workers in Hot Environments</h3>
-              <p class="usecase-desc">
-                Ambient temperature and humidity, combined with physiological heart rate and body temperature, provide context for environmental heat strain.
-              </p>
-            </div>
-            <div class="usecase-benefit-box">
-              <strong>Potential benefit:</strong> Contextual information supporting heat-safety practices and timely hydration breaks. (Not a certified heatstroke prevention device).
+        <div class="editorial-accordion" id="platform-accordion">
+          
+          <!-- Item 01: WHO WILL USE -->
+          <div class="editorial-item active" id="target-patients" data-accordion="0">
+            <button class="editorial-trigger" type="button" aria-expanded="true" aria-controls="panel-who-will-use">
+              <div class="editorial-trigger-left">
+                <span class="editorial-num">01</span>
+                <span class="editorial-item-title">WHO WILL USE</span>
+              </div>
+              <div class="editorial-trigger-right">
+                <span class="editorial-icon">+</span>
+              </div>
+            </button>
+            <div class="editorial-panel" id="panel-who-will-use">
+              <div class="editorial-panel-inner">
+                <div class="editorial-panel-content">
+                  <div class="editorial-block">
+                    <span class="editorial-block-tag green">PRIMARY DEPLOYMENT FOCUS</span>
+                    <h4 class="editorial-block-title">Older Adults & Independent Living</h4>
+                    <p class="editorial-block-text">
+                      Strongest initial fit. Designed for older adults living alone or in assisted living facilities. Collects selected vital signs (heart rate, SpO₂, body temperature, and ambient heat index) continuously during everyday routines, retaining a private history and providing remote visibility to family members and caregivers without requiring frequent clinic visits.
+                    </p>
+                  </div>
+                  <div class="editorial-block">
+                    <span class="editorial-block-tag blue">CLINICIAN-GUIDED EXPANSION</span>
+                    <h4 class="editorial-block-title">Chronic Conditions & Post-Op Recovery</h4>
+                    <p class="editorial-block-text">
+                      Suitable under physician direction for patients with hypertension (once cuff hardware is validated), chronic respiratory conditions requiring longitudinal SpO₂ monitoring, or patients convalescing at home under a structured care plan.
+                    </p>
+                  </div>
+                  <div class="editorial-block caution">
+                    <span class="editorial-block-tag red">CLEAR CLINICAL BOUNDARIES</span>
+                    <h4 class="editorial-block-title">Who It Is NOT Built For</h4>
+                    <p class="editorial-block-text">
+                      Jeev One is a monitoring-support platform, not certified ICU hardware. It should never be used for continuous life-critical emergency alerts or as a replacement for emergency medical care.
+                    </p>
+                  </div>
+                </div>
+                <div class="editorial-tags-side">
+                  <span class="editorial-chip">OLDER ADULTS</span>
+                  <span class="editorial-chip">INDEPENDENT LIVING</span>
+                  <span class="editorial-chip">REMOTE CAREGIVERS</span>
+                  <span class="editorial-chip">CHRONIC CARE</span>
+                  <span class="editorial-chip">POST-OP RECOVERY</span>
+                  <span class="editorial-chip">NOT ICU ALERT</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Use Case E -->
-          <div class="usecase-card">
-            <div>
-              <div class="usecase-tag">CASE 05 // REMOTE CAREGIVERS</div>
-              <h3 class="usecase-title">Family Caregivers & Community Healthcare</h3>
-              <p class="usecase-desc">
-                A cloud-connected dashboard lets authorized family members review readings and baseline shifts from anywhere in the world.
-              </p>
-            </div>
-            <div class="usecase-benefit-box">
-              <strong>Potential benefit:</strong> Shared peace of mind and longitudinal visibility without depending on manual phone calls or handwritten logs.
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 6: Target Demographics ═══════════════════════════════════ -->
-    <section class="section-wrapper" id="target-patients">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 6: TARGET DEMOGRAPHICS</span>
-          <h2 class="section-title">Who Jeev One is Built For — and Who It Is Not</h2>
-          <p class="section-desc">
-            We focus on practical, high-value deployment rather than claiming the system is suited for every clinical scenario.
-          </p>
-        </div>
-
-        <div class="target-grid">
-          <!-- Recommended Initial Focus -->
-          <div class="target-card recommended">
-            <span class="target-badge green">RECOMMENDED INITIAL FOCUS</span>
-            <h3 class="target-title">Older Adults & Home Health Monitoring</h3>
-            <p class="target-desc">
-              Strongest initial fit because the system is designed to collect selected vital measurements over time, retain a history, and make records available remotely to caregivers.
-            </p>
-            <ul class="target-list">
-              <li><span class="dot green">●</span> Older adults living alone or in assisted care</li>
-              <li><span class="dot green">●</span> Regular daily health check-ins without hospital travel</li>
-              <li><span class="dot green">●</span> Environmental heat-strain context during hot weather</li>
-            </ul>
-          </div>
-
-          <!-- Secondary Target Groups -->
-          <div class="target-card">
-            <span class="target-badge blue">SECONDARY EXPANSION GROUPS</span>
-            <h3 class="target-title">Clinician-Guided Secondary Groups</h3>
-            <p class="target-desc">
-              Suitable following sensor validation and guidance from healthcare professionals:
-            </p>
-            <ul class="target-list">
-              <li><span class="dot blue">●</span> People with hypertension (once cuff hardware is validated)</li>
-              <li><span class="dot blue">●</span> People with respiratory conditions (SpO₂ tracking)</li>
-              <li><span class="dot blue">●</span> People with cardiac conditions (validated ECG rhythms)</li>
-              <li><span class="dot blue">●</span> Patients recovering at home under a clinician care plan</li>
-              <li><span class="dot blue">●</span> People exposed to environmental heat during work</li>
-            </ul>
-          </div>
-
-          <!-- Who Should NOT Be Primary Target -->
-          <div class="target-card caution">
-            <span class="target-badge red">CLEAR CLINICAL BOUNDARIES</span>
-            <h3 class="target-title">Who Should NOT Be the Primary Target Yet</h3>
-            <p class="target-desc">
-              Safety and integrity first: the prototype should not be used in scenarios requiring certified medical hardware:
-            </p>
-            <ul class="target-list">
-              <li><span class="dot red">✕</span> Patients requiring continuous, clinically certified ICU ECG</li>
-              <li><span class="dot red">✕</span> Patients depending on the device for life-critical alerts</li>
-              <li><span class="dot red">✕</span> Patients requiring continuous emergency blood-pressure lines</li>
-              <li><span class="dot red">✕</span> Anyone using Jeev One as a substitute for emergency services</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 7: Advantage Matrix ═══════════════════════════════════════ -->
-    <section class="section-wrapper" id="comparison">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 7: ADVANTAGE MATRIX</span>
-          <h2 class="section-title">What Makes Jeev One Useful vs. Basic Wearables</h2>
-          <p class="section-desc">
-            Measurements become useful information for the patient, caregiver, or healthcare professional rather than remaining isolated numbers on a small fitness display.
-          </p>
-        </div>
-
-        <div class="comparison-table-wrapper">
-          <table class="comparison-table">
-            <thead>
-              <tr>
-                <th>Feature / Dimension</th>
-                <th>Basic Commercial Wearable</th>
-                <th class="highlight-col">Jeev One Health System</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="feature-title">Sensing Architecture</td>
-                <td>Single sensor, battery-optimized for fitness</td>
-                <td class="highlight-col"><span class="table-pill green">ESP32-based multi-sensor</span> (ECG, SpO₂, body temp, ambient)</td>
-              </tr>
-              <tr>
-                <td class="feature-title">Edge Processing</td>
-                <td>None (tethered to proprietary smartphone app)</td>
-                <td class="highlight-col"><span class="table-pill green">Raspberry Pi 5 Gateway</span> (local validation & filtering)</td>
-              </tr>
-              <tr>
-                <td class="feature-title">Data Ownership & History</td>
-                <td>Locked in proprietary vendor cloud servers</td>
-                <td class="highlight-col"><span class="table-pill green">Local SQLite Database</span> (complete private audit history)</td>
-              </tr>
-              <tr>
-                <td class="feature-title">Cloud Synchronization</td>
-                <td>Closed consumer ecosystem</td>
-                <td class="highlight-col"><span class="table-pill green">Firebase Cloud Firestore</span> (accessible anywhere via open SDK)</td>
-              </tr>
-              <tr>
-                <td class="feature-title">Patient Profiles</td>
-                <td>Single consumer account per device</td>
-                <td class="highlight-col"><span class="table-pill green">Multi-Patient Profiles</span> (Patient 1, Patient 2, Standby)</td>
-              </tr>
-              <tr>
-                <td class="feature-title">Risk Processing</td>
-                <td>Generic daily activity & step counts</td>
-                <td class="highlight-col"><span class="table-pill green">Tri-Domain Risk Indicators</span> (vital, heat index, respiratory)</td>
-              </tr>
-              <tr>
-                <td class="feature-title">Dashboard & PWA</td>
-                <td>Mobile app only, requires Bluetooth pairing</td>
-                <td class="highlight-col"><span class="table-pill green">Open PWA Web Dashboard</span> (phones, tablets, and desktops)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 8: Deployment Roadmap ═════════════════════════════════════ -->
-    <section class="section-wrapper" id="roadmap">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 8: DEPLOYMENT ROADMAP</span>
-          <h2 class="section-title">What Needs to Be Completed Before Real-World Deployment</h2>
-          <p class="section-desc">
-            Our current prototype has a working end-to-end data pathway. Here is our engineering checklist prior to real-world patient rollout:
-          </p>
-        </div>
-
-        <div class="roadmap-grid">
-          <div class="roadmap-item">
-            <div class="roadmap-check completed">✓</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">ESP32 NTP Unix Timestamps</div>
-              <div class="roadmap-desc">Fixed timestamp: 0 issue. Firmware now synchronizes time and publishes valid timestamps.</div>
+          <!-- Item 02: HOW WILL USE -->
+          <div class="editorial-item" id="use-cases" data-accordion="1">
+            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-how-will-use">
+              <div class="editorial-trigger-left">
+                <span class="editorial-num">02</span>
+                <span class="editorial-item-title">HOW WILL USE</span>
+              </div>
+              <div class="editorial-trigger-right">
+                <span class="editorial-icon">+</span>
+              </div>
+            </button>
+            <div class="editorial-panel" id="panel-how-will-use">
+              <div class="editorial-panel-inner">
+                <div class="editorial-panel-content">
+                  <div class="workflow-card-grid">
+                    <div class="workflow-mini-card">
+                      <div class="mini-step-num">STEP 01 // WEARABLE SENSING</div>
+                      <h4 class="mini-step-title">Passive Everyday Monitoring</h4>
+                      <p class="mini-step-text">
+                        The patient wears the unobtrusive ESP32 module. Sensors sample ECG rhythms, pulse oximetry, infrared core temperature, and ambient room conditions in scheduled low-power cycles without user intervention.
+                      </p>
+                    </div>
+                    <div class="workflow-mini-card">
+                      <div class="mini-step-num">STEP 02 // EDGE COMPUTING</div>
+                      <h4 class="mini-step-title">Raspberry Pi 5 Local Ingestion</h4>
+                      <p class="mini-step-text">
+                        Readings are broadcast via Wi-Fi MQTT to the local Pi 5. The edge gateway validates timestamps, logs records to local SQLite, calculates tri-domain risk heuristics, and stages sync records in an outbox.
+                      </p>
+                    </div>
+                    <div class="workflow-mini-card">
+                      <div class="mini-step-num">STEP 03 // CLOUD & PWA</div>
+                      <h4 class="mini-step-title">Remote Caregiver Oversight</h4>
+                      <p class="mini-step-text">
+                        Records sync to Cloud Firestore in real time. Authorized doctors and family members open the Progressive Web App on their phones or laptops to view live telemetry, ECG waveform traces, and longitudinal trends.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="editorial-tags-side">
+                  <span class="editorial-chip">PASSIVE SENSING</span>
+                  <span class="editorial-chip">WIFI MQTT TELEMETRY</span>
+                  <span class="editorial-chip">EDGE SQLITE LOG</span>
+                  <span class="editorial-chip">TRI-DOMAIN RISK</span>
+                  <span class="editorial-chip">FIRESTORE REAL-TIME</span>
+                  <span class="editorial-chip">MOBILE PWA</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="roadmap-item">
-            <div class="roadmap-check completed">✓</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">Raspberry Pi MQTT Ingestion</div>
-              <div class="roadmap-desc">Mosquitto broker port 1883 successfully receives and parses health/sensors telemetry.</div>
+          <!-- Item 03: WHAT MAKES JEEV ONE USEFUL VS. BASIC WEARABLES -->
+          <div class="editorial-item" id="comparison" data-accordion="2">
+            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-comparison">
+              <div class="editorial-trigger-left">
+                <span class="editorial-num">03</span>
+                <span class="editorial-item-title">WHAT MAKES JEEV ONE USEFUL VS. BASIC WEARABLES</span>
+              </div>
+              <div class="editorial-trigger-right">
+                <span class="editorial-icon">+</span>
+              </div>
+            </button>
+            <div class="editorial-panel" id="panel-comparison">
+              <div class="editorial-panel-inner">
+                <div class="editorial-panel-content">
+                  <p class="editorial-intro-text">
+                    Basic commercial fitness wearables are closed consumer gadgets tethered to proprietary smartphones with restricted data ownership. Jeev One is an open-architecture, edge-computing health telemetry system:
+                  </p>
+                  <div class="editorial-comp-table-wrap">
+                    <table class="editorial-comp-table">
+                      <thead>
+                        <tr>
+                          <th>Capability</th>
+                          <th>Basic Commercial Wearable</th>
+                          <th class="comp-highlight">Jeev One Health Station</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>Architecture</strong></td>
+                          <td>Single sensor, battery-optimized only for steps</td>
+                          <td class="comp-highlight"><span class="table-pill green">ESP32 Multi-Sensor</span> (ECG, SpO₂, IR Temp, Ambient)</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Edge Gateway</strong></td>
+                          <td>None (requires proprietary Bluetooth phone app)</td>
+                          <td class="comp-highlight"><span class="table-pill green">Raspberry Pi 5 Gateway</span> (local MQTT & range validation)</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Data Ownership</strong></td>
+                          <td>Locked in proprietary vendor cloud databases</td>
+                          <td class="comp-highlight"><span class="table-pill green">Private Local SQLite</span> (complete audit trail & history)</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Cloud Sync</strong></td>
+                          <td>Walled-garden proprietary API</td>
+                          <td class="comp-highlight"><span class="table-pill green">Firebase Cloud Firestore</span> (open SDK & remote access)</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Profiles & Risk</strong></td>
+                          <td>Single consumer account; basic fitness calorie burn</td>
+                          <td class="comp-highlight"><span class="table-pill green">Multi-Patient Profiles</span> + Tri-Domain Clinical Risk</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="editorial-tags-side">
+                  <span class="editorial-chip">OPEN ARCHITECTURE</span>
+                  <span class="editorial-chip">LOCAL SQLITE DATA</span>
+                  <span class="editorial-chip">RASPBERRY PI 5</span>
+                  <span class="editorial-chip">FIRESTORE SYNC</span>
+                  <span class="editorial-chip">MULTI-PATIENT</span>
+                  <span class="editorial-chip">TRI-DOMAIN RISK</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="roadmap-item">
-            <div class="roadmap-check completed">✓</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">Cloud Firestore Synchronization</div>
-              <div class="roadmap-desc">Outbox queue uploads patient records and risk classifications to patient_readings in real time.</div>
+          <!-- Item 04: WHAT NEEDS TO BE COMPLETED BEFORE REAL-WORLD DEPLOYMENT -->
+          <div class="editorial-item" id="roadmap" data-accordion="3">
+            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-roadmap">
+              <div class="editorial-trigger-left">
+                <span class="editorial-num">04</span>
+                <span class="editorial-item-title">WHAT NEEDS TO BE COMPLETED BEFORE REAL-WORLD DEPLOYMENT</span>
+              </div>
+              <div class="editorial-trigger-right">
+                <span class="editorial-icon">+</span>
+              </div>
+            </button>
+            <div class="editorial-panel" id="panel-roadmap">
+              <div class="editorial-panel-inner">
+                <div class="editorial-panel-content">
+                  <div class="editorial-milestones-grid">
+                    <div class="milestone-col">
+                      <div class="milestone-status-header green-status">
+                        <span class="status-dot green-dot"></span>
+                        <strong>Completed & Verified Pipeline</strong>
+                      </div>
+                      <ul class="milestone-list">
+                        <li><strong>ESP32 NTP Timestamps:</strong> Fixed timestamp 0 issue; firmware synchronizes via NTP and publishes valid Unix timestamps.</li>
+                        <li><strong>Raspberry Pi MQTT Broker:</strong> Local Mosquitto on port 1883 actively receives and validates sensor packets.</li>
+                        <li><strong>Cloud Firestore Sync:</strong> Outbox retry queue uploads patient records to <code>patient_readings</code> collection.</li>
+                        <li><strong>PWA Web Dashboard:</strong> Real-time onSnapshot streaming, Lead-I ECG strip monitor, and mobile touch interface.</li>
+                      </ul>
+                    </div>
+                    <div class="milestone-col">
+                      <div class="milestone-status-header amber-status">
+                        <span class="status-dot amber-dot"></span>
+                        <strong>Required Before Clinical Pilot</strong>
+                      </div>
+                      <ul class="milestone-list">
+                        <li><strong>Reference Instrument Calibration:</strong> Benchmarking physical sensor accuracy against certified medical instruments.</li>
+                        <li><strong>Electrode Attachment & Motion Artifacts:</strong> Refining wearable ECG electrode placement and movement filtering algorithms.</li>
+                        <li><strong>Hardware Blood Pressure Integration:</strong> Integrating the UART cuff module for timed blood pressure capture.</li>
+                        <li><strong>Offline Endurance Testing:</strong> Stress-testing disconnected operations and high-volume local SQLite recovery.</li>
+                        <li><strong>Granular Security Rules:</strong> Hardening Firestore per-patient access control prior to patient trials.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="editorial-tags-side">
+                  <span class="editorial-chip">REFERENCE CALIBRATION</span>
+                  <span class="editorial-chip">MOTION ARTIFACT FILTER</span>
+                  <span class="editorial-chip">BP CUFF INTEGRATION</span>
+                  <span class="editorial-chip">OFFLINE STRESS TEST</span>
+                  <span class="editorial-chip">SECURITY HARDENING</span>
+                  <span class="editorial-chip">CLINICAL PROTOCOL</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="roadmap-item">
-            <div class="roadmap-check completed">✓</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">PWA Mobile Dashboard</div>
-              <div class="roadmap-desc">Real-time onSnapshot Firestore integration with mobile touch scrolling and tab navigation.</div>
-            </div>
-          </div>
-
-          <div class="roadmap-item">
-            <div class="roadmap-check pending">○</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">Physical Sensor Reference Calibration</div>
-              <div class="roadmap-desc">Verify each physical sensor module against certified medical reference instruments.</div>
-            </div>
-          </div>
-
-          <div class="roadmap-item">
-            <div class="roadmap-check pending">○</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">ECG Electrode Attachment Validation</div>
-              <div class="roadmap-desc">Validate physical electrode leads and signal acquisition algorithms under user movement.</div>
-            </div>
-          </div>
-
-          <div class="roadmap-item">
-            <div class="roadmap-check pending">○</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">Hardware Blood Pressure Integration</div>
-              <div class="roadmap-desc">Integrate and calibrate the physical UART cuff sensor once ready for timed measurements.</div>
-            </div>
-          </div>
-
-          <div class="roadmap-item">
-            <div class="roadmap-check pending">○</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">Offline Network Recovery Testing</div>
-              <div class="roadmap-desc">Stress-test Wi-Fi disconnects, local outbox queue capacity, and seamless recovery.</div>
-            </div>
-          </div>
-
-          <div class="roadmap-item">
-            <div class="roadmap-check pending">○</div>
-            <div class="roadmap-content">
-              <div class="roadmap-title">Granular Patient-Level Cloud Security</div>
-              <div class="roadmap-desc">Refine Firestore security rules for strict per-patient access control prior to clinical pilot.</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -1111,6 +1051,6 @@
     </div>
   </div>
 
-  <script src="/static/js/landing.js"></script>
+  <script src="/static/js/landing.js?v=2.6.4"></script>
 </body>
 </html>

@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initGalleryLightbox();
   initECGWaveform();
   fetchLivePreviewData();
+  initEditorialAccordion();
 });
 
 // ── Mobile Navigation Drawer Toggle ──────────────────────────────────────────
@@ -69,41 +70,23 @@ function initMobileDrawer() {
   });
 }
 
-// ── Smooth Hero-to-About Scroll Transition ───────────────────────────────────
+// ── Smooth Hero Background Fade On Scroll ───────────────────────────────────
 function initHeroAboutTransition() {
   const heroSection = document.querySelector(".hero-section");
   const heroBgImage = document.getElementById("hero-bg-image");
-  const aboutSection = document.getElementById("about") || document.getElementById("architecture");
-  const aboutContainer = aboutSection ? aboutSection.querySelector(".container") : null;
 
-  if (!heroSection || !aboutSection) return;
+  if (!heroSection || !heroBgImage) return;
 
   let ticking = false;
 
   function updateTransition() {
     const scrollY = window.pageYOffset || document.documentElement.scrollTop;
     const heroH = heroSection.offsetHeight || window.innerHeight;
-    const winH = window.innerHeight;
 
-    // 1. Hero background image slowly fades out as user scrolls down
-    if (heroBgImage) {
-      const imgFadeEnd = heroH * 0.85;
-      const imgFadeProgress = Math.min(1, Math.max(0, scrollY / imgFadeEnd));
-      heroBgImage.style.opacity = (1 - imgFadeProgress).toFixed(3);
-    }
-
-    // 2. About section scrolls up into view and slowly fades in
-    const rect = aboutSection.getBoundingClientRect();
-    const fadeInStart = winH * 1.02; // starts fading in just as it enters from screen bottom
-    const fadeInEnd = winH * 0.35;   // reaches 100% opacity as it settles into view
-    let aboutProgress = (fadeInStart - rect.top) / (fadeInStart - fadeInEnd);
-    aboutProgress = Math.max(0, Math.min(1, aboutProgress));
-
-    if (aboutContainer) {
-      aboutContainer.style.opacity = aboutProgress.toFixed(3);
-      const translateY = (1 - aboutProgress) * 40;
-      aboutContainer.style.transform = `translateY(${translateY.toFixed(1)}px)`;
-    }
+    // Hero background image slowly fades out as user scrolls down
+    const imgFadeEnd = heroH * 0.85;
+    const imgFadeProgress = Math.min(1, Math.max(0, scrollY / imgFadeEnd));
+    heroBgImage.style.opacity = (1 - imgFadeProgress).toFixed(3);
 
     ticking = false;
   }
@@ -346,6 +329,60 @@ function initGalleryLightbox() {
       closeLightbox();
     }
   });
+}
+
+// ── Editorial Accordion Toggle ─────────────────────────────────────────────
+function initEditorialAccordion() {
+  const accordion = document.getElementById("platform-accordion");
+  if (!accordion) return;
+
+  const items = accordion.querySelectorAll(".editorial-item");
+
+  function openItem(itemToOpen) {
+    items.forEach((item) => {
+      const trigger = item.querySelector(".editorial-trigger");
+      if (item === itemToOpen) {
+        item.classList.add("active");
+        if (trigger) trigger.setAttribute("aria-expanded", "true");
+      } else {
+        item.classList.remove("active");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  items.forEach((item) => {
+    const trigger = item.querySelector(".editorial-trigger");
+    if (!trigger) return;
+
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      const isAlreadyActive = item.classList.contains("active");
+      if (isAlreadyActive) {
+        item.classList.remove("active");
+        trigger.setAttribute("aria-expanded", "false");
+      } else {
+        openItem(item);
+      }
+    });
+  });
+
+  // Check URL hash if user navigated directly to an anchor (e.g., #target-patients, #use-cases, #comparison, #roadmap)
+  function handleHash() {
+    if (window.location.hash) {
+      try {
+        const target = document.querySelector(window.location.hash);
+        if (target && target.classList.contains("editorial-item")) {
+          openItem(target);
+        }
+      } catch (err) {
+        // ignore invalid selector hash
+      }
+    }
+  }
+
+  handleHash();
+  window.addEventListener("hashchange", handleHash);
 }
 
 
