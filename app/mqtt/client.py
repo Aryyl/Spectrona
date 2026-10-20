@@ -115,7 +115,10 @@ class HealthMQTTClient:
         reason_code,
         properties=None,
     ) -> None:
-        if reason_code == 0 or (hasattr(reason_code, "is_failure") and not reason_code.is_failure()):
+        is_fail = getattr(reason_code, "is_failure", False)
+        if callable(is_fail):
+            is_fail = is_fail()
+        if reason_code == 0 or not is_fail:
             _log.info(
                 "Connected to broker %s:%d (rc=%s)",
                 cfg.mqtt_broker_host, cfg.mqtt_broker_port, reason_code,
