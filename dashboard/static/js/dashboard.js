@@ -367,15 +367,246 @@ function dismissToast() {
   if (_toastTimer) clearTimeout(_toastTimer);
 }
 
-// ── SSE / Polling ──────────────────────────────────────────────────────────────
+// ── Firebase Cloud Firestore Live Real-Time Integration ──────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBgcq-Npao17FYoSTQjyteaJ_B9EWpgYpY",
+  authDomain: "spectrona-hackathon.firebaseapp.com",
+  projectId: "spectrona-hackathon",
+  storageBucket: "spectrona-hackathon.firebasestorage.app",
+  messagingSenderId: "165070923940",
+  appId: "1:165070923940:web:da007fe1c97540922b5e31",
+  measurementId: "G-Z3GN5C69T1"
+};
+
+let _firestoreDb = null;
+let _firestoreUnsub = null;
+let _isFirebaseConnected = false;
+let _lastProcessedRecordId = null;
+
+function initFirestoreStream() {
+  if (typeof firebase === "undefined") {
+    console.warn("[Firebase] SDK not loaded, using fallback SSE/polling.");
+    return false;
+  }
+  try {
+    if (!firebase.apps || !firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    _firestoreDb = firebase.firestore();
+    console.log("[Firebase] Cloud Firestore initialized for spectrona-hackathon.");
+    subscribeToFirestoreReadings();
+    return true;
+  } catch (err) {
+    console.error("[Firebase] Initialization error:", err);
+    return false;
+  }
+}
+
+function subscribeToFirestoreReadings() {
+  if (!_firestoreDb) return;
+  if (_firestoreUnsub) {
+    try { _firestoreUnsub(); } catch(e) {}
+    _firestoreUnsub = null;
+  }
+
+  const connDot = $("connection-dot");
+  if (connDot) {
+    connDot.className = "dot dot--connecting";
+    connDot.setAttribute("title", "Connecting to Firebase Firestore (patient_readings)...");
+  }
+
+  const activeDev = (typeof PROFILES !== "undefined" && PROFILES[_activeUserId])
+    ? PROFILES[_activeUserId].device_id
+    : "patient_01";
+  const targetPatient = (activeDev === "patient_02") ? "patient_2" : "patient_1";
+
+  try {
+    const collRef = _firestoreDb.collection("patient_readings");
+    _firestoreUnsub = collRef
+      .orderBy("record_id", "desc")
+      .limit(25)
+      .onSnapshot((snapshot) => {
+        if (!snapshot || snapshot.empty) {
+          console.log("[Firebase] Snapshot empty");
+          return;
+        }
+
+        _isFirebaseConnected = true;
+        if (connDot) {
+          connDot.className = "dot dot--connected";
+          connDot.setAttribute("title", "Live: Connected to Cloud Firestore");
+        }
+
+        const rawList = [];
+        snapshot.forEach(doc => {
+          rawList.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Filter for active subject if multiple exist, else use latest
+        const matching = rawList.filter(r => r.device_id === activeDev || r.patient_id === targetPatient);
+        const candidates = matching.length > 0 ? matching : rawList;
+        const latestDoc = candidates[0];
+
+        if (latestDoc) {
+          handleIncomingFirebaseReading(latestDoc, candidates);
+        }
+      }, (error) => {
+        console.warn("[Firebase] Listener error:", error);
+        _isFirebaseConnected = false;
+        if (connDot) {
+          connDot.className = "dot dot--error";
+          connDot.setAttribute("title", "Firebase connection error: " + (error.message || error));
+        }
+        // Fall back to SSE or polling on error
+        startPolling();
+      });
+  } catch (err) {
+    console.error("[Firebase] Query setup error:", err);
+  }
+}
+
+function handleIncomingFirebaseReading(doc, candidateList) {
+  if (!doc) return;
+
+  const hr    = Number(doc.heart_rate) || 0;
+  const spo2  = Number(doc.spo2) || 98.0;
+  const btemp = Number(doc.body_temperature) || 37.0;
+  const rtemp = Number(doc.room_temperature) || 25.0;
+  const hum   = Number(doc.humidity) || 50.0;
+  const sys   = Number(doc.bp_sys) || 0;
+  const dia   = Number(doc.bp_dia) || 0;
+  const dev   = doc.device_id || "patient_01";
+  const patId = doc.patient_id || "patient_1";
+  const recId = doc.record_id;
+  const tsEpoch = doc.timestamp_epoch || (doc.synced_at ? Math.floor(doc.synced_at) : Math.floor(Date.now() / 1000));
+  const tsIso   = doc.timestamp_iso || new Date(tsEpoch * 1000).toISOString();
+
+  let riskObj = {};
+  if (doc.risk && typeof doc.risk === "object") {
+    riskObj = {
+      overall_status: doc.risk.overall_status || "NORMAL",
+      vital_risk: doc.risk.vital_risk || "NORMAL",
+      heat_risk: doc.risk.heat_risk || "LOW",
+      respiratory_risk: doc.risk.respiratory_risk || "NORMAL",
+      recommendation: doc.risk.recommendation || "All monitored indicators within normal range.",
+      reasons: doc.risk.reasons || []
+    };
+  } else {
+    const isHigh = (hr > 120 || hr < 50 || spo2 < 90 || btemp > 38.5);
+    const isWatch = (hr > 100 || spo2 < 94 || btemp > 37.8);
+    riskObj = {
+      overall_status: isHigh ? "HIGH" : (isWatch ? "WATCH" : "NORMAL"),
+      vital_risk: isHigh ? "HIGH" : "NORMAL",
+      heat_risk: "LOW",
+      respiratory_risk: (spo2 < 94) ? "WATCH" : "NORMAL",
+      recommendation: isHigh ? "Immediate evaluation recommended." : (isWatch ? "Elevated vital detected. Continue monitoring." : "All monitored indicators within normal range.")
+    };
+  }
+
+  const payload = {
+    latest: {
+      device_id: dev,
+      patient_id: patId,
+      heart_rate: hr,
+      spo2: spo2,
+      body_temperature: btemp,
+      room_temperature: rtemp,
+      humidity: hum,
+      bp_sys: sys,
+      bp_dia: dia,
+      record_id: recId,
+      timestamp: tsIso,
+      timestamp_epoch: tsEpoch
+    },
+    risk: riskObj
+  };
+
+  const isNew = (_lastProcessedRecordId === null || _lastProcessedRecordId !== recId);
+  _lastProcessedRecordId = recId;
+
+  applyUpdate(payload);
+
+  if (isNew) {
+    syncReadingToBackend(payload.latest);
+  }
+
+  if (Array.isArray(candidateList) && candidateList.length > 0) {
+    populateRecentReadingsFromFirebase(candidateList);
+  }
+}
+
+function populateRecentReadingsFromFirebase(readingsList) {
+  const tbody = $("readings-tbody");
+  if (!tbody || !Array.isArray(readingsList)) return;
+
+  tbody.innerHTML = "";
+  const recent = readingsList.slice(0, 25);
+  for (const rec of recent) {
+    const hr = Number(rec.heart_rate) || 0;
+    const spo2 = Number(rec.spo2) || 98.0;
+    const btemp = Number(rec.body_temperature) || 37.0;
+    const overall = (rec.risk && rec.risk.overall_status) ? rec.risk.overall_status : "NORMAL";
+
+    let tsStr = "—";
+    if (rec.timestamp_iso) {
+      try {
+        const d = new Date(rec.timestamp_iso);
+        tsStr = isNaN(d.getTime()) ? rec.timestamp_iso : d.toLocaleTimeString();
+      } catch (e) {
+        tsStr = rec.timestamp_iso;
+      }
+    } else if (rec.timestamp_epoch) {
+      tsStr = new Date(rec.timestamp_epoch * 1000).toLocaleTimeString();
+    }
+
+    let statusClass = "normal";
+    if (overall === "HIGH") statusClass = "high";
+    else if (overall === "WATCH") statusClass = "watch";
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td style="font-family: var(--font-mono); color: var(--text-muted)">${tsStr}</td>
+      <td style="font-weight: 500">${fmt0(hr)} bpm</td>
+      <td>${fmt1(spo2)}%</td>
+      <td>${fmt1(btemp)}°C</td>
+      <td><span class="status-badge ${statusClass}">${overall}</span></td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  const counterBadge = $("records-counter-badge");
+  if (counterBadge) counterBadge.textContent = `${tbody.children.length} RECENT PACKETS`;
+}
+
+function syncReadingToBackend(reading) {
+  fetch("/api/telemetry", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      device_id: reading.device_id,
+      heart_rate: reading.heart_rate,
+      spo2: reading.spo2,
+      body_temperature: reading.body_temperature,
+      room_temperature: reading.room_temperature,
+      humidity: reading.humidity,
+      blood_pressure: { sys: reading.bp_sys, dia: reading.bp_dia }
+    })
+  }).catch(() => {});
+}
+
+// ── SSE / Polling Fallback ─────────────────────────────────────────────────────
 function startSSE() {
   const es = new EventSource("/stream");
-  es.onopen = () => { $("connection-dot").className = "dot dot--connected"; };
+  es.onopen = () => {
+    if (!_isFirebaseConnected) {
+      $("connection-dot").className = "dot dot--connected";
+    }
+  };
   es.onmessage = ev => {
     try {
       const data = JSON.parse(ev.data);
       if (data.event_type === "heartbeat") return;
-      if (data.reading || data.latest) {
+      if (!_isFirebaseConnected && (data.reading || data.latest)) {
         const item = data.latest || data.reading;
         const currentDev = (typeof PROFILES !== "undefined" && PROFILES[_activeUserId]) ? PROFILES[_activeUserId].device_id : "patient_01";
         if (!item.device_id || item.device_id === currentDev) {
@@ -389,29 +620,38 @@ function startSSE() {
     } catch (e) { console.warn("SSE parse error", e); }
   };
   es.onerror = () => {
-    $("connection-dot").className = "dot dot--error";
+    if (!_isFirebaseConnected) {
+      $("connection-dot").className = "dot dot--error";
+    }
     es.close();
     setTimeout(startPolling, 2000);
   };
 }
 
 function startPolling() {
-  $("connection-dot").className = "dot dot--connecting";
+  if (!_isFirebaseConnected) {
+    $("connection-dot").className = "dot dot--connecting";
+  }
   fetchLatest();
   setInterval(fetchLatest, 5000);
 }
 
 function fetchLatest(deviceId) {
+  if (_isFirebaseConnected) return; // Firebase active, skip REST polling
   const dev = deviceId || (typeof PROFILES !== "undefined" && PROFILES[_activeUserId] ? PROFILES[_activeUserId].device_id : "patient_01");
   fetch(`/api/latest?device_id=${encodeURIComponent(dev)}`)
     .then(r => r.json())
     .then(data => {
       if (data.latest || data.reading) applyUpdate(data);
       fetchBaseline();
-      $("connection-dot").className = "dot dot--connected";
+      if (!_isFirebaseConnected) {
+        $("connection-dot").className = "dot dot--connected";
+      }
     })
     .catch(() => {
-      $("connection-dot").className = "dot dot--error";
+      if (!_isFirebaseConnected) {
+        $("connection-dot").className = "dot dot--error";
+      }
     });
 }
 
@@ -1109,6 +1349,11 @@ function selectUser(userId, notify = true) {
   fetchLatest(targetDevice);
   fetchHistory(targetDevice);
   updateDualTelemetry();
+
+  // If Firestore is active, switch patient stream
+  if (_firestoreDb) {
+    subscribeToFirestoreReadings();
+  }
 
   if (notify) {
     showToast("normal", `Switched active subject to ${PROFILES[userId].name} (${PROFILES[userId].role})`);
@@ -2235,14 +2480,20 @@ document.addEventListener("DOMContentLoaded", () => {
   initLiveECG();
   initArchiveECG();
   fetchBaseline();
-  fetchHistory();
   fetchAlertsData();
-  fetchLatest();
 
-  if (typeof EventSource !== "undefined") {
-    startSSE();
-  } else {
-    startPolling();
+  // Initialize Cloud Firestore Live Stream (Primary)
+  const fbStarted = initFirestoreStream();
+
+  // If Firebase not available on this client, fallback to local SSE/REST polling
+  if (!fbStarted) {
+    fetchHistory();
+    fetchLatest();
+    if (typeof EventSource !== "undefined") {
+      startSSE();
+    } else {
+      startPolling();
+    }
   }
 });
 

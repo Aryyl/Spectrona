@@ -294,9 +294,10 @@ def test_alert() -> Response:
     })
 
 
+@api_bp.route("/telemetry", methods=["POST"])
 @api_bp.route("/telemetry/simulate", methods=["POST"])
 def simulate_telemetry() -> Response:
-    """Inject a simulated sensor telemetry reading through the pipeline."""
+    """Inject or stream live sensor telemetry reading through the pipeline."""
     import time
     from app.pipeline_runner import process_sensor_payload
 

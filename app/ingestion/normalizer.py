@@ -54,8 +54,12 @@ def normalize(payload: dict) -> SensorReading:
     epoch = float(payload["timestamp"])
     dt = datetime.datetime.fromtimestamp(epoch, tz=datetime.timezone.utc)
 
-    # Blood pressure arrives as a nested dict: {"sys": ..., "dia": ...}
+    # Blood pressure arrives as nested dict: {"sys": ..., "dia": ...} or flat bp_sys/bp_dia
     bp = payload.get("blood_pressure", {})
+    if not isinstance(bp, dict):
+        bp = {}
+    sys_val = bp.get("sys") if "sys" in bp else payload.get("bp_sys", 0.0)
+    dia_val = bp.get("dia") if "dia" in bp else payload.get("bp_dia", 0.0)
 
     return SensorReading(
         timestamp=dt,
@@ -66,6 +70,6 @@ def normalize(payload: dict) -> SensorReading:
         body_temperature=float(payload["body_temperature"]),
         room_temperature=float(payload["room_temperature"]),
         humidity=float(payload["humidity"]),
-        bp_sys=float(bp.get("sys", 0)),
-        bp_dia=float(bp.get("dia", 0)),
+        bp_sys=float(sys_val or 0.0),
+        bp_dia=float(dia_val or 0.0),
     )

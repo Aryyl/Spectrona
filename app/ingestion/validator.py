@@ -110,13 +110,13 @@ def _check_plausibility(payload: dict) -> None:
                 f"Field '{field}' value {val} is outside plausible range [{lo}, {hi}] – likely sensor error"
             )
 
-    # Blood pressure: validate only if present in the nested object
+    # Blood pressure: validate only if present in the nested object and non-zero
     bp = payload.get("blood_pressure", {})
     bp_ranges = ranges.get("blood_pressure", {})
-    if bp and bp_ranges:
+    if bp and bp_ranges and isinstance(bp, dict):
         for sub in ("sys", "dia"):
             val = bp.get(sub)
-            if val is not None:
+            if val is not None and float(val) > 0:
                 bounds = bp_ranges.get(sub, {})
                 if bounds:
                     lo, hi = bounds["min"], bounds["max"]
