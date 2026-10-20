@@ -972,8 +972,7 @@ canvas#ecg-canvas {
 
 /* ── Section General ─────────────────────────────────────────────────────── */
 .section-wrapper,
-#about,
-#sensors {
+#about {
   padding: 7rem 0;
   position: relative;
   border-top: 1px solid var(--border-subtle);
@@ -2851,5 +2850,338 @@ canvas#ecg-canvas {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   WHITE BACKGROUND FOR ARCHITECTURE & SENSORS SECTIONS
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+#architecture,
+#sensors {
+  background-color: #ffffff !important;
+  color: #09090b !important;
+  position: relative;
+  z-index: 2;
+}
+
+#architecture {
+  border-top: 1px solid #e4e4e7;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 6.5rem 0 4rem 0;
+}
+
+#sensors {
+  border-top: none;
+  border-bottom: 1px solid #e4e4e7;
+  padding: 4rem 0 7rem 0;
+}
+
+/* ── Section Header on White Background ── */
+#architecture .section-tag,
+#sensors .section-tag {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 5px 14px;
+  border-radius: var(--pill-radius);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+#architecture .section-title,
+#sensors .section-title {
+  color: #09090b;
+}
+
+#architecture .section-desc,
+#sensors .section-desc {
+  color: #52525b;
+}
+
+#architecture .pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.75rem;
+  max-width: 1160px;
+  margin: 2.5rem auto 0 auto;
+}
+
+/* Top row: 3 cards (each takes 2 of 6 columns) */
+#architecture .pipeline-step:nth-child(1) {
+  grid-column: 1 / span 2;
+}
+
+#architecture .pipeline-step:nth-child(2) {
+  grid-column: 3 / span 2;
+}
+
+#architecture .pipeline-step:nth-child(3) {
+  grid-column: 5 / span 2;
+}
+
+/* Bottom row: 2 cards centered (columns 2-3 and 4-5) */
+#architecture .pipeline-step:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+#architecture .pipeline-step:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+
+@media (max-width: 992px) {
+  #architecture .pipeline-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  #architecture .pipeline-step:nth-child(1) { grid-column: 1; }
+  #architecture .pipeline-step:nth-child(2) { grid-column: 2; }
+  #architecture .pipeline-step:nth-child(3) { grid-column: 1; }
+  #architecture .pipeline-step:nth-child(4) { grid-column: 2; }
+  #architecture .pipeline-step:nth-child(5) {
+    grid-column: 1 / -1;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  #architecture .pipeline-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  #architecture .pipeline-step:nth-child(n) {
+    grid-column: 1;
+    max-width: 100%;
+  }
+}
+
+/* ── Light Architecture Pipeline Step Cards ── */
+#architecture .pipeline-step {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 2.2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#architecture .pipeline-step:hover {
+  transform: translateY(-4px);
+  border-color: #16a34a;
+  box-shadow: 0 20px 35px -8px rgba(22, 163, 74, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+}
+
+#architecture .pipeline-step-num {
+  color: #16a34a;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+#architecture .pipeline-step-badge {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: var(--pill-radius);
+  margin-bottom: 1rem;
+  display: inline-block;
+  width: fit-content;
+}
+
+#architecture .pipeline-step-title {
+  color: #0f172a;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+#architecture .pipeline-step-desc {
+  color: #475569;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+}
+
+#architecture .pipeline-step-desc code {
+  background: #f1f5f9;
+  color: #16a34a;
+  border: 1px solid #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+#architecture .pipeline-step-details {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#architecture .pipeline-step-details span {
+  color: #334155;
+  font-weight: 500;
+}
+
+
+/* ── Light Sensor Cards ── */
+#sensors .sensor-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 2rem;
+}
+
+#sensors .sensor-card:hover {
+  transform: translateY(-4px);
+  border-color: #16a34a;
+  box-shadow: 0 20px 35px -8px rgba(22, 163, 74, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+}
+
+#sensors .sensor-card.sensor-card-dashed {
+  border: 1.5px dashed #cbd5e1;
+  background: #fafaf9;
+}
+
+#sensors .sensor-card.sensor-card-dashed:hover {
+  border-color: #16a34a;
+  background: #ffffff;
+}
+
+#sensors .sensor-top {
+  margin-bottom: 1.25rem;
+}
+
+#sensors .sensor-badge {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--pill-radius);
+}
+
+#sensors .sensor-protocol {
+  color: #64748b;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+#sensors .sensor-name {
+  color: #0f172a;
+  font-family: var(--font-heading);
+  font-size: 1.38rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+#sensors .sensor-metric-tag {
+  color: #15803d;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 1rem;
+}
+
+#sensors .sensor-desc {
+  color: #475569;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin-bottom: 1rem;
+}
+
+.sensor-benefit-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #16a34a;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #334155;
+  margin: 0.85rem 0 1.35rem 0;
+  line-height: 1.55;
+}
+
+.sensor-benefit-box strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+#sensors .sensor-specs {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+
+#sensors .spec-label {
+  color: #64748b;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+#sensors .spec-val {
+  color: #0f172a;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+#sensors .spec-val[style*="#4ade80"],
+#sensors .spec-val[style*="rgb(74, 222, 128)"] {
+  color: #16a34a !important;
+  font-weight: 700;
+}
+
+#sensors .spec-val[style*="#f59e0b"] {
+  color: #d97706 !important;
+  font-weight: 700;
+}
+
 
 

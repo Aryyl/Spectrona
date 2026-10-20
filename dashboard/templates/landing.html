@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
   <link rel="apple-touch-icon" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css?v=2.6.5" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=2.7.2" />
 </head>
 <body>
 
@@ -383,7 +383,7 @@
               <p class="sensor-desc">
                 Measures the electrical activity of the heart to evaluate cardiac rhythm and calculate heart rate (beats per minute).
               </p>
-              <div style="background: rgba(255, 255, 255, 0.03); border-left: 2px solid #ffffff; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #d4d4d8; margin: 0.85rem 0;">
+              <div class="sensor-benefit-box">
                 <strong>Daily-life benefit:</strong> Tracks heart-rate trends during rest and activity. ECG waveforms support further rhythm analysis when electrodes are properly attached.
               </div>
             </div>
@@ -415,7 +415,7 @@
               <p class="sensor-desc">
                 Estimates the percentage of oxygen saturation in the blood using optical dual-wavelength absorption of red and infrared light.
               </p>
-              <div style="background: rgba(255, 255, 255, 0.03); border-left: 2px solid #ffffff; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #d4d4d8; margin: 0.85rem 0;">
+              <div class="sensor-benefit-box">
                 <strong>Daily-life benefit:</strong> Helps monitor oxygen-saturation trends and identify readings that may warrant clinical attention. Sensitive to movement, placement, and circulation.
               </div>
             </div>
@@ -447,7 +447,7 @@
               <p class="sensor-desc">
                 Measures surface physiological temperature without requiring direct adhesive skin contact using infrared thermopile sensing.
               </p>
-              <div style="background: rgba(255, 255, 255, 0.03); border-left: 2px solid #ffffff; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #d4d4d8; margin: 0.85rem 0;">
+              <div class="sensor-benefit-box">
                 <strong>Daily-life benefit:</strong> Helps track temperature changes and febrile trends, though non-contact readings are sensitive to distance and surroundings.
               </div>
             </div>
@@ -479,7 +479,7 @@
               <p class="sensor-desc">
                 Measures ambient temperature and relative humidity to provide environmental context alongside physiological data.
               </p>
-              <div style="background: rgba(255, 255, 255, 0.03); border-left: 2px solid #ffffff; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #d4d4d8; margin: 0.85rem 0;">
+              <div class="sensor-benefit-box">
                 <strong>Daily-life benefit:</strong> Identifies hot, humid conditions and environmental heat strain, especially valuable for older adults and heat-vulnerable individuals.
               </div>
             </div>
@@ -511,7 +511,7 @@
               <p class="sensor-desc">
                 UART-connected blood-pressure monitor intended to capture arterial pressure during periodic timed calibration intervals.
               </p>
-              <div style="background: rgba(255, 255, 255, 0.03); border-left: 2px solid #ffffff; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #d4d4d8; margin: 0.85rem 0;">
+              <div class="sensor-benefit-box">
                 <strong>Daily-life benefit:</strong> Records blood pressure measurements over time for people with hypertension, once the cuff device is fully integrated.
               </div>
             </div>
@@ -532,7 +532,7 @@
           </div>
 
           <!-- Architecture Note: Timed Sensing vs Continuous -->
-          <div class="sensor-card" style="border-style: dashed; border-color: rgba(255, 255, 255, 0.2);">
+          <div class="sensor-card sensor-card-dashed">
             <div>
               <div class="sensor-top">
                 <span class="sensor-badge">ENGINEERING PRINCIPLE</span>
@@ -543,7 +543,7 @@
               <p class="sensor-desc">
                 A wearable does not necessarily measure every vital continuously. In our prototype, readings are collected in a timed cycle to balance battery longevity and physiological monitoring frequency.
               </p>
-              <div style="background: rgba(255, 255, 255, 0.03); border-left: 2px solid #ffffff; padding: 0.65rem 0.85rem; border-radius: 4px; font-size: 0.82rem; color: #d4d4d8; margin: 0.85rem 0;">
+              <div class="sensor-benefit-box">
                 <strong>Honest prototype state:</strong> ECG electrodes currently report detached when disconnected; sensors undergo periodic polling rather than ICU-style high-drain streams.
               </div>
             </div>
