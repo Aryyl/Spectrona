@@ -410,10 +410,12 @@ function subscribeToFirestoreReadings() {
   }
 
   const connDot = $("connection-dot");
+  const connLabel = $("connection-label");
   if (connDot) {
     connDot.className = "dot dot--connecting";
-    connDot.setAttribute("title", "Connecting to Firebase Firestore (patient_readings)...");
+    connDot.setAttribute("title", "Connecting to Cloud Firestore live stream...");
   }
+  if (connLabel) connLabel.textContent = "Connecting";
 
   const activeDev = (typeof PROFILES !== "undefined" && PROFILES[_activeUserId])
     ? PROFILES[_activeUserId].device_id
@@ -424,17 +426,21 @@ function subscribeToFirestoreReadings() {
     const collRef = _firestoreDb.collection("patient_readings");
     _firestoreUnsub = collRef
       .orderBy("record_id", "desc")
-      .limit(25)
+      .limit(35)
       .onSnapshot((snapshot) => {
         if (!snapshot || snapshot.empty) {
-          console.log("[Firebase] Snapshot empty");
+          console.log("[Firebase] Snapshot empty in patient_readings");
           return;
         }
 
         _isFirebaseConnected = true;
         if (connDot) {
           connDot.className = "dot dot--connected";
-          connDot.setAttribute("title", "Live: Connected to Cloud Firestore");
+          connDot.setAttribute("title", "Live Real-Time Stream: Connected to Cloud Firestore");
+        }
+        if (connLabel) {
+          connLabel.textContent = "FIREBASE LIVE";
+          connLabel.style.color = "var(--risk-normal)";
         }
 
         const rawList = [];
@@ -455,10 +461,12 @@ function subscribeToFirestoreReadings() {
         _isFirebaseConnected = false;
         if (connDot) {
           connDot.className = "dot dot--error";
-          connDot.setAttribute("title", "Firebase connection error: " + (error.message || error));
+          connDot.setAttribute("title", "Firebase error: " + (error.message || error));
         }
-        // Fall back to SSE or polling on error
-        startPolling();
+        if (connLabel) {
+          connLabel.textContent = "DISCONNECTED";
+          connLabel.style.color = "var(--risk-high)";
+        }
       });
   } catch (err) {
     console.error("[Firebase] Query setup error:", err);
@@ -469,10 +477,10 @@ function handleIncomingFirebaseReading(doc, candidateList) {
   if (!doc) return;
 
   const hr    = Number(doc.heart_rate) || 0;
-  const spo2  = Number(doc.spo2) || 98.0;
-  const btemp = Number(doc.body_temperature) || 37.0;
-  const rtemp = Number(doc.room_temperature) || 25.0;
-  const hum   = Number(doc.humidity) || 50.0;
+  const spo2  = Number(doc.spo2) || 0;
+  const btemp = Number(doc.body_temperature) || 0;
+  const rtemp = Number(doc.room_temperature) || 0;
+  const hum   = Number(doc.humidity) || 0;
   const sys   = Number(doc.bp_sys) || 0;
   const dia   = Number(doc.bp_dia) || 0;
   const dev   = doc.device_id || "patient_01";
@@ -492,13 +500,13 @@ function handleIncomingFirebaseReading(doc, candidateList) {
       reasons: doc.risk.reasons || []
     };
   } else {
-    const isHigh = (hr > 120 || hr < 50 || spo2 < 90 || btemp > 38.5);
-    const isWatch = (hr > 100 || spo2 < 94 || btemp > 37.8);
+    const isHigh = (hr > 120 || hr < 50 || (spo2 > 0 && spo2 < 90) || (btemp > 0 && btemp > 38.5));
+    const isWatch = (hr > 100 || (spo2 > 0 && spo2 < 94) || (btemp > 0 && btemp > 37.8));
     riskObj = {
       overall_status: isHigh ? "HIGH" : (isWatch ? "WATCH" : "NORMAL"),
       vital_risk: isHigh ? "HIGH" : "NORMAL",
       heat_risk: "LOW",
-      respiratory_risk: (spo2 < 94) ? "WATCH" : "NORMAL",
+      respiratory_risk: (spo2 > 0 && spo2 < 94) ? "WATCH" : "NORMAL",
       recommendation: isHigh ? "Immediate evaluation recommended." : (isWatch ? "Elevated vital detected. Continue monitoring." : "All monitored indicators within normal range.")
     };
   }
@@ -522,17 +530,85 @@ function handleIncomingFirebaseReading(doc, candidateList) {
   };
 
   const isNew = (_lastProcessedRecordId === null || _lastProcessedRecordId !== recId);
+  const wasAlreadyInitialized = (_lastProcessedRecordId !== null);
   _lastProcessedRecordId = recId;
 
+  // Render to Vitals Cards, Gauge, and ECG frequency
   applyUpdate(payload);
 
-  if (isNew) {
-    syncReadingToBackend(payload.latest);
+  // If new reading arrived in real-time, pulse the cards
+  if (isNew && wasAlreadyInitialized) {
+    flashValue($("val-hr"));
+    flashValue($("val-spo2"));
+    flashValue($("val-btemp"));
+    showToast("normal", `Live Packet Received (Record #${recId})`);
   }
 
+  // Populate Readings Table, Trend Chart, and Dynamic Baseline purely from real Firestore docs
   if (Array.isArray(candidateList) && candidateList.length > 0) {
     populateRecentReadingsFromFirebase(candidateList);
+    updateTrendChartFromHistory(candidateList);
+    updateDynamicBaselineFromFirestore(candidateList);
   }
+}
+
+function updateDynamicBaselineFromFirestore(readings) {
+  if (!Array.isArray(readings) || readings.length === 0) return;
+  const hrs = readings.map(r => Number(r.heart_rate)).filter(v => v > 30 && v < 220);
+  const spo2s = readings.map(r => Number(r.spo2)).filter(v => v > 50 && v <= 100);
+  const temps = readings.map(r => Number(r.body_temperature)).filter(v => v > 30 && v < 45);
+
+  const avg = arr => arr.length ? arr.reduce((a,b)=>a+b, 0) / arr.length : null;
+  const avgHr = avg(hrs);
+  const avgSpo2 = avg(spo2s);
+  const avgTemp = avg(temps);
+
+  window._baseline = {
+    heart_rate: avgHr || 72,
+    spo2: avgSpo2 || 98.0,
+    body_temperature: avgTemp || 36.8
+  };
+
+  const subHr = $("sub-hr");
+  const subSpo2 = $("sub-spo2");
+  const subBtemp = $("sub-btemp");
+
+  if (subHr && avgHr) subHr.textContent = `Baseline: ${fmt0(avgHr)} bpm`;
+  if (subSpo2 && avgSpo2) subSpo2.textContent = `Baseline: ${fmt1(avgSpo2)}%`;
+  if (subBtemp && avgTemp) subBtemp.textContent = `Baseline: ${fmt1(avgTemp)}°C`;
+}
+
+function updateTrendChartFromHistory(readings) {
+  if (!trendChart || !Array.isArray(readings) || readings.length === 0) return;
+  
+  // Readings are newest first; reverse to display chronologically (oldest to newest)
+  const chronological = [...readings].reverse().slice(-MAX_DATA_POINTS);
+  trendData.length = 0;
+  trendLabels.length = 0;
+
+  for (const rec of chronological) {
+    const hr = Number(rec.heart_rate);
+    if (!isNaN(hr) && hr > 0) {
+      let label = "";
+      if (rec.timestamp_iso) {
+        try {
+          const d = new Date(rec.timestamp_iso);
+          label = isNaN(d.getTime()) ? "" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        } catch(e) {}
+      } else if (rec.timestamp_epoch) {
+        label = new Date(rec.timestamp_epoch * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+      trendData.push(hr);
+      trendLabels.push(label);
+    }
+  }
+
+  const isDark = isDarkTheme();
+  const defaultBarColor = isDark ? "rgba(167, 139, 250, 0.35)" : "#C7D2FE";
+  const activeBarColor  = isDark ? "#a78bfa" : "#8B5CF6";
+  const bgColors = trendData.map((_, i) => i === trendData.length - 1 ? activeBarColor : defaultBarColor);
+  trendChart.data.datasets[0].backgroundColor = bgColors;
+  trendChart.update();
 }
 
 function populateRecentReadingsFromFirebase(readingsList) {
@@ -543,8 +619,8 @@ function populateRecentReadingsFromFirebase(readingsList) {
   const recent = readingsList.slice(0, 25);
   for (const rec of recent) {
     const hr = Number(rec.heart_rate) || 0;
-    const spo2 = Number(rec.spo2) || 98.0;
-    const btemp = Number(rec.body_temperature) || 37.0;
+    const spo2 = Number(rec.spo2) || 0;
+    const btemp = Number(rec.body_temperature) || 0;
     const overall = (rec.risk && rec.risk.overall_status) ? rec.risk.overall_status : "NORMAL";
 
     let tsStr = "—";
@@ -578,84 +654,53 @@ function populateRecentReadingsFromFirebase(readingsList) {
   if (counterBadge) counterBadge.textContent = `${tbody.children.length} RECENT PACKETS`;
 }
 
-function syncReadingToBackend(reading) {
-  fetch("/api/telemetry", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      device_id: reading.device_id,
-      heart_rate: reading.heart_rate,
-      spo2: reading.spo2,
-      body_temperature: reading.body_temperature,
-      room_temperature: reading.room_temperature,
-      humidity: reading.humidity,
-      blood_pressure: { sys: reading.bp_sys, dia: reading.bp_dia }
-    })
-  }).catch(() => {});
-}
-
-// ── SSE / Polling Fallback ─────────────────────────────────────────────────────
+// ── SSE / Polling Fallback (Only used if Firebase SDK is unavailable) ──────────
 function startSSE() {
+  if (_isFirebaseConnected) return; // Pure Firebase Mode: No SSE simulation
   const es = new EventSource("/stream");
   es.onopen = () => {
-    if (!_isFirebaseConnected) {
-      $("connection-dot").className = "dot dot--connected";
-    }
+    if (!_isFirebaseConnected) $("connection-dot").className = "dot dot--connected";
   };
   es.onmessage = ev => {
     try {
+      if (_isFirebaseConnected) return;
       const data = JSON.parse(ev.data);
       if (data.event_type === "heartbeat") return;
-      if (!_isFirebaseConnected && (data.reading || data.latest)) {
+      if (data.reading || data.latest) {
         const item = data.latest || data.reading;
         const currentDev = (typeof PROFILES !== "undefined" && PROFILES[_activeUserId]) ? PROFILES[_activeUserId].device_id : "patient_01";
         if (!item.device_id || item.device_id === currentDev) {
           applyUpdate(data);
         }
-        if (typeof updateDualTelemetry === "function") {
-          updateDualTelemetry();
-        }
       }
-      fetchBaseline();
     } catch (e) { console.warn("SSE parse error", e); }
   };
   es.onerror = () => {
-    if (!_isFirebaseConnected) {
-      $("connection-dot").className = "dot dot--error";
-    }
+    if (!_isFirebaseConnected) $("connection-dot").className = "dot dot--error";
     es.close();
-    setTimeout(startPolling, 2000);
   };
 }
 
 function startPolling() {
-  if (!_isFirebaseConnected) {
-    $("connection-dot").className = "dot dot--connecting";
-  }
+  if (_isFirebaseConnected) return; // Pure Firebase Mode: No local polling
   fetchLatest();
   setInterval(fetchLatest, 5000);
 }
 
 function fetchLatest(deviceId) {
-  if (_isFirebaseConnected) return; // Firebase active, skip REST polling
+  if (_isFirebaseConnected) return; // Pure Firebase Mode: Skip REST polling
   const dev = deviceId || (typeof PROFILES !== "undefined" && PROFILES[_activeUserId] ? PROFILES[_activeUserId].device_id : "patient_01");
   fetch(`/api/latest?device_id=${encodeURIComponent(dev)}`)
     .then(r => r.json())
     .then(data => {
+      if (_isFirebaseConnected) return;
       if (data.latest || data.reading) applyUpdate(data);
-      fetchBaseline();
-      if (!_isFirebaseConnected) {
-        $("connection-dot").className = "dot dot--connected";
-      }
     })
-    .catch(() => {
-      if (!_isFirebaseConnected) {
-        $("connection-dot").className = "dot dot--error";
-      }
-    });
+    .catch(() => {});
 }
 
 function fetchBaseline() {
+  if (_isFirebaseConnected) return; // Pure Firebase Mode: Skip mock baseline
   fetch("/api/baseline")
     .then(r => r.json())
     .then(bl => { window._baseline = bl; })
@@ -663,18 +708,18 @@ function fetchBaseline() {
 }
 
 function fetchHistory(deviceId) {
+  if (_isFirebaseConnected) return; // Pure Firebase Mode: Skip local history
   const dev = deviceId || (typeof PROFILES !== "undefined" && PROFILES[_activeUserId] ? PROFILES[_activeUserId].device_id : "patient_01");
   fetch(`/api/history?device_id=${encodeURIComponent(dev)}`)
     .then(r => r.json())
     .then(records => {
+      if (_isFirebaseConnected) return;
       const dataList = Array.isArray(records) ? records : (records.readings || []);
       if (!Array.isArray(dataList) || dataList.length === 0) return;
       const tbody = $("readings-tbody");
       if (!tbody) return;
       tbody.innerHTML = "";
-      // Populate table with existing records (newest to oldest)
-      const recent = dataList.slice(0, 25);
-      for (const rec of recent) {
+      for (const rec of dataList.slice(0, 25)) {
         if (!rec.timestamp) continue;
         const parsed = new Date(rec.timestamp);
         const ts = isNaN(parsed.getTime()) ? rec.timestamp : parsed.toLocaleTimeString();
@@ -688,8 +733,6 @@ function fetchHistory(deviceId) {
         `;
         tbody.appendChild(row);
       }
-      const counterBadge = $("records-counter-badge");
-      if (counterBadge) counterBadge.textContent = `${tbody.children.length} RECENT PACKETS`;
     })
     .catch(() => {});
 }
@@ -1344,15 +1387,14 @@ function selectUser(userId, notify = true) {
     body: JSON.stringify({ user_id: userId })
   }).catch(() => {});
 
-  // Fetch telemetry for this specific patient
-  const targetDevice = PROFILES[userId].device_id;
-  fetchLatest(targetDevice);
-  fetchHistory(targetDevice);
-  updateDualTelemetry();
-
-  // If Firestore is active, switch patient stream
+  // If Firestore is active, switch patient stream directly from real database
   if (_firestoreDb) {
     subscribeToFirestoreReadings();
+  } else {
+    const targetDevice = PROFILES[userId].device_id;
+    fetchLatest(targetDevice);
+    fetchHistory(targetDevice);
+    updateDualTelemetry();
   }
 
   if (notify) {
@@ -2479,14 +2521,12 @@ document.addEventListener("DOMContentLoaded", () => {
   initCharts();
   initLiveECG();
   initArchiveECG();
-  fetchBaseline();
-  fetchAlertsData();
-
   // Initialize Cloud Firestore Live Stream (Primary)
   const fbStarted = initFirestoreStream();
 
   // If Firebase not available on this client, fallback to local SSE/REST polling
   if (!fbStarted) {
+    fetchBaseline();
     fetchHistory();
     fetchLatest();
     if (typeof EventSource !== "undefined") {

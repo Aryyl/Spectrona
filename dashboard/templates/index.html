@@ -510,7 +510,10 @@
       <section class="card col-4 risk-level-card">
         <h2 class="card-title">
           <span>Current Risk Level</span>
-          <div id="connection-dot" class="dot dot--connecting" title="Connection status"></div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span id="connection-label" style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--risk-normal); text-transform: uppercase; letter-spacing: 0.04em;">FIREBASE</span>
+            <div id="connection-dot" class="dot dot--connecting" title="Connection status"></div>
+          </div>
         </h2>
         <div class="gauge-container">
           <div class="gauge-wrapper">
@@ -1293,6 +1296,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="/static/js/icons.js"></script>
-  <script src="/static/js/dashboard.js?v=2.3"></script>
+  <script src="/static/js/dashboard.js?v=2.4"></script>
 </body>
 </html>
