@@ -9,6 +9,7 @@
 const CACHE_NAME = "jeevone-dashboard-v2.7.0";
 const PRECACHE_ASSETS = [
   "/",
+  "/login",
   "/dashboard",
   "/manifest.json",
   "/static/manifest.json",
@@ -16,6 +17,8 @@ const PRECACHE_ASSETS = [
   "/static/js/dashboard.js?v=2.7",
   "/static/css/landing.css",
   "/static/js/landing.js",
+  "/static/css/login.css",
+  "/static/js/login.js",
   "/static/js/icons.js",
   "/static/images/jeev_one_logo.webp",
   "/static/images/favicon.png",

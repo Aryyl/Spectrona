@@ -1608,6 +1608,15 @@ function initUserSwitcher() {
     });
   }
 
+  const btnLogout = $("btn-dropdown-logout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      sessionStorage.removeItem("jeev_one_auth");
+      localStorage.removeItem("jeev_one_auth");
+      window.location.href = "/login";
+    });
+  }
+
   document.addEventListener("click", (e) => {
     if (wrapper && !wrapper.contains(e.target)) {
       closeMenu();
@@ -2540,8 +2549,28 @@ window.addEventListener("resize", () => {
   }
 });
 
+// ── Session Auth Verification ────────────────────────────────────────────────
+function checkAuthSession() {
+  try {
+    const isGuest = window.location.search.includes("guest=true");
+    const session = sessionStorage.getItem("jeev_one_auth") || localStorage.getItem("jeev_one_auth");
+    if (!session && !isGuest) {
+      window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname + window.location.search);
+      return false;
+    }
+    if (session) {
+      const parsed = JSON.parse(session);
+      if (parsed.userId && (parsed.userId === "user_1" || parsed.userId === "user_2")) {
+        _activeUserId = parsed.userId;
+      }
+    }
+  } catch (e) {}
+  return true;
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  if (!checkAuthSession()) return;
   injectIcons();
   
   const toastCloseBtn = $("toast-close");

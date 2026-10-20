@@ -100,6 +100,12 @@ def create_app() -> Flask:
         from flask import render_template
         return render_template("index.html")
 
+    # Serve login page
+    @app.route("/login")
+    def login():
+        from flask import render_template
+        return render_template("login.html")
+
     # Progressive Web App (PWA) routes
     @app.route("/sw.js")
     def service_worker():
