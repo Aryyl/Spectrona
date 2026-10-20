@@ -1,18 +1,18 @@
 /**
  * Spectrona / Jeev One – Progressive Web App Service Worker
- * Version: 1.0.0
+ * Version: 2.5.0
  * 
- * Provides offline caching, instantaneous launch, stale-while-revalidate asset delivery,
+ * Provides offline caching, instantaneous launch, network-first live code delivery,
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "spectrona-dashboard-v1.0.0";
+const CACHE_NAME = "spectrona-dashboard-v2.5.0";
 const PRECACHE_ASSETS = [
   "/dashboard",
   "/manifest.json",
   "/static/manifest.json",
-  "/static/css/dashboard.css",
-  "/static/js/dashboard.js",
+  "/static/css/dashboard.css?v=2.5",
+  "/static/js/dashboard.js?v=2.5",
   "/static/js/icons.js",
   "/static/images/jeev_one_logo.webp",
   "/static/images/favicon.png",
@@ -29,7 +29,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[PWA Service Worker] Pre-caching offline dashboard shell");
+      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v2.5.0");
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn("[PWA Service Worker] Some assets failed to precache:", err);
       });
@@ -37,7 +37,7 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// ── Activate: Clean Stale Caches ─────────────────────────────────────────────
+// ── Activate: Clean Stale Caches & Claim Clients Immediately ─────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -53,16 +53,36 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// ── Message Listener (e.g. SKIP_WAITING from client) ─────────────────────────
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 // ── Fetch: Strategic Asset Routing ───────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // 1. Never cache Server-Sent Events (SSE) or WebSockets
+  // 1. Completely bypass external or cross-origin requests
+  // Crucial: Firestore long-polling, Google APIs, and auth must never be intercepted
+  if (url.origin !== self.location.origin) {
+    if (url.hostname.includes("googleapis.com") || url.hostname.includes("firebase") || url.hostname.includes("gstatic.com")) {
+      return; // Direct native network bypass for real-time Firebase WebChannel & REST
+    }
+    // Precached CDN assets (Chart.js, Google Fonts): cache with network fallback
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request).catch(() => cached))
+    );
+    return;
+  }
+
+  // 2. Never cache Server-Sent Events (SSE) or WebSockets
   if (url.pathname === "/stream" || url.pathname.startsWith("/ws")) {
     return;
   }
 
-  // 2. Navigation requests: Network-First strictly for /dashboard
+  // 3. Navigation requests: Network-First strictly for /dashboard
   if (event.request.mode === "navigate") {
     if (url.pathname.startsWith("/dashboard")) {
       event.respondWith(
@@ -84,13 +104,11 @@ self.addEventListener("fetch", (event) => {
       );
       return;
     }
-    // Landing page and other navigation bypasses service worker
     return;
   }
 
-  // 3. API endpoints: Network-first with cache fallback
+  // 4. API endpoints: Network-first with cache fallback
   if (url.pathname.startsWith("/api/")) {
-    // Only cache GET queries (latest, history, baseline, users)
     if (event.request.method === "GET") {
       event.respondWith(
         fetch(event.request)
@@ -113,23 +131,43 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 4. Static assets (JS, CSS, Images, Fonts): Stale-While-Revalidate
+  // 5. Static scripts and styles: Network-First with cache fallback
+  // Ensures mobile phone PWAs always receive fresh code when online
+  if (url.pathname.endsWith(".js") || url.pathname.endsWith(".css")) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          return new Response("", { status: 404 });
+        })
+    );
+    return;
+  }
+
+  // 6. Other static assets (Images, Icons, Fonts): Cache-First
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
+      if (cachedResponse) return cachedResponse;
+      return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
       }).catch(() => {/* Offline fallback */});
-
-      return cachedResponse || fetchPromise;
     })
   );
 });
 
-// ── Background Sync / Push Notification Hook ─────────────────────────────────
+// ── Push Notification Hooks ──────────────────────────────────────────────────
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   try {

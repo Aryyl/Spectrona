@@ -448,6 +448,13 @@ function subscribeToFirestoreReadings() {
           rawList.push({ id: doc.id, ...doc.data() });
         });
 
+        // Defensive sort: guarantee newest reading first by record_id, timestamp_epoch, or synced_at
+        rawList.sort((a, b) => {
+          const recA = Number(a.record_id) || Number(a.timestamp_epoch) || (a.synced_at ? Number(a.synced_at) : 0);
+          const recB = Number(b.record_id) || Number(b.timestamp_epoch) || (b.synced_at ? Number(b.synced_at) : 0);
+          return recB - recA;
+        });
+
         // Filter for active subject if multiple exist, else use latest
         const matching = rawList.filter(r => r.device_id === activeDev || r.patient_id === targetPatient);
         const candidates = matching.length > 0 ? matching : rawList;
@@ -485,7 +492,7 @@ function handleIncomingFirebaseReading(doc, candidateList) {
   const dia   = Number(doc.bp_dia) || 0;
   const dev   = doc.device_id || "patient_01";
   const patId = doc.patient_id || "patient_1";
-  const recId = doc.record_id;
+  const recId = (doc.record_id !== undefined && doc.record_id !== null) ? doc.record_id : (doc.id || doc.timestamp_epoch || "live");
   const tsEpoch = doc.timestamp_epoch || (doc.synced_at ? Math.floor(doc.synced_at) : Math.floor(Date.now() / 1000));
   const tsIso   = doc.timestamp_iso || new Date(tsEpoch * 1000).toISOString();
 
@@ -529,7 +536,7 @@ function handleIncomingFirebaseReading(doc, candidateList) {
     risk: riskObj
   };
 
-  const isNew = (_lastProcessedRecordId === null || _lastProcessedRecordId !== recId);
+  const isNew = (_lastProcessedRecordId === null || String(_lastProcessedRecordId) !== String(recId));
   const wasAlreadyInitialized = (_lastProcessedRecordId !== null);
   _lastProcessedRecordId = recId;
 
@@ -1703,6 +1710,9 @@ function initTabs() {
       window.closeMobileDrawer();
     }
 
+    // Immediately restore viewport scroll position to top
+    window.scrollTo({ top: 0, behavior: "instant" });
+
     // Resize charts and canvases when entering tabs
     if (tabId === "live") {
       setTimeout(() => {
@@ -1730,6 +1740,16 @@ function initTabs() {
     } catch (e) {}
   }
 
+  // Universal event delegation for all tab triggers (supports desktop, mobile touch, and PWA bottom nav)
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-tab]");
+    if (btn) {
+      e.preventDefault();
+      const tabId = btn.getAttribute("data-tab");
+      switchTab(tabId);
+    }
+  });
+
   // Wire direct view history button from live card
   const btnViewHistory = $("btn-view-ecg-history");
   if (btnViewHistory) {
@@ -1738,14 +1758,6 @@ function initTabs() {
       switchTab("ecg");
     });
   }
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const tabId = btn.getAttribute("data-tab");
-      switchTab(tabId);
-    });
-  });
 
   // Check URL query param (?tab=...), hash (#...), or localStorage
   const urlParams = new URLSearchParams(window.location.search);
@@ -2287,6 +2299,8 @@ function initPWA() {
         .register("/sw.js", { scope: "/" })
         .then((reg) => {
           console.log("[PWA] Service Worker registered with root scope:", reg.scope);
+          // Check for worker updates immediately on launch
+          try { reg.update(); } catch(e) {}
           
           // Check for worker updates
           reg.addEventListener("updatefound", () => {
@@ -2294,7 +2308,8 @@ function initPWA() {
             if (installing) {
               installing.addEventListener("statechange", () => {
                 if (installing.state === "installed" && navigator.serviceWorker.controller) {
-                  showToast("App Shell Updated", "A new version of Jeev One is ready.", "info");
+                  installing.postMessage({ type: "SKIP_WAITING" });
+                  showToast("normal", "Jeev One has updated to the latest live version.");
                 }
               });
             }
@@ -2303,6 +2318,14 @@ function initPWA() {
         .catch((err) => {
           console.warn("[PWA] Service Worker registration failed:", err);
         });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     });
   }
 
@@ -2321,7 +2344,6 @@ function initPWA() {
     if (installBtnNav) installBtnNav.style.display = "none";
     if (installBtnSettings) installBtnSettings.style.display = "none";
     console.log("[PWA] Running as installed standalone app");
-    return;
   } else {
     if (pwaStatusBadge) {
       pwaStatusBadge.textContent = "STANDALONE READY";
