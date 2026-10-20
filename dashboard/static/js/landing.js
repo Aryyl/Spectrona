@@ -8,6 +8,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavbarScroll();
+  initMobileDrawer();
   initHeroAboutTransition();
   initDemoVideoPlayer();
   initGalleryLightbox();
@@ -15,11 +16,64 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchLivePreviewData();
 });
 
+// ── Mobile Navigation Drawer Toggle ──────────────────────────────────────────
+function initMobileDrawer() {
+  const toggleBtn = document.getElementById("nav-mobile-toggle");
+  const drawer = document.getElementById("mobile-drawer");
+  const backdrop = document.getElementById("mobile-drawer-backdrop");
+  const closeBtn = document.getElementById("drawer-close-btn");
+
+  if (!toggleBtn || !drawer || !backdrop) return;
+
+  function openDrawer() {
+    drawer.classList.add("open");
+    backdrop.classList.add("active");
+    toggleBtn.classList.add("active");
+    toggleBtn.setAttribute("aria-expanded", "true");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    backdrop.classList.remove("active");
+    toggleBtn.classList.remove("active");
+    toggleBtn.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    if (drawer.classList.contains("open")) {
+      closeDrawer();
+    } else {
+      openDrawer();
+    }
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeDrawer);
+  }
+
+  backdrop.addEventListener("click", closeDrawer);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawer.classList.contains("open")) {
+      closeDrawer();
+    }
+  });
+
+  const drawerLinks = drawer.querySelectorAll(".drawer-nav-item, .drawer-dashboard-btn");
+  drawerLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      closeDrawer();
+    });
+  });
+}
+
 // ── Smooth Hero-to-About Scroll Transition ───────────────────────────────────
 function initHeroAboutTransition() {
   const heroSection = document.querySelector(".hero-section");
   const heroBgImage = document.getElementById("hero-bg-image");
-  const aboutSection = document.getElementById("architecture") || document.getElementById("about");
+  const aboutSection = document.getElementById("about") || document.getElementById("architecture");
   const aboutContainer = aboutSection ? aboutSection.querySelector(".container") : null;
 
   if (!heroSection || !aboutSection) return;

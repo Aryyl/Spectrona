@@ -1,12 +1,12 @@
 /**
- * Spectrona / Jeev One – Progressive Web App Service Worker
- * Version: 2.5.0
+ * Jeev One – Progressive Web App Service Worker
+ * Version: 2.6.0
  * 
  * Provides offline caching, instantaneous launch, network-first live code delivery,
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "spectrona-dashboard-v2.5.0";
+const CACHE_NAME = "jeevone-dashboard-v2.6.0";
 const PRECACHE_ASSETS = [
   "/dashboard",
   "/manifest.json",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jeev One / Spectrona — Wearable IoT-Based Health Monitoring System</title>
+  <title>Jeev One — Wearable IoT-Based Health Monitoring System</title>
   <meta name="description" content="Jeev One is a wearable IoT-based health monitoring system integrating physiological sensors, an ESP32 microcontroller, a Raspberry Pi 5 edge gateway, and Firebase Cloud Firestore for remote caregiver access." />
   
   <!-- Typography -->
@@ -31,25 +31,60 @@
       </a>
 
       <ul class="nav-links">
-        <li><a href="#about">Overview</a></li>
+        <li><a href="#about">About</a></li>
         <li><a href="#architecture">Architecture</a></li>
         <li><a href="#sensors">Sensors</a></li>
-        <li><a href="#edge-system">ESP32 & Pi 5</a></li>
         <li><a href="#use-cases">Use Cases</a></li>
-        <li><a href="#target-patients">Target Groups</a></li>
         <li><a href="#comparison">Compare</a></li>
-        <li><a href="#video">Demo Video</a></li>
         <li><a href="#gallery">Gallery</a></li>
       </ul>
 
       <div class="nav-actions">
-        <a href="/dashboard" class="btn-pill-primary">
+        <a href="/dashboard" class="btn-pill-primary nav-cta-desktop">
           <span>Live Dashboard</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
+        <button class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
     </nav>
   </div>
+
+  <!-- Mobile Navigation Drawer & Backdrop -->
+  <div class="mobile-drawer-backdrop" id="mobile-drawer-backdrop" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobile-drawer" aria-label="Mobile Navigation Drawer">
+    <div class="drawer-header">
+      <a href="/" class="drawer-brand" aria-label="JEEV_ONE Home">
+        <img src="/static/images/jeev_one_logo.webp" alt="JEEV_ONE Logo" class="drawer-logo-img" />
+      </a>
+      <button class="drawer-close-btn" id="drawer-close-btn" aria-label="Close Navigation Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-content">
+      <ul class="drawer-nav-list">
+        <li><a href="#about" class="drawer-nav-item"><span class="drawer-nav-num">01</span><span class="drawer-nav-label">About Jeev One</span></a></li>
+        <li><a href="#architecture" class="drawer-nav-item"><span class="drawer-nav-num">02</span><span class="drawer-nav-label">System Architecture</span></a></li>
+        <li><a href="#sensors" class="drawer-nav-item"><span class="drawer-nav-num">03</span><span class="drawer-nav-label">Sensors & Biometrics</span></a></li>
+        <li><a href="#edge-system" class="drawer-nav-item"><span class="drawer-nav-num">04</span><span class="drawer-nav-label">ESP32 & Raspberry Pi 5</span></a></li>
+        <li><a href="#use-cases" class="drawer-nav-item"><span class="drawer-nav-num">05</span><span class="drawer-nav-label">Everyday Use Cases</span></a></li>
+        <li><a href="#target-patients" class="drawer-nav-item"><span class="drawer-nav-num">06</span><span class="drawer-nav-label">Target Groups</span></a></li>
+        <li><a href="#comparison" class="drawer-nav-item"><span class="drawer-nav-num">07</span><span class="drawer-nav-label">System Comparison</span></a></li>
+        <li><a href="#video" class="drawer-nav-item"><span class="drawer-nav-num">08</span><span class="drawer-nav-label">Prototype Demo Video</span></a></li>
+        <li><a href="#gallery" class="drawer-nav-item"><span class="drawer-nav-num">09</span><span class="drawer-nav-label">Hardware Gallery</span></a></li>
+      </ul>
+      <div class="drawer-cta-wrap">
+        <a href="/dashboard" class="btn-pill-primary drawer-dashboard-btn">
+          <span>Launch Live Dashboard</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <p class="drawer-system-tag">Continuous IoT Health Monitoring • Jeev One</p>
+      </div>
+    </div>
+  </aside>
 
   <main>
     <!-- ══ Hero Section ══════════════════════════════════════════════════════ -->
@@ -57,73 +92,166 @@
       <div class="hero-bg-image" id="hero-bg-image" aria-hidden="true"></div>
 
       <div class="container hero-content">
-        <!-- Live Verified Pipeline Status Badge -->
-
         <h1 class="hero-title">
-          Jeev One: Wearable IoT-Based<br />
-          <span class="text-muted-gradient">Health Monitoring System</span>
+          Jeev One<br />
+          <span class="text-muted-gradient">Wearable Health Monitoring System</span>
         </h1>
 
         <p class="hero-subtitle">
           Instead of checking health measurements only during occasional clinic visits, <strong>Jeev One</strong> monitors selected physiological indicators during everyday activities and synchronizes the recorded data to <strong>Firebase Cloud Firestore</strong> for caregivers and healthcare professionals.
         </p>
 
-        <!-- 3 Core Architectural Pillars -->
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.25rem;">
-          <span class="table-pill green">✓ Wearable Sensing (ECG, SpO₂, Temp, Ambient)</span>
-          <span class="table-pill green">✓ Edge Computing (ESP32 + Raspberry Pi 5)</span>
-          <span class="table-pill green">✓ Cloud Monitoring (Firestore + PWA Dashboard)</span>
-        </div>
-
         <div class="hero-actions">
           <a href="/dashboard" class="btn-pill-primary">
             <span>Launch Live Dashboard</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
-          <a href="#architecture" class="btn-pill-secondary">
-            <span>Explore 5-Stage Architecture</span>
+          <a href="#about" class="btn-pill-secondary">
+            <span>Learn About Jeev One</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
           </a>
         </div>
+      </div>
+    </section>
 
-        <!-- Interactive Live Telemetry Preview Card -->
-        <div class="hero-preview-container" style="margin-top: 3.5rem;">
-          <div class="hero-preview-inner">
-            <div class="preview-top-bar">
-              <div class="preview-top-title">
-                <span class="status-pulse-dot" style="background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
-                <span>CLOUD FIRESTORE LIVE FEED • SUBJECT 01 (ARYYAMAN)</span>
-              </div>
-              <div class="preview-window-dots">
-                <span class="table-pill green">REAL-TIME STREAM</span>
+    <!-- ══ Section: About Jeev One ═════════════════════════════════════════════ -->
+    <section class="section-wrapper" id="about">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">// ABOUT JEEV ONE</span>
+          <h2 class="section-title">Everyday Health Intelligence</h2>
+          <p class="section-desc">
+            A wearable IoT-based health monitoring system engineered to capture vital physiological signals during daily life, validate them at the edge, and provide real-time visibility to caregivers and clinicians.
+          </p>
+        </div>
+
+        <div class="about-overview-card">
+          <div class="about-overview-grid">
+            <div class="about-overview-text">
+              <div class="about-lead-badge">THE CORE MISSION</div>
+              <h3 class="about-lead-title">Bridging the Gap Between Clinic Visits and Daily Life</h3>
+              <p class="about-lead-desc">
+                Instead of checking a person's health measurements only during occasional visits to a hospital or clinic, <strong>Jeev One</strong> monitors selected health indicators continuously during everyday activities. The wearable collects multi-parameter telemetry, validates it locally via a Raspberry Pi 5 edge gateway, and synchronizes eligible records to <strong>Firebase Cloud Firestore</strong> so authorized caregivers and doctors can review real-time and historical trends from anywhere.
+              </p>
+              <div class="about-principles-row">
+                <div class="principle-chip">
+                  <span class="chip-icon">⚡</span>
+                  <div>
+                    <strong>Continuous Observation</strong>
+                    <span>Notice health trends before they develop into acute emergencies</span>
+                  </div>
+                </div>
+                <div class="principle-chip">
+                  <span class="chip-icon">🛡️</span>
+                  <div>
+                    <strong>Edge-First Privacy & Integrity</strong>
+                    <span>Local SQLite storage, MQTT validation & deterministic risk engine</span>
+                  </div>
+                </div>
+                <div class="principle-chip">
+                  <span class="chip-icon">🌐</span>
+                  <div>
+                    <strong>Universal Remote Accessibility</strong>
+                    <span>Live cloud sync with zero router port forwarding or lock-in</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="preview-metrics-grid">
-              <div style="background: #111114; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.15rem; text-align: left;">
-                <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">HEART RATE</div>
-                <div id="preview-hr" style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">73 <span style="font-size: 0.82rem; color: var(--text-muted);">bpm</span></div>
-                <div style="font-size: 0.72rem; color: #4ade80; margin-top: 0.25rem;">Normal Resting Range</div>
+            <div class="about-highlight-stats">
+              <div class="stat-pill-card">
+                <div class="stat-num">4-in-1</div>
+                <div class="stat-label">Sensory Modalities</div>
+                <div class="stat-sub">ECG, SpO₂, IR Temp & Ambient</div>
               </div>
-              <div style="background: #111114; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.15rem; text-align: left;">
-                <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">OXYGEN SATURATION</div>
-                <div id="preview-spo2" style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">97.0 <span style="font-size: 0.82rem; color: var(--text-muted);">%</span></div>
-                <div style="font-size: 0.72rem; color: #4ade80; margin-top: 0.25rem;">Optimal Capillary SpO₂</div>
+              <div class="stat-pill-card">
+                <div class="stat-num">Pi 5</div>
+                <div class="stat-label">Edge Intelligence</div>
+                <div class="stat-sub">Mosquitto MQTT & Risk Engine</div>
               </div>
-              <div style="background: #111114; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.15rem; text-align: left;">
-                <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">CORE BODY TEMP</div>
-                <div id="preview-temp" style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">36.6 <span style="font-size: 0.82rem; color: var(--text-muted);">°C</span></div>
-                <div style="font-size: 0.72rem; color: #4ade80; margin-top: 0.25rem;">MLX90614 Infrared</div>
+              <div class="stat-pill-card">
+                <div class="stat-num">&lt; 1s</div>
+                <div class="stat-label">Firestore Sync</div>
+                <div class="stat-sub">Real-Time WebSocket & PWA</div>
               </div>
-              <div style="background: #111114; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.15rem; text-align: left;">
-                <div style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">ENVIRONMENT</div>
-                <div id="preview-env" style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">28.2° <span style="font-size: 0.82rem; color: var(--text-muted);">| 63%</span></div>
-                <div style="font-size: 0.72rem; color: #60a5fa; margin-top: 0.25rem;">Ambient Temp & Humidity</div>
+              <div class="stat-pill-card">
+                <div class="stat-num">100%</div>
+                <div class="stat-label">Offline Resilience</div>
+                <div class="stat-sub">Local SQLite Outbox Recovery</div>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- 3 Core Architectural Pillars -->
+        <div class="about-pillars-grid">
+          <div class="about-pillar-card">
+            <div class="pillar-icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="pillar-stage">PILLAR 01 / TRANSDUCERS</div>
+            <h4 class="pillar-title">Wearable Sensing Layer</h4>
+            <p class="pillar-desc">
+              Lightweight wearable node driven by an ESP32 microcontroller. Collects Lead-I analog ECG waveforms, optical pulse oximetry (SpO₂), non-contact infrared core body temperature, and room climate conditions during everyday activities.
+            </p>
+            <div class="pillar-tags">
+              <span>AD8232 ECG</span>
+              <span>MAX30102 SpO₂</span>
+              <span>MLX90614 Temp</span>
+              <span>DHT22 Ambient</span>
+            </div>
+          </div>
+
+          <div class="about-pillar-card">
+            <div class="pillar-icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+            </div>
+            <div class="pillar-stage">PILLAR 02 / EDGE INTELLIGENCE</div>
+            <h4 class="pillar-title">Edge Computing & Gateway</h4>
+            <p class="pillar-desc">
+              The Raspberry Pi 5 runs a Mosquitto MQTT broker, validates incoming sensor timestamps and numeric ranges, computes composite multi-parameter risk scores, and safely records data into local SQLite with outbox synchronization.
+            </p>
+            <div class="pillar-tags">
+              <span>Raspberry Pi 5</span>
+              <span>MQTT Broker (1883)</span>
+              <span>SQLite Database</span>
+              <span>Outbox Retry Sync</span>
+            </div>
+          </div>
+
+          <div class="about-pillar-card">
+            <div class="pillar-icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            </div>
+            <div class="pillar-stage">PILLAR 03 / REMOTE MONITORING</div>
+            <h4 class="pillar-title">Cloud Monitoring & PWA</h4>
+            <p class="pillar-desc">
+              Synchronized records in Firebase Firestore enable zero-latency live updates across authorized mobile phones and laptops through a responsive Progressive Web App without needing open router ports.
+            </p>
+            <div class="pillar-tags">
+              <span>Cloud Firestore</span>
+              <span>Realtime onSnapshot</span>
+              <span>Mobile PWA App</span>
+              <span>Caregiver Access</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-cta-bar">
+          <div class="about-cta-text">
+            <strong>Ready to explore the technical details?</strong> Follow the 5-stage pipeline or open the live monitor.
+          </div>
+          <div class="about-cta-btns">
+            <a href="#architecture" class="btn-pill-secondary">
+              <span>Explore 5-Stage Architecture</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </a>
+            <a href="/dashboard" class="btn-pill-primary">
+              <span>Launch Live Dashboard</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -227,14 +355,6 @@
               <span>• Multi-Patient Profile Switching</span>
               <span>• Offline App Shell Resilience</span>
             </div>
-          </div>
-        </div>
-
-        <!-- Current Verified Status Banner -->
-        <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 1.25rem 1.5rem; margin-top: 2rem; display: flex; align-items: center; gap: 1rem;">
-          <span style="font-size: 1.4rem;">✓</span>
-          <div style="font-size: 0.92rem; color: #d4d4d8; line-height: 1.55;">
-            <strong style="color: #ffffff;">Current Verified Architecture Status:</strong> The ESP32 is sending timestamped readings, the Raspberry Pi 5 is receiving and validating them, and new records are synchronizing seamlessly to Cloud Firestore and the web dashboard.
           </div>
         </div>
       </div>
@@ -520,7 +640,7 @@
       <div class="container">
         <div class="section-header">
           <span class="section-tag">// SECTION 5: REAL-WORLD IMPACT</span>
-          <h2 class="section-title">How Spectrona Can Help People in Daily Life</h2>
+          <h2 class="section-title">How Jeev One Can Help People in Daily Life</h2>
           <p class="section-desc">
             The value of a wearable health monitor is not simply collecting numbers. It is helping people and caregivers notice changes over time and make better-informed decisions.
           </p>
@@ -597,14 +717,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Ethical Boundary Disclaimer -->
-        <div class="disclaimer-banner">
-          <span style="font-size: 1.25rem;">⚠️</span>
-          <div>
-            <strong>Important Clinical Boundary:</strong> These are intended use cases, not proof of clinical benefit. The current prototype is best described as a health-monitoring and data-logging platform, not a certified diagnostic or emergency-response system.
-          </div>
-        </div>
       </div>
     </section>
 
@@ -613,7 +725,7 @@
       <div class="container">
         <div class="section-header">
           <span class="section-tag">// SECTION 6: TARGET DEMOGRAPHICS</span>
-          <h2 class="section-title">Who Spectrona is Built For — and Who It Is Not</h2>
+          <h2 class="section-title">Who Jeev One is Built For — and Who It Is Not</h2>
           <p class="section-desc">
             We focus on practical, high-value deployment rather than claiming the system is suited for every clinical scenario.
           </p>
@@ -661,7 +773,7 @@
               <li><span class="dot red">✕</span> Patients requiring continuous, clinically certified ICU ECG</li>
               <li><span class="dot red">✕</span> Patients depending on the device for life-critical alerts</li>
               <li><span class="dot red">✕</span> Patients requiring continuous emergency blood-pressure lines</li>
-              <li><span class="dot red">✕</span> Anyone using Spectrona as a substitute for emergency services</li>
+              <li><span class="dot red">✕</span> Anyone using Jeev One as a substitute for emergency services</li>
             </ul>
           </div>
         </div>
@@ -673,7 +785,7 @@
       <div class="container">
         <div class="section-header">
           <span class="section-tag">// SECTION 7: ADVANTAGE MATRIX</span>
-          <h2 class="section-title">What Makes Spectrona Useful vs. Basic Wearables</h2>
+          <h2 class="section-title">What Makes Jeev One Useful vs. Basic Wearables</h2>
           <p class="section-desc">
             Measurements become useful information for the patient, caregiver, or healthcare professional rather than remaining isolated numbers on a small fitness display.
           </p>
@@ -685,7 +797,7 @@
               <tr>
                 <th>Feature / Dimension</th>
                 <th>Basic Commercial Wearable</th>
-                <th class="highlight-col">Spectrona / Jeev One System</th>
+                <th class="highlight-col">Jeev One Health System</th>
               </tr>
             </thead>
             <tbody>
@@ -812,31 +924,6 @@
               <div class="roadmap-title">Granular Patient-Level Cloud Security</div>
               <div class="roadmap-desc">Refine Firestore security rules for strict per-patient access control prior to clinical pilot.</div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 9: Presentation Pitch Callout ═════════════════════════════ -->
-    <section class="section-wrapper" id="presentation-pitch" style="padding-top: 0;">
-      <div class="container">
-        <div class="presentation-callout">
-          <div class="callout-header">
-            <span class="callout-tag">// EXECUTIVE PRESENTATION SUMMARY</span>
-            <span class="table-pill green">READY FOR DEMO & HACKATHON JURIES</span>
-          </div>
-          <h3 class="callout-pitch-title">Spectrona: A Wearable IoT-Based Health Monitoring System</h3>
-          <p class="callout-pitch-text">
-            <strong>Spectrona</strong> is a wearable health-monitoring project that integrates physiological sensors, an ESP32 microcontroller, a Raspberry Pi 5 edge gateway, and Firebase cloud storage. The wearable collects selected measurements such as heart rate, SpO₂, body temperature, and environmental temperature and humidity. The ESP32 transmits timestamped readings over Wi-Fi using MQTT to the Raspberry Pi, which validates the incoming data, stores it locally, calculates monitoring risk indicators, and synchronizes eligible patient records to Firebase Firestore.
-          </p>
-          <p class="callout-pitch-text">
-            The cloud-connected dashboard makes readings and historical trends accessible to authorized caregivers and healthcare professionals from different locations. Spectrona primarily targets older adults, people who need regular health monitoring at home, and people with chronic conditions who may benefit from longitudinal measurements. It is a monitoring-support system, not a replacement for professional medical assessment or emergency care.
-          </p>
-          <div style="margin-top: 1.5rem;">
-            <a href="/dashboard" class="btn-pill-primary">
-              <span>Open Live Clinical Monitor</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
           </div>
         </div>
       </div>
@@ -996,14 +1083,14 @@
             <ul class="footer-column-links">
               <li><a href="#video">Demo Video</a></li>
               <li><a href="#gallery">Hardware Gallery</a></li>
-              <li><a href="#presentation-pitch">Pitch Summary</a></li>
+              <li><a href="#about">About Jeev One</a></li>
             </ul>
           </div>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <div>© 2026 Jeev One / Spectrona Project. Open Architecture Health Computing.</div>
+        <div>© 2026 Jeev One Project. Open Architecture Health Computing.</div>
         <div style="font-size: 0.78rem; color: var(--text-muted);">Monitoring-support system. Not an emergency medical diagnosis tool.</div>
       </div>
     </div>
