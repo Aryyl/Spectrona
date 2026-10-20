@@ -4,7 +4,7 @@
   "short_name": "Jeev One",
   "description": "Autonomous edge-computing health telemetry node for real-time vitals, ECG diagnostics, and multi-patient physiological monitoring.",
   "start_url": "/dashboard?source=pwa",
-  "scope": "/dashboard",
+  "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#09090b",

@@ -15,8 +15,25 @@ from typing import Dict, Any, Optional
 
 _log = logging.getLogger(__name__)
 
-USERS_FILE = Path(__file__).resolve().parent.parent / "data" / "users.json"
 _lock = threading.RLock()
+_in_memory_store: Optional[Dict[str, Any]] = None
+
+def _get_users_file() -> Path:
+    primary = Path(__file__).resolve().parent.parent / "data" / "users.json"
+    try:
+        primary.parent.mkdir(parents=True, exist_ok=True)
+        # Test write permission
+        test_file = primary.parent / ".perm_check"
+        test_file.touch()
+        test_file.unlink(missing_ok=True)
+        return primary
+    except (OSError, PermissionError):
+        import tempfile
+        fallback_dir = Path(tempfile.gettempdir()) / "jeev_one_data"
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        return fallback_dir / "users.json"
+
+USERS_FILE = _get_users_file()
 
 DEFAULT_PROFILES: Dict[str, Dict[str, Any]] = {
     "user_1": {
@@ -70,17 +87,23 @@ def _derive_initials(name: str) -> str:
 
 def load_user_store() -> Dict[str, Any]:
     """Load user store from disk or initialize with default Aryyaman & Hirok profiles."""
+    global _in_memory_store
     with _lock:
-        if not USERS_FILE.exists():
+        target = _get_users_file()
+        if _in_memory_store is not None:
+            return _in_memory_store
+
+        if not target.exists():
             data = {
                 "active_user_id": "user_1",
                 "users": DEFAULT_PROFILES
             }
             save_user_store(data)
+            _in_memory_store = data
             return data
 
         try:
-            with open(USERS_FILE, "r", encoding="utf-8") as f:
+            with open(target, "r", encoding="utf-8") as f:
                 content = json.load(f)
                 # Ensure user_1 and user_2 exist
                 users = content.get("users", {})
@@ -90,23 +113,29 @@ def load_user_store() -> Dict[str, Any]:
                 content["users"] = users
                 if "active_user_id" not in content or content["active_user_id"] not in users:
                     content["active_user_id"] = "user_1"
+                _in_memory_store = content
                 return content
         except Exception as e:
-            _log.warning("Failed to parse %s (%s). Reverting to defaults.", USERS_FILE, e)
-            return {"active_user_id": "user_1", "users": DEFAULT_PROFILES}
+            _log.warning("Failed to parse %s (%s). Reverting to defaults.", target, e)
+            fallback = {"active_user_id": "user_1", "users": DEFAULT_PROFILES}
+            _in_memory_store = fallback
+            return fallback
 
 
 def save_user_store(data: Dict[str, Any]) -> None:
-    """Save user store to data/users.json atomically."""
+    """Save user store to disk atomically and keep memory store synced."""
+    global _in_memory_store
     with _lock:
-        USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _in_memory_store = data
+        target = _get_users_file()
         try:
-            tmp_file = USERS_FILE.with_suffix(".tmp")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            tmp_file = target.with_suffix(".tmp")
             with open(tmp_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            tmp_file.replace(USERS_FILE)
+            tmp_file.replace(target)
         except Exception as e:
-            _log.error("Failed to save user store to %s: %s", USERS_FILE, e)
+            _log.error("Failed to save user store to %s: %s", target, e)
 
 
 def update_user_profile(user_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:

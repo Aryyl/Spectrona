@@ -92,10 +92,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -103,12 +101,18 @@ body {
   background: var(--bg);
   color: var(--text);
   width: 100%;
-  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   overflow-y: visible;
-  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 3rem;
+  padding-bottom: 3.5rem;
+}
+
+/* Ensure buttons, inputs, links respond instantly to touch without gesture delay */
+button, input, select, textarea, a, [role="button"], [data-tab] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── SVG Icons ─────────────────────────────────────────────────────────────── */
@@ -2727,12 +2731,12 @@ body.pwa-standalone #btn-install-settings-pwa {
 }
 
 body.pwa-standalone {
-  /* Allow fluid scrolling while preventing page pull-refresh loops */
-  overscroll-behavior-y: contain;
+  /* Allow natural fluid scrolling while avoiding pull-refresh conflicts */
+  overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: touch;
   /* Accommodate notch and home indicator on mobile phones */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: max(5rem, calc(76px + env(safe-area-inset-bottom)));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: max(5.5rem, calc(84px + env(safe-area-inset-bottom, 0px)));
 }
 
 /* iOS Safari PWA Install Modal */
@@ -2834,7 +2838,7 @@ body.pwa-standalone {
 /* Tablet & Smaller Desktops */
 @media (max-width: 1024px) {
   body {
-    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
   .header-nav {
     display: none !important;
@@ -2859,7 +2863,7 @@ body.pwa-standalone {
 /* Mobile Devices & Phones (Standard Mobile Breakpoint) */
 @media (max-width: 768px) {
   body {
-    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .mobile-bottom-nav {

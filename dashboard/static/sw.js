@@ -6,13 +6,16 @@
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "jeevone-dashboard-v2.6.0";
+const CACHE_NAME = "jeevone-dashboard-v2.7.0";
 const PRECACHE_ASSETS = [
+  "/",
   "/dashboard",
   "/manifest.json",
   "/static/manifest.json",
-  "/static/css/dashboard.css?v=2.5",
-  "/static/js/dashboard.js?v=2.5",
+  "/static/css/dashboard.css?v=2.7",
+  "/static/js/dashboard.js?v=2.7",
+  "/static/css/landing.css",
+  "/static/js/landing.js",
   "/static/js/icons.js",
   "/static/images/jeev_one_logo.webp",
   "/static/images/favicon.png",
@@ -29,7 +32,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v2.5.0");
+      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v2.7.0");
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn("[PWA Service Worker] Some assets failed to precache:", err);
       });
@@ -82,28 +85,30 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Navigation requests: Network-First strictly for /dashboard
+  // 3. Navigation requests: Network-First with cache fallback
   if (event.request.mode === "navigate") {
-    if (url.pathname.startsWith("/dashboard")) {
-      event.respondWith(
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const clone = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-            }
-            return networkResponse;
-          })
-          .catch(async () => {
-            const cached = await caches.match(event.request);
-            if (cached) return cached;
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request, { ignoreSearch: true });
+          if (cached) return cached;
+          if (url.pathname.startsWith("/dashboard")) {
             const dashboardFallback = await caches.match("/dashboard");
             if (dashboardFallback) return dashboardFallback;
-            return new Response("Offline - Please reconnect to Edge Node", { status: 503 });
-          })
-      );
-      return;
-    }
+          } else {
+            const rootFallback = await caches.match("/");
+            if (rootFallback) return rootFallback;
+          }
+          return new Response("Offline - Please reconnect to Edge Node", { status: 503 });
+        })
+    );
     return;
   }
 
@@ -120,7 +125,7 @@ self.addEventListener("fetch", (event) => {
             return networkResponse;
           })
           .catch(async () => {
-            const cached = await caches.match(event.request);
+            const cached = await caches.match(event.request, { ignoreSearch: true });
             if (cached) return cached;
             return new Response(JSON.stringify({ status: "offline", offline: true }), {
               headers: { "Content-Type": "application/json" }
@@ -144,7 +149,7 @@ self.addEventListener("fetch", (event) => {
           return networkResponse;
         })
         .catch(async () => {
-          const cached = await caches.match(event.request);
+          const cached = await caches.match(event.request, { ignoreSearch: true });
           if (cached) return cached;
           return new Response("", { status: 404 });
         })
@@ -154,7 +159,7 @@ self.addEventListener("fetch", (event) => {
 
   // 6. Other static assets (Images, Icons, Fonts): Cache-First
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
       return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {

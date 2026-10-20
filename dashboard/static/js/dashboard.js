@@ -1539,8 +1539,23 @@ function initUserSwitcher() {
     .then(r => r.json())
     .then(res => {
       if (res.users && res.users.user_1 && res.users.user_2) {
-        PROFILES = res.users;
-        if (res.active_user_id) _activeUserId = res.active_user_id;
+        const localCached = localStorage.getItem("jeev_one_profiles");
+        if (!localCached) {
+          PROFILES = res.users;
+        } else {
+          try {
+            const parsed = JSON.parse(localCached);
+            PROFILES = {
+              user_1: { ...res.users.user_1, ...(parsed.user_1 || {}) },
+              user_2: { ...res.users.user_2, ...(parsed.user_2 || {}) }
+            };
+          } catch(e) {
+            PROFILES = res.users;
+          }
+        }
+        if (res.active_user_id && !localStorage.getItem("jeev_one_user_id")) {
+          _activeUserId = res.active_user_id;
+        }
       }
       updateUserUI(_activeUserId);
       updateDualTelemetry();
@@ -1712,6 +1727,8 @@ function initTabs() {
 
     // Immediately restore viewport scroll position to top
     window.scrollTo({ top: 0, behavior: "instant" });
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
 
     // Resize charts and canvases when entering tabs
     if (tabId === "live") {

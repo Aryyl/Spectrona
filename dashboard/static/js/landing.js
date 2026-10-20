@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initECGWaveform();
   fetchLivePreviewData();
   initEditorialAccordion();
+  initPWA();
 });
 
 // ── Mobile Navigation Drawer Toggle ──────────────────────────────────────────
@@ -383,6 +384,22 @@ function initEditorialAccordion() {
 
   handleHash();
   window.addEventListener("hashchange", handleHash);
+}
+
+// ── Progressive Web App (PWA) Registration ──────────────────────────────────
+function initPWA() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          try { reg.update(); } catch(e) {}
+        })
+        .catch((err) => {
+          console.warn("[PWA] Service Worker registration failed:", err);
+        });
+    });
+  }
 }
 
 
