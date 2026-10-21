@@ -19,6 +19,7 @@ function injectIcons() {
   ICONS.inject($("icon-filter"), "filter");
 
   ICONS.inject($("icon-hr"), "heart");
+  ICONS.inject($("icon-bp"), "activity");
   ICONS.inject($("icon-spo2"), "lungs");
   ICONS.inject($("icon-btemp"), "thermometer");
   ICONS.inject($("icon-env"), "droplet");
@@ -199,25 +200,26 @@ function applyUpdate(data) {
   setMetricValue("val-rtemp", fmt1(latest.room_temperature), "val-rtemp");
   setMetricValue("val-hum",   fmt0(latest.humidity),         "val-hum");
 
+  const bpSysVal = (latest.bp_sys !== undefined && latest.bp_sys !== null && Number(latest.bp_sys) > 0) ? Math.round(Number(latest.bp_sys)) : "—";
+  const bpDiaVal = (latest.bp_dia !== undefined && latest.bp_dia !== null && Number(latest.bp_dia) > 0) ? Math.round(Number(latest.bp_dia)) : "—";
+  setMetricValue("val-bp-sys", bpSysVal, "val-bp-sys");
+  setMetricValue("val-bp-dia", bpDiaVal, "val-bp-dia");
+
   // ── Baseline sub-labels
   if (window._baseline) {
     const bl = window._baseline;
-    $("sub-hr").textContent    = `Baseline: ${fmt0(bl.heart_rate)} bpm`;
-    $("sub-spo2").textContent  = `Baseline: ${fmt1(bl.spo2)}%`;
-    $("sub-btemp").textContent = `Baseline: ${fmt1(bl.body_temperature)}°C`;
-  }
-
-  // ── Blood Pressure Sub-label
-  const bpSub = $("sub-bp-display");
-  if (bpSub) {
-    if (latest.bp_sys && latest.bp_dia && latest.bp_sys > 0) {
-      bpSub.textContent = `BP: ${fmt0(latest.bp_sys)}/${fmt0(latest.bp_dia)} mmHg`;
-      bpSub.style.background = "var(--accent-soft)";
-      bpSub.style.color = "var(--accent)";
-    } else {
-      bpSub.textContent = "Room Conditions";
+    if ($("sub-hr")) $("sub-hr").textContent    = `Baseline: ${fmt0(bl.heart_rate)} bpm`;
+    if ($("sub-spo2")) $("sub-spo2").textContent  = `Baseline: ${fmt1(bl.spo2)}%`;
+    if ($("sub-btemp")) $("sub-btemp").textContent = `Baseline: ${fmt1(bl.body_temperature)}°C`;
+    if ($("sub-bp")) {
+      const bSys = bl.bp_sys ? fmt0(bl.bp_sys) : "118";
+      const bDia = bl.bp_dia ? fmt0(bl.bp_dia) : "76";
+      $("sub-bp").textContent = `Baseline: ${bSys}/${bDia} mmHg`;
     }
   }
+
+  const envSub = $("sub-env");
+  if (envSub) envSub.textContent = "Ambient Conditions";
 
   // ── Overall Status (Gauge)
   const overall = risk.overall_status || "NORMAL";
@@ -546,9 +548,35 @@ function handleIncomingFirebaseReading(doc, candidateList) {
   // If new reading arrived in real-time, pulse the cards
   if (isNew && wasAlreadyInitialized) {
     flashValue($("val-hr"));
+    flashValue($("val-bp-sys"));
+    flashValue($("val-bp-dia"));
     flashValue($("val-spo2"));
     flashValue($("val-btemp"));
+    flashValue($("val-rtemp"));
+    flashValue($("val-hum"));
     showToast("normal", `Live Packet Received (Record #${recId})`);
+  }
+
+  // Live Pill & Card Status for Blood Pressure
+  const bpTag = $("tag-bp");
+  const bpCard = $("card-bp");
+  if (sys > 0 && dia > 0) {
+    if (sys >= 140 || dia >= 90) {
+      if (bpTag) { bpTag.className = "vital-status-pill critical"; bpTag.textContent = "STAGE 2"; }
+      if (bpCard) { bpCard.classList.remove("card-alarm-warning"); bpCard.classList.add("card-alarm-critical"); }
+    } else if (sys >= 130 || dia >= 85) {
+      if (bpTag) { bpTag.className = "vital-status-pill warning"; bpTag.textContent = "ELEVATED"; }
+      if (bpCard) { bpCard.classList.remove("card-alarm-critical"); bpCard.classList.add("card-alarm-warning"); }
+    } else if (sys < 90 || dia < 60) {
+      if (bpTag) { bpTag.className = "vital-status-pill warning"; bpTag.textContent = "LOW BP"; }
+      if (bpCard) { bpCard.classList.remove("card-alarm-critical"); bpCard.classList.add("card-alarm-warning"); }
+    } else {
+      if (bpTag) { bpTag.className = "vital-status-pill normal"; bpTag.textContent = "NORMAL"; }
+      if (bpCard) { bpCard.classList.remove("card-alarm-critical", "card-alarm-warning"); }
+    }
+  } else {
+    if (bpTag) { bpTag.className = "vital-status-pill normal"; bpTag.textContent = "STANDBY"; }
+    if (bpCard) { bpCard.classList.remove("card-alarm-critical", "card-alarm-warning"); }
   }
 
   // Populate Readings Table, Trend Chart, and Dynamic Baseline purely from real Firestore docs
@@ -564,25 +592,33 @@ function updateDynamicBaselineFromFirestore(readings) {
   const hrs = readings.map(r => Number(r.heart_rate)).filter(v => v > 30 && v < 220);
   const spo2s = readings.map(r => Number(r.spo2)).filter(v => v > 50 && v <= 100);
   const temps = readings.map(r => Number(r.body_temperature)).filter(v => v > 30 && v < 45);
+  const syss = readings.map(r => Number(r.bp_sys)).filter(v => v > 40 && v < 260);
+  const dias = readings.map(r => Number(r.bp_dia)).filter(v => v > 30 && v < 160);
 
   const avg = arr => arr.length ? arr.reduce((a,b)=>a+b, 0) / arr.length : null;
   const avgHr = avg(hrs);
   const avgSpo2 = avg(spo2s);
   const avgTemp = avg(temps);
+  const avgSys = avg(syss);
+  const avgDia = avg(dias);
 
   window._baseline = {
     heart_rate: avgHr || 72,
     spo2: avgSpo2 || 98.0,
-    body_temperature: avgTemp || 36.8
+    body_temperature: avgTemp || 36.8,
+    bp_sys: avgSys || 118,
+    bp_dia: avgDia || 76
   };
 
   const subHr = $("sub-hr");
   const subSpo2 = $("sub-spo2");
   const subBtemp = $("sub-btemp");
+  const subBp = $("sub-bp");
 
   if (subHr && avgHr) subHr.textContent = `Baseline: ${fmt0(avgHr)} bpm`;
   if (subSpo2 && avgSpo2) subSpo2.textContent = `Baseline: ${fmt1(avgSpo2)}%`;
   if (subBtemp && avgTemp) subBtemp.textContent = `Baseline: ${fmt1(avgTemp)}°C`;
+  if (subBp && avgSys && avgDia) subBp.textContent = `Baseline: ${fmt0(avgSys)}/${fmt0(avgDia)} mmHg`;
 }
 
 function updateTrendChartFromHistory(readings) {
@@ -628,6 +664,9 @@ function populateRecentReadingsFromFirebase(readingsList) {
     const hr = Number(rec.heart_rate) || 0;
     const spo2 = Number(rec.spo2) || 0;
     const btemp = Number(rec.body_temperature) || 0;
+    const sys = Number(rec.bp_sys) || 0;
+    const dia = Number(rec.bp_dia) || 0;
+    const bpStr = (sys > 0 && dia > 0) ? `${fmt0(sys)}/${fmt0(dia)} mmHg` : "—";
     const overall = (rec.risk && rec.risk.overall_status) ? rec.risk.overall_status : "NORMAL";
 
     let tsStr = "—";
@@ -650,6 +689,7 @@ function populateRecentReadingsFromFirebase(readingsList) {
     row.innerHTML = `
       <td style="font-family: var(--font-mono); color: var(--text-muted)">${tsStr}</td>
       <td style="font-weight: 500">${fmt0(hr)} bpm</td>
+      <td style="font-weight: 500">${bpStr}</td>
       <td>${fmt1(spo2)}%</td>
       <td>${fmt1(btemp)}°C</td>
       <td><span class="status-badge ${statusClass}">${overall}</span></td>
@@ -730,10 +770,14 @@ function fetchHistory(deviceId) {
         if (!rec.timestamp) continue;
         const parsed = new Date(rec.timestamp);
         const ts = isNaN(parsed.getTime()) ? rec.timestamp : parsed.toLocaleTimeString();
+        const sys = Number(rec.bp_sys) || 0;
+        const dia = Number(rec.bp_dia) || 0;
+        const bpStr = (sys > 0 && dia > 0) ? `${fmt0(sys)}/${fmt0(dia)} mmHg` : "—";
         const row = document.createElement("tr");
         row.innerHTML = `
           <td style="font-family: var(--font-mono); color: var(--text-muted)">${ts}</td>
           <td style="font-weight: 500">${fmt0(rec.heart_rate)} bpm</td>
+          <td style="font-weight: 500">${bpStr}</td>
           <td>${fmt1(rec.spo2)}%</td>
           <td>${fmt1(rec.body_temperature)}°C</td>
           <td><span class="status-badge normal">NORMAL</span></td>
@@ -912,7 +956,7 @@ function updateCardAlarms(activeAlerts) {
     heart_rate: $("card-hr"),
     spo2: $("card-spo2"),
     body_temperature: $("card-btemp"),
-    blood_pressure: $("card-env"),
+    blood_pressure: $("card-bp"),
     heat_index: $("card-env")
   };
   const tags = {
@@ -920,7 +964,7 @@ function updateCardAlarms(activeAlerts) {
     spo2: $("tag-spo2"),
     body_temperature: $("tag-btemp"),
     blood_pressure: $("tag-bp"),
-    heat_index: $("tag-bp")
+    heat_index: $("tag-env")
   };
 
   // Reset all cards and tags to default
@@ -931,6 +975,7 @@ function updateCardAlarms(activeAlerts) {
   if (tags.spo2) { tags.spo2.className = "vital-status-pill normal"; tags.spo2.textContent = "NORMAL"; }
   if (tags.body_temperature) { tags.body_temperature.className = "vital-status-pill normal"; tags.body_temperature.textContent = "NORMAL"; }
   if (tags.blood_pressure) { tags.blood_pressure.className = "vital-status-pill normal"; tags.blood_pressure.textContent = "NORMAL"; }
+  if (tags.heat_index) { tags.heat_index.className = "vital-status-pill normal"; tags.heat_index.textContent = "NORMAL"; }
 
   // Apply active alarm glows
   if (Array.isArray(activeAlerts)) {

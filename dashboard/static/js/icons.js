@@ -50,6 +50,11 @@ const ICONS = {
     <polyline points="2 12 5 12 7 4 9 20 11 12 13 12 15 8 17 16 19 12 22 12"/>
   </svg>`,
 
+  activity: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+  </svg>`,
+
   chip: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
     <rect x="9" y="9" width="6" height="6" rx="1"/>

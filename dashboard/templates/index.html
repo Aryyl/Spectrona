@@ -440,73 +440,93 @@
         </div>
       </section>
 
-      <!-- ── Vital Metrics (Top Row) ─────────────────────────────────────── -->
-      <!-- Heart Rate -->
-      <section class="card col-3 metric-card" id="card-hr">
-        <div class="metric-header">
-          <div class="metric-icon-wrap" id="icon-hr"></div>
-          <div class="metric-label">Heart Rate</div>
-          <span class="vital-status-pill normal" id="tag-hr">NORMAL</span>
-        </div>
-        <div>
-          <div class="metric-value-row">
-            <span class="metric-value" id="val-hr">—</span>
-            <span class="metric-unit">bpm</span>
+      <!-- ── Vital Metrics (Top Row: 5 Cards) ────────────────────────── -->
+      <div class="vitals-metric-grid col-12">
+        <!-- Heart Rate -->
+        <section class="card metric-card" id="card-hr">
+          <div class="metric-header">
+            <div class="metric-icon-wrap" id="icon-hr"></div>
+            <div class="metric-label">Heart Rate</div>
+            <span class="vital-status-pill normal" id="tag-hr">NORMAL</span>
           </div>
-          <div class="metric-sub" id="sub-hr">Baseline —</div>
-        </div>
-      </section>
+          <div>
+            <div class="metric-value-row">
+              <span class="metric-value" id="val-hr">—</span>
+              <span class="metric-unit">bpm</span>
+            </div>
+            <div class="metric-sub" id="sub-hr">Baseline —</div>
+          </div>
+        </section>
 
-      <!-- SpO2 -->
-      <section class="card col-3 metric-card" id="card-spo2">
-        <div class="metric-header">
-          <div class="metric-icon-wrap" id="icon-spo2"></div>
-          <div class="metric-label">SpO₂</div>
-          <span class="vital-status-pill normal" id="tag-spo2">NORMAL</span>
-        </div>
-        <div>
-          <div class="metric-value-row">
-            <span class="metric-value" id="val-spo2">—</span>
-            <span class="metric-unit">%</span>
+        <!-- Blood Pressure (Systolic / Diastolic) -->
+        <section class="card metric-card" id="card-bp">
+          <div class="metric-header">
+            <div class="metric-icon-wrap" id="icon-bp"></div>
+            <div class="metric-label">Blood Pressure</div>
+            <span class="vital-status-pill normal" id="tag-bp">NORMAL</span>
           </div>
-          <div class="metric-sub" id="sub-spo2">Baseline —</div>
-        </div>
-      </section>
+          <div>
+            <div class="metric-value-row">
+              <span class="metric-value metric-value-bp" id="val-bp-sys">—</span>
+              <span class="metric-slash">/</span>
+              <span class="metric-value metric-value-bp" id="val-bp-dia">—</span>
+              <span class="metric-unit">mmHg</span>
+            </div>
+            <div class="metric-sub" id="sub-bp">Baseline: 118/76 mmHg</div>
+          </div>
+        </section>
 
-      <!-- Body Temp -->
-      <section class="card col-3 metric-card" id="card-btemp">
-        <div class="metric-header">
-          <div class="metric-icon-wrap" id="icon-btemp"></div>
-          <div class="metric-label">Body Temp</div>
-          <span class="vital-status-pill normal" id="tag-btemp">NORMAL</span>
-        </div>
-        <div>
-          <div class="metric-value-row">
-            <span class="metric-value" id="val-btemp">—</span>
-            <span class="metric-unit">°C</span>
+        <!-- SpO2 -->
+        <section class="card metric-card" id="card-spo2">
+          <div class="metric-header">
+            <div class="metric-icon-wrap" id="icon-spo2"></div>
+            <div class="metric-label">SpO₂</div>
+            <span class="vital-status-pill normal" id="tag-spo2">NORMAL</span>
           </div>
-          <div class="metric-sub" id="sub-btemp">Baseline —</div>
-        </div>
-      </section>
+          <div>
+            <div class="metric-value-row">
+              <span class="metric-value" id="val-spo2">—</span>
+              <span class="metric-unit">%</span>
+            </div>
+            <div class="metric-sub" id="sub-spo2">Baseline —</div>
+          </div>
+        </section>
 
-      <!-- Environment & Blood Pressure -->
-      <section class="card col-3 metric-card" id="card-env">
-        <div class="metric-header">
-          <div class="metric-icon-wrap" id="icon-env"></div>
-          <div class="metric-label">Environment</div>
-          <span class="vital-status-pill normal" id="tag-bp">NORMAL</span>
-        </div>
-        <div>
-          <div class="metric-value-row">
-            <span class="metric-value" id="val-rtemp">—</span>
-            <span class="metric-unit">°C</span>
-            <span style="color:var(--text-muted); margin:0 4px">|</span>
-            <span class="metric-value" style="font-size: 1.5rem;" id="val-hum">—</span>
-            <span class="metric-unit">%</span>
+        <!-- Body Temp -->
+        <section class="card metric-card" id="card-btemp">
+          <div class="metric-header">
+            <div class="metric-icon-wrap" id="icon-btemp"></div>
+            <div class="metric-label">Body Temp</div>
+            <span class="vital-status-pill normal" id="tag-btemp">NORMAL</span>
           </div>
-          <div class="metric-sub" id="sub-bp-display">Room Conditions</div>
-        </div>
-      </section>
+          <div>
+            <div class="metric-value-row">
+              <span class="metric-value" id="val-btemp">—</span>
+              <span class="metric-unit">°C</span>
+            </div>
+            <div class="metric-sub" id="sub-btemp">Baseline —</div>
+          </div>
+        </section>
+
+        <!-- Environment -->
+        <section class="card metric-card" id="card-env">
+          <div class="metric-header">
+            <div class="metric-icon-wrap" id="icon-env"></div>
+            <div class="metric-label">Environment</div>
+            <span class="vital-status-pill normal" id="tag-env">NORMAL</span>
+          </div>
+          <div>
+            <div class="metric-value-row">
+              <span class="metric-value" id="val-rtemp">—</span>
+              <span class="metric-unit">°C</span>
+              <span style="color:var(--text-muted); margin:0 4px">|</span>
+              <span class="metric-value" style="font-size: 1.5rem;" id="val-hum">—</span>
+              <span class="metric-unit">%</span>
+            </div>
+            <div class="metric-sub" id="sub-env">Ambient Conditions</div>
+          </div>
+        </section>
+      </div>
 
       <!-- ── Middle Row ─────────────────────────────────────────────────── -->
       <!-- Risk Gauge -->
@@ -822,6 +842,7 @@
               <tr>
                 <th>Timestamp</th>
                 <th>Heart Rate</th>
+                <th>Blood Pressure</th>
                 <th>SpO₂</th>
                 <th>Body Temp</th>
                 <th>Status</th>
@@ -1300,6 +1321,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="/static/js/icons.js"></script>
-  <script src="/static/js/dashboard.js?v=2.7"></script>
+  <script src="/static/js/dashboard.js?v=2.8"></script>
 </body>
 </html>

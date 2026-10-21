@@ -90,6 +90,11 @@ def rand_in(lo: float, hi: float) -> float:
 
 def build_payload(scenario_key: str) -> dict:
     s = SCENARIOS[scenario_key]
+    bp_sys = int(rand_in(112, 124))
+    bp_dia = int(rand_in(72, 82))
+    if scenario_key == "combined_risk":
+        bp_sys = int(rand_in(142, 158))
+        bp_dia = int(rand_in(90, 100))
     return {
         "device_id": DEVICE_ID,
         "timestamp": int(time.time()),
@@ -98,6 +103,7 @@ def build_payload(scenario_key: str) -> dict:
         "body_temperature":  rand_in(*s["body_temperature"]),
         "room_temperature":  rand_in(*s["room_temperature"]),
         "humidity":          rand_in(*s["humidity"]),
+        "blood_pressure":    {"sys": bp_sys, "dia": bp_dia},
     }
 
 
