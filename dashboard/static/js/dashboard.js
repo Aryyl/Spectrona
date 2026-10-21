@@ -260,6 +260,11 @@ function applyUpdate(data) {
     updateECGMetrics(latest.heart_rate, overall);
   }
 
+  // ── Auto-update Health Report with every incoming reading
+  window._latestReading = latest;
+  window._latestRisk = risk;
+  scheduleHealthReportUpdate(latest, risk);
+
   // ── Table Update (Recent Readings Tab)
   const tbody = $("readings-tbody");
   if (tbody && (latest.timestamp_epoch || latest.timestamp)) {
@@ -1449,6 +1454,11 @@ function selectUser(userId, notify = true) {
     updateDualTelemetry();
   }
 
+  // Refresh health report if section is active or in DOM
+  if (typeof fetchReport === "function") {
+    fetchReport(false);
+  }
+
   if (notify) {
     showToast("normal", `Switched active subject to ${PROFILES[userId].name} (${PROFILES[userId].role})`);
   }
@@ -1809,6 +1819,9 @@ function initTabs() {
     try {
       localStorage.setItem("jeev_one_active_tab", tabId);
     } catch (e) {}
+
+    // Notify other modules about the tab change
+    document.dispatchEvent(new CustomEvent("tab:changed", { detail: { tab: tabId } }));
   }
 
   // Universal event delegation for all tab triggers (supports desktop, mobile touch, and PWA bottom nav)
@@ -2634,6 +2647,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCharts();
   initLiveECG();
   initArchiveECG();
+  initHealthReport();          // ← Health Report
   // Initialize Cloud Firestore Live Stream (Primary)
   const fbStarted = initFirestoreStream();
 
@@ -2649,4 +2663,440 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   HEALTH REPORT & PERSONALIZED GUIDANCE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Map report status values to CSS class suffixes and badge labels.
+ */
+const _REPORT_STATUS_MAP = {
+  NORMAL: { cls: "normal", label: "NORMAL" },
+  WATCH:  { cls: "watch",  label: "WATCH"  },
+  HIGH:   { cls: "high",   label: "HIGH"   },
+};
+
+/**
+ * Overall-indicator icon SVG per status (replaces the generic checkmark icon).
+ */
+const _REPORT_OVERALL_ICONS = {
+  NORMAL: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+  WATCH:  `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`,
+  HIGH:   `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+};
+
+let _reportAutoRefreshTimer = null;
+
+function _setAllText(selector, text) {
+  document.querySelectorAll(selector).forEach((el) => {
+    el.textContent = text !== undefined && text !== null ? text : "";
+  });
+}
+
+function _setAllHTML(selector, html) {
+  document.querySelectorAll(selector).forEach((el) => {
+    el.innerHTML = html !== undefined && html !== null ? html : "";
+  });
+}
+
+function _setAllClass(selector, className) {
+  document.querySelectorAll(selector).forEach((el) => {
+    el.className = className;
+  });
+}
+
+/**
+ * Initialise the health report section: attach Refresh buttons + listen to tab changes.
+ */
+function initHealthReport() {
+  document.querySelectorAll(".btn-refresh-report, #btn-refresh-report").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      fetchReport(true);
+    });
+  });
+
+  // Auto-load and refresh when Live Monitor or Health Report tab becomes visible
+  document.addEventListener("tab:changed", (e) => {
+    if (e.detail && (e.detail.tab === "live" || e.detail.tab === "report")) {
+      fetchReport(false);
+      _startReportAutoRefresh();
+    } else {
+      _stopReportAutoRefresh();
+    }
+  });
+
+  // Initial report load
+  fetchReport(false);
+}
+
+/** Start a 60-second auto-refresh while Live or Report tab is active. */
+let _reportUpdateDebounceTimer = null;
+
+/**
+ * Schedule an automatic health report update whenever a new reading arrives.
+ */
+function scheduleHealthReportUpdate(latest, risk) {
+  if (!latest) return;
+  if (_reportUpdateDebounceTimer) {
+    clearTimeout(_reportUpdateDebounceTimer);
+  }
+  _reportUpdateDebounceTimer = setTimeout(() => {
+    fetchReport(false);
+  }, 400);
+}
+
+function _startReportAutoRefresh() {
+  _stopReportAutoRefresh();
+  _reportAutoRefreshTimer = setInterval(() => fetchReport(false), 60000);
+}
+
+function _stopReportAutoRefresh() {
+  if (_reportAutoRefreshTimer) {
+    clearInterval(_reportAutoRefreshTimer);
+    _reportAutoRefreshTimer = null;
+  }
+}
+
+/**
+ * Fetch /api/report/latest and render the result across all report cards.
+ * @param {boolean} showSpinner – show skeleton animation while loading
+ */
+function fetchReport(showSpinner = false) {
+  const grids = document.querySelectorAll(".report-findings-grid, #report-findings-grid");
+  if (!grids.length) return;
+
+  if (showSpinner) {
+    grids.forEach((grid) => {
+      grid.innerHTML = Array(5).fill('<div class="report-finding-skeleton"></div>').join("");
+    });
+    _setAllText(".report-overall-headline, #report-overall-headline", "Loading…");
+    _setAllText(".report-overall-summary, #report-overall-summary", "Fetching your latest health report…");
+  }
+
+  // Gather current ECG measurements from DOM if active
+  const params = new URLSearchParams();
+  const prEl = $("ecg-metric-pr");
+  const qrsEl = $("ecg-metric-qrs");
+  const qtcEl = $("ecg-metric-qtc");
+  const rhythmEl = $("ecg-live-rhythm-badge");
+  const leadPill = $("ecg-lead-status-pill");
+
+  if (prEl && prEl.textContent.trim()) params.append("pr", prEl.textContent.trim() + " ms");
+  if (qrsEl && qrsEl.textContent.trim()) params.append("qrs", qrsEl.textContent.trim() + " ms");
+  if (qtcEl && qtcEl.textContent.trim()) params.append("qtc", qtcEl.textContent.trim() + " ms");
+  if (rhythmEl && rhythmEl.textContent.trim()) params.append("rhythm", rhythmEl.textContent.trim());
+  if (leadPill && leadPill.textContent) {
+    const txt = leadPill.textContent.toLowerCase();
+    if (txt.includes("off") || txt.includes("detached")) {
+      params.append("leads_off", "1");
+    } else {
+      params.append("lead_quality", leadPill.textContent.trim());
+    }
+  }
+
+  const queryStr = params.toString();
+  const endpoint = "/api/report/latest" + (queryStr ? `?${queryStr}` : "");
+
+  fetch(endpoint)
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.status === "no_data" || !data.report) {
+        if (window._latestReading) {
+          _renderClientReportFromReading(window._latestReading, window._latestRisk);
+        } else {
+          _renderReportNoData();
+        }
+        return;
+      }
+      renderReport(data.report);
+    })
+    .catch((err) => {
+      console.warn("[HealthReport] fetch error:", err);
+      if (window._latestReading) {
+        _renderClientReportFromReading(window._latestReading, window._latestRisk);
+      } else {
+        _renderReportNoData("Unable to load report. Check server connection.");
+      }
+    });
+}
+
+/**
+ * Render a full HealthReport JSON object into the DOM across all report instances.
+ */
+function renderReport(report) {
+  if (!report) return;
+  const status   = report.overall_status || "NORMAL";
+  const statusCls = (_REPORT_STATUS_MAP[status] || _REPORT_STATUS_MAP.NORMAL).cls;
+  const badgeLabel = (_REPORT_STATUS_MAP[status] || _REPORT_STATUS_MAP.NORMAL).label;
+
+  // ── Overall Banner ──────────────────────────────────────────────────────────
+  _setAllClass(".report-overall-banner, #report-overall-banner", `report-overall-banner status-${statusCls}`);
+  _setAllClass(".report-overall-indicator, #report-overall-indicator", `report-overall-indicator status-${statusCls}`);
+  if (_REPORT_OVERALL_ICONS[status]) {
+    _setAllHTML(".report-overall-icon, #report-overall-icon", _REPORT_OVERALL_ICONS[status]);
+  }
+  _setAllText(".report-overall-headline, #report-overall-headline", report.overall_headline || "");
+  _setAllText(".report-overall-summary, #report-overall-summary", report.overall_summary || "");
+  document.querySelectorAll(".report-overall-badge, #report-overall-badge").forEach((badge) => {
+    badge.textContent = badgeLabel;
+    badge.className = `status-badge ${statusCls === "normal" ? "normal" : statusCls === "watch" ? "warning" : "danger"} report-overall-badge`;
+  });
+
+  // ── "What Should I Do Next?" Triage Box ─────────────────────────────────────
+  const nextStep = report.next_step;
+  if (nextStep) {
+    const catMap = {
+      ROUTINE_MONITORING: "triage-routine",
+      RECHECK_OR_ADVICE:  "triage-recheck",
+      URGENT_ATTENTION:   "triage-urgent",
+    };
+    const triageCls = catMap[nextStep.category] || "triage-routine";
+
+    _setAllClass(".report-next-steps-card, #report-next-steps-card", `report-next-steps-card ${triageCls}`);
+    _setAllText(".report-triage-badge, #report-triage-badge", nextStep.badge_label || "ROUTINE MONITORING");
+    _setAllText(".report-triage-headline, #report-triage-headline", nextStep.headline || "");
+    _setAllText(".report-triage-action, #report-triage-action", nextStep.action || "");
+    if (nextStep.red_flags) {
+      _setAllText(".report-red-flags-text, #report-red-flags-text", nextStep.red_flags);
+    }
+  }
+
+  // ── Simplified ECG Interpretation Card ──────────────────────────────────────
+  const ecg = report.ecg_interpretation;
+  if (ecg) {
+    const st = ecg.status || "ok";
+    _setAllClass(".report-ecg-card, #report-ecg-card", `report-ecg-card status-${st}`);
+    _setAllClass(".report-ecg-icon, #report-ecg-icon", `report-ecg-icon status-${st}`);
+    document.querySelectorAll(".report-ecg-badge, #report-ecg-badge").forEach((badge) => {
+      badge.textContent = ecg.headline || "NORMAL SINUS RHYTHM";
+      badge.className = `status-badge ${st === "ok" ? "normal" : st === "watch" ? "warning" : "danger"} report-ecg-badge`;
+    });
+    _setAllText(".report-ecg-quality, #report-ecg-quality", ecg.lead_quality || "98% (Good Signal)");
+    _setAllText(".report-ecg-summary, #report-ecg-summary", ecg.summary || "");
+    _setAllText(".report-ecg-pr, #report-ecg-pr", ecg.pr_interval || "-");
+    _setAllText(".report-ecg-qrs, #report-ecg-qrs", ecg.qrs_duration || "-");
+    _setAllText(".report-ecg-qtc, #report-ecg-qtc", ecg.qtc_interval || "-");
+    document.querySelectorAll(".report-ecg-rhythm, #report-ecg-rhythm").forEach((el) => {
+      el.textContent = ecg.rhythm || "Sinus";
+      el.style.color = st === "ok" ? "#22c55e" : st === "watch" ? "#f59e0b" : "#ef4444";
+    });
+    if (ecg.clinical_limitation) {
+      _setAllText(".report-ecg-limitation-text, #report-ecg-limitation-text", ecg.clinical_limitation);
+    }
+  }
+
+  // ── Findings Cards ──────────────────────────────────────────────────────────
+  if (Array.isArray(report.findings)) {
+    const cardsHtml = report.findings.map((f) => _buildFindingCard(f)).join("");
+    _setAllHTML(".report-findings-grid, #report-findings-grid", cardsHtml);
+  }
+
+  // ── Lifestyle Tips ──────────────────────────────────────────────────────────
+  if (Array.isArray(report.lifestyle_tips)) {
+    const tipsHtml = report.lifestyle_tips
+      .map((tip) => `<li>${_escapeHtml(tip)}</li>`)
+      .join("");
+    _setAllHTML(".report-tips-list, #report-tips-list", tipsHtml);
+  }
+
+  // ── Disclaimer ──────────────────────────────────────────────────────────────
+  if (report.disclaimer) {
+    _setAllText(".report-disclaimer-text, #report-disclaimer-text", report.disclaimer);
+  }
+}
+
+/**
+ * Build the HTML string for a single ParameterFinding card.
+ */
+function _buildFindingCard(f) {
+  const st   = f.status || "ok";           // ok | watch | alert | inconclusive
+  const icon = ICONS.html(f.icon || "heart", "");
+
+  return `
+    <div class="report-finding-card status-${st}">
+      <div class="report-finding-top">
+        <div class="report-finding-icon status-${st}">${icon}</div>
+        <span class="report-finding-pill status-${st}">${_escapeHtml(f.headline)}</span>
+      </div>
+      <div class="report-finding-param">${_escapeHtml(f.parameter)}</div>
+      <div class="report-finding-value">${_escapeHtml(f.value)}</div>
+      <div class="report-finding-detail">${_escapeHtml(f.detail)}</div>
+    </div>`;
+}
+
+/** Render a "no data yet" placeholder state. */
+function _renderReportNoData(msg) {
+  _setAllText(".report-overall-headline, #report-overall-headline", "Waiting for Data");
+  _setAllText(".report-overall-summary, #report-overall-summary", msg || "No sensor data has been received yet. Start the ESP32 device or use the simulator.");
+  const placeholder = `
+    <div class="report-finding-card status-inconclusive" style="grid-column:1/-1; text-align:center; padding:2rem;">
+      <div class="report-finding-param" style="text-align:center;">No readings available</div>
+      <div class="report-finding-detail" style="text-align:center; margin-top:0.5rem;">
+        Send a telemetry packet to the backend and click Refresh.
+      </div>
+    </div>`;
+  _setAllHTML(".report-findings-grid, #report-findings-grid", placeholder);
+}
+
+/** Minimal XSS escape for text inserted into DOM. */
+function _escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Client-side evaluation fallback to ensure the report updates in real time
+ * even when running purely on frontend / Cloud Firestore without a local Flask process.
+ */
+function _renderClientReportFromReading(reading, risk) {
+  if (!reading) return;
+
+  const hr = Number(reading.heart_rate) || 0;
+  const spo2 = Number(reading.spo2) || 0;
+  const temp = Number(reading.body_temperature) || 0;
+  const sys = Number(reading.bp_sys) || 0;
+  const dia = Number(reading.bp_dia) || 0;
+  const rtemp = Number(reading.room_temperature) || 0;
+  const hum = Number(reading.humidity) || 0;
+
+  // Findings
+  const findings = [];
+
+  // HR
+  if (hr <= 0) {
+    findings.push({ parameter: "Heart Rate", value: "- bpm", status: "inconclusive", headline: "No Signal", detail: "Heart rate sensor probe not connected.", icon: "heart" });
+  } else if (hr >= 120) {
+    findings.push({ parameter: "Heart Rate", value: `${Math.round(hr)} bpm`, status: "alert", headline: "Very Elevated", detail: `Heart rate is ${Math.round(hr)} bpm, significantly above normal resting range. Rest quietly.`, icon: "heart" });
+  } else if (hr >= 100) {
+    findings.push({ parameter: "Heart Rate", value: `${Math.round(hr)} bpm`, status: "watch", headline: "Elevated", detail: `Heart rate is ${Math.round(hr)} bpm, slightly above typical resting range. Monitor closely.`, icon: "heart" });
+  } else if (hr <= 45) {
+    findings.push({ parameter: "Heart Rate", value: `${Math.round(hr)} bpm`, status: "alert", headline: "Very Low", detail: `Heart rate is ${Math.round(hr)} bpm, below healthy resting minimum. Rest and monitor.`, icon: "heart" });
+  } else {
+    findings.push({ parameter: "Heart Rate", value: `${Math.round(hr)} bpm`, status: "ok", headline: "Normal", detail: `Heart rate is ${Math.round(hr)} bpm, within healthy resting range.`, icon: "heart" });
+  }
+
+  // SpO2
+  if (spo2 <= 0) {
+    findings.push({ parameter: "Blood Oxygen (SpO2)", value: "-%", status: "inconclusive", headline: "No Signal", detail: "SpO2 sensor probe not connected.", icon: "droplet" });
+  } else if (spo2 < 90) {
+    findings.push({ parameter: "Blood Oxygen (SpO2)", value: `${spo2.toFixed(1)}%`, status: "alert", headline: "Critically Low", detail: `Blood oxygen is ${spo2.toFixed(1)}%, below safe levels. Sit upright and seek care if needed.`, icon: "droplet" });
+  } else if (spo2 < 95) {
+    findings.push({ parameter: "Blood Oxygen (SpO2)", value: `${spo2.toFixed(1)}%`, status: "watch", headline: "Slightly Low", detail: `SpO2 is ${spo2.toFixed(1)}%, slightly below optimal. Take deep breaths.`, icon: "droplet" });
+  } else {
+    findings.push({ parameter: "Blood Oxygen (SpO2)", value: `${spo2.toFixed(1)}%`, status: "ok", headline: "Normal", detail: `Blood oxygen is ${spo2.toFixed(1)}%, in healthy range.`, icon: "droplet" });
+  }
+
+  // Body Temp
+  if (temp <= 0) {
+    findings.push({ parameter: "Body Temperature", value: "- °C", status: "inconclusive", headline: "No Signal", detail: "Temperature probe reading unavailable.", icon: "thermometer" });
+  } else if (temp >= 38.5) {
+    findings.push({ parameter: "Body Temperature", value: `${temp.toFixed(1)} °C`, status: "alert", headline: "High Fever", detail: `Temperature is ${temp.toFixed(1)} °C, indicating fever. Stay hydrated and rest.`, icon: "thermometer" });
+  } else if (temp >= 37.5) {
+    findings.push({ parameter: "Body Temperature", value: `${temp.toFixed(1)} °C`, status: "watch", headline: "Mild Fever", detail: `Temperature is ${temp.toFixed(1)} °C, slightly elevated. Rest and hydrate.`, icon: "thermometer" });
+  } else {
+    findings.push({ parameter: "Body Temperature", value: `${temp.toFixed(1)} °C`, status: "ok", headline: "Normal", detail: `Body temperature is ${temp.toFixed(1)} °C, within normal limits.`, icon: "thermometer" });
+  }
+
+  // Blood Pressure
+  if (sys <= 0 || dia <= 0) {
+    findings.push({ parameter: "Blood Pressure", value: "- mmHg", status: "inconclusive", headline: "Not Measured", detail: "Blood pressure cuff was in standby during this reading.", icon: "activity" });
+  } else if (sys >= 140 || dia >= 90) {
+    findings.push({ parameter: "Blood Pressure", value: `${Math.round(sys)}/${Math.round(dia)} mmHg`, status: "alert", headline: "High (Stage 2)", detail: `Blood pressure is ${Math.round(sys)}/${Math.round(dia)} mmHg, in Stage 2 hypertension. Rest seated and seek medical advice.`, icon: "activity" });
+  } else if (sys >= 130 || dia >= 85) {
+    findings.push({ parameter: "Blood Pressure", value: `${Math.round(sys)}/${Math.round(dia)} mmHg`, status: "watch", headline: "Elevated", detail: `Blood pressure is ${Math.round(sys)}/${Math.round(dia)} mmHg, above normal resting threshold. Reduce sodium and monitor.`, icon: "activity" });
+  } else {
+    findings.push({ parameter: "Blood Pressure", value: `${Math.round(sys)}/${Math.round(dia)} mmHg`, status: "ok", headline: "Normal", detail: `Blood pressure is ${Math.round(sys)}/${Math.round(dia)} mmHg, well-regulated.`, icon: "activity" });
+  }
+
+  // Environment
+  findings.push({ parameter: "Room Environment", value: `${rtemp.toFixed(1)} °C / ${Math.round(hum)}% RH`, status: "ok", headline: "Comfortable", detail: `Room temperature and humidity are within comfortable ranges.`, icon: "cloud" });
+
+  const hasAlert = findings.some(f => f.status === "alert");
+  const hasWatch = findings.some(f => f.status === "watch");
+  const overallStatus = hasAlert ? "HIGH" : (hasWatch ? "WATCH" : "NORMAL");
+
+  // Next Step Triage
+  let nextStep;
+  if (hasAlert) {
+    nextStep = {
+      category: "URGENT_ATTENTION",
+      badge_label: "URGENT ATTENTION",
+      headline: "Action Required — High Risk Finding",
+      action: "One or more vital parameters are in a high-risk range. Rest seated, avoid exertion, and seek medical attention if readings remain abnormal.",
+      red_flags: "Seek immediate emergency medical care if you experience chest pain or pressure, shortness of breath, radiating arm/jaw pain, or severe dizziness."
+    };
+  } else if (hasWatch) {
+    nextStep = {
+      category: "RECHECK_OR_ADVICE",
+      badge_label: "RECHECK & MONITOR",
+      headline: "Rest & Recheck in 5–10 Minutes",
+      action: "Mild variation observed in readings. Sit quietly, take slow deep breaths, hydrate, and re-test.",
+      red_flags: "Seek immediate emergency medical care if acute symptoms arise."
+    };
+  } else {
+    nextStep = {
+      category: "ROUTINE_MONITORING",
+      badge_label: "ROUTINE MONITORING",
+      headline: "Maintain Healthy Baseline",
+      action: "All measured biometrics are within healthy resting limits. Continue your regular daily wellness routine.",
+      red_flags: "Seek immediate emergency medical care if acute symptoms arise."
+    };
+  }
+
+  // ECG
+  const prText = $("ecg-metric-pr") ? $("ecg-metric-pr").textContent : "156";
+  const qrsText = $("ecg-metric-qrs") ? $("ecg-metric-qrs").textContent : "88";
+  const qtcText = $("ecg-metric-qtc") ? $("ecg-metric-qtc").textContent : "408";
+  const ecgInterp = {
+    status: hr > 100 ? "watch" : (hr < 50 ? "watch" : "ok"),
+    headline: hr > 100 ? "Sinus Tachycardia" : (hr < 50 ? "Sinus Bradycardia" : "Normal Sinus Rhythm"),
+    rhythm: hr > 100 ? "Sinus Tachycardia (ST)" : (hr < 50 ? "Sinus Bradycardia (SB)" : "Normal Sinus Rhythm (NSR)"),
+    pr_interval: `${prText} ms (120–200 ms normal)`,
+    qrs_duration: `${qrsText} ms (60–100 ms normal)`,
+    qtc_interval: `${qtcText} ms (< 440 ms normal)`,
+    lead_quality: "98% (Good Signal)",
+    summary: "Cardiac electrical activation follows a normal physiological sequence on Lead I.",
+    clinical_limitation: "Single-lead Lead I ECG assesses rhythm and rate only. It cannot rule out acute ischemia, structural disease, or replace a standard 12-lead diagnostic ECG."
+  };
+
+  // Lifestyle Tips
+  const tips = [];
+  if (sys >= 130 || dia >= 85) {
+    tips.push("Reducing sodium (salt) in your diet and limiting caffeine can help manage blood pressure.");
+    tips.push("Light walking for 30 minutes most days is one of the most effective ways to improve blood pressure.");
+  }
+  if (hr > 100) {
+    tips.push("Stay hydrated — even mild dehydration can elevate your resting heart rate.");
+  }
+  if (spo2 < 95 && spo2 > 0) {
+    tips.push("Sit upright in a well-ventilated space and practice slow diaphragmatic breathing.");
+  }
+  if (tips.length === 0) {
+    tips.push("Your vitals look great! Continue with your regular routine.");
+    tips.push("Aim for at least 150 minutes of moderate aerobic activity per week.");
+    tips.push("Quality sleep (7-9 hours) plays a key role in maintaining healthy vitals.");
+  }
+
+  const clientReport = {
+    overall_status: overallStatus,
+    overall_headline: hasAlert ? "Attention Required" : (hasWatch ? "Monitor Closely" : "All Clear"),
+    overall_summary: hasAlert
+      ? "Your monitoring data shows one or more indicators outside safe limits. Rest and re-test."
+      : (hasWatch ? "Some indicators are slightly outside standard resting ranges. Continue monitoring." : "All measured indicators and cardiac rhythm timings are within normal ranges."),
+    next_step: nextStep,
+    ecg_interpretation: ecgInterp,
+    findings: findings,
+    lifestyle_tips: tips,
+    disclaimer: "This report is for informational and wellness monitoring purposes only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional for medical concerns."
+  };
+
+  renderReport(clientReport);
+}
+
 

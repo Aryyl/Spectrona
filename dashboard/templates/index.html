@@ -51,6 +51,10 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           <span>Live Monitor</span>
         </button>
+        <button class="nav-tab-btn" data-tab="report" id="nav-tab-report">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Health Report</span>
+        </button>
         <button class="nav-tab-btn" data-tab="ecg" id="nav-tab-ecg">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 5 12 7 4 9 20 11 12 13 12 15 8 17 16 19 12 22 12"/></svg>
           <span>ECG Diagnostics</span>
@@ -205,6 +209,16 @@
             <div class="mobile-nav-tab-text">
               <span class="mobile-nav-tab-title">Live Monitor</span>
               <span class="mobile-nav-tab-sub">Real-time biometrics, risk score & waveform</span>
+            </div>
+            <span class="mob-tab-arrow">→</span>
+          </button>
+          <button class="mobile-nav-tab-btn" data-tab="report">
+            <div class="mob-tab-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <div class="mobile-nav-tab-text">
+              <span class="mobile-nav-tab-title">Health Report</span>
+              <span class="mobile-nav-tab-sub">Plain-English clinical interpretation & triage</span>
             </div>
             <span class="mob-tab-arrow">→</span>
           </button>
@@ -652,6 +666,329 @@
         </div>
       </section>
 
+      <!-- ══ Health Report & Personalized Guidance ═══════════════════════════════ -->
+      <section class="card col-full health-report-section" id="live-health-report-section">
+        <!-- Section Header -->
+        <div class="health-report-header">
+          <div class="health-report-title-block">
+            <div class="health-report-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="card-title" style="margin-bottom:0.1rem;">Health Report &amp; Personalized Guidance</h3>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Plain-English interpretation of your current readings</span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <button class="btn btn-secondary btn-view-full-report" data-tab="report" style="font-size:0.8rem; padding:0.4rem 0.85rem;" title="Open dedicated full-page Health Report tab">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Full Tab
+            </button>
+            <button class="btn btn-primary btn-refresh-report" id="btn-refresh-report" style="font-size:0.8rem; padding:0.4rem 0.85rem;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Overall Status Banner -->
+        <div class="report-overall-banner" id="report-overall-banner">
+          <div class="report-overall-left">
+            <div class="report-overall-indicator" id="report-overall-indicator">
+              <svg class="report-overall-icon" id="report-overall-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </div>
+            <div>
+              <div class="report-overall-headline" id="report-overall-headline">Loading…</div>
+              <div class="report-overall-summary" id="report-overall-summary">Fetching your latest health report…</div>
+            </div>
+          </div>
+          <div class="report-overall-badge-wrap">
+            <span class="status-badge normal report-overall-badge" id="report-overall-badge">NORMAL</span>
+          </div>
+        </div>
+
+        <!-- What Should I Do Next? Triage Box -->
+        <div class="report-next-steps-card triage-routine" id="report-next-steps-card">
+          <div class="report-next-steps-top">
+            <div class="report-next-steps-label-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+              </svg>
+              <span class="report-next-steps-label">What Should I Do Next?</span>
+            </div>
+            <span class="triage-badge report-triage-badge" id="report-triage-badge">ROUTINE MONITORING</span>
+          </div>
+          <div class="report-next-steps-headline report-triage-headline" id="report-triage-headline">Maintain Healthy Baseline</div>
+          <div class="report-next-steps-action report-triage-action" id="report-triage-action">
+            All vitals within healthy resting range. Continue your normal daily activities and hydration.
+          </div>
+          <div class="report-red-flags-box" id="report-red-flags-box">
+            <span class="report-red-flags-title">Immediate Care Precaution:</span>
+            <span class="report-red-flags-text" id="report-red-flags-text">Seek immediate emergency medical care if you experience chest pain, sudden shortness of breath, radiating arm/jaw pain, or severe dizziness.</span>
+          </div>
+        </div>
+
+        <!-- Simplified ECG Interpretation Card -->
+        <div class="report-ecg-card status-ok" id="report-ecg-card">
+          <div class="report-ecg-header">
+            <div class="report-ecg-title-wrap">
+              <div class="report-ecg-icon status-ok" id="report-ecg-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+              </div>
+              <div>
+                <div class="report-ecg-title">Simplified ECG Rhythm Interpretation</div>
+                <div class="report-ecg-subtitle">Lead-I Vector • Plain-English Rhythm Analysis</div>
+              </div>
+            </div>
+            <div class="report-ecg-badges">
+              <span class="ecg-quality-badge report-ecg-quality" id="report-ecg-quality">98% (Good Signal)</span>
+              <span class="status-badge normal report-ecg-badge" id="report-ecg-badge">NORMAL SINUS RHYTHM</span>
+            </div>
+          </div>
+
+          <div class="report-ecg-body">
+            <div class="report-ecg-summary" id="report-ecg-summary">
+              Cardiac electrical activation follows a normal physiological sequence. P-waves precede each narrow QRS complex, indicating synchronized ventricular depolarization without conduction delays on Lead I.
+            </div>
+
+            <div class="report-ecg-intervals-grid">
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">PR Interval</span>
+                <span class="report-ecg-interval-val report-ecg-pr" id="report-ecg-pr">156 ms</span>
+                <span class="report-ecg-interval-norm">Norm: 120–200 ms</span>
+              </div>
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">QRS Duration</span>
+                <span class="report-ecg-interval-val report-ecg-qrs" id="report-ecg-qrs">88 ms</span>
+                <span class="report-ecg-interval-norm">Norm: 60–100 ms</span>
+              </div>
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">QTc Interval</span>
+                <span class="report-ecg-interval-val report-ecg-qtc" id="report-ecg-qtc">408 ms</span>
+                <span class="report-ecg-interval-norm">Norm: &lt; 440 ms</span>
+              </div>
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">Rhythm Type</span>
+                <span class="report-ecg-interval-val report-ecg-rhythm" id="report-ecg-rhythm" style="color:#22c55e;">Sinus</span>
+                <span class="report-ecg-interval-norm">Lead I Regular</span>
+              </div>
+            </div>
+
+            <div class="report-ecg-limitation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span class="report-ecg-limitation-text" id="report-ecg-limitation-text">Clinical Limitation Notice: Single-lead Lead I ECG assesses rhythm regularity and rate only. It cannot rule out acute ischemia, structural heart disease, or replace a diagnostic 12-lead ECG.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parameter Finding Cards Grid -->
+        <div class="report-findings-grid" id="report-findings-grid">
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+        </div>
+
+        <!-- Lifestyle Tips -->
+        <div class="report-tips-section" id="report-tips-section">
+          <div class="report-tips-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>Personalized Lifestyle Guidance</span>
+          </div>
+          <ul class="report-tips-list" id="report-tips-list">
+          </ul>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="report-disclaimer" id="report-disclaimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/>
+          </svg>
+          <span class="report-disclaimer-text" id="report-disclaimer-text">This report is for informational and wellness monitoring purposes only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional for medical concerns.</span>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ══ Tab: Dedicated Health Report & Clinical Guidance ═══════════════════════ -->
+  <div class="tab-pane" id="tab-report">
+    <main class="main-grid">
+      <!-- Report Tab Header Banner -->
+      <section class="welcome-section">
+        <div class="welcome-text">
+          <h2>Patient Health Report &amp; Personalized Guidance</h2>
+          <p>Plain-English vital sign interpretation, clinical ECG rhythm analysis, risk stratification, and actionable lifestyle guidance.</p>
+        </div>
+        <div class="welcome-actions">
+          <div class="telemetry-buffer-pill">
+            <span class="status-pulse-dot" style="display:inline-block; width:7px; height:7px; background:#22c55e; border-radius:50%; box-shadow:0 0 6px #22c55e; margin-right:6px;"></span>
+            <span>Real-Time Clinical Rules Engine</span>
+          </div>
+          <button class="btn btn-secondary btn-print-report" onclick="window.print()" title="Print or save PDF report" style="font-size:0.8rem; padding:0.4rem 0.85rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print / PDF
+          </button>
+        </div>
+      </section>
+
+      <!-- Health Report Section (Dedicated Tab) -->
+      <section class="card col-full health-report-section" id="dedicated-health-report-section">
+        <!-- Section Header -->
+        <div class="health-report-header">
+          <div class="health-report-title-block">
+            <div class="health-report-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="card-title" style="margin-bottom:0.1rem;">Full Clinical Health Report &amp; Guidance</h3>
+              <span style="font-size:0.78rem; color:var(--text-muted);">Continuous plain-English interpretation across all measured biometrics</span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-refresh-report" style="font-size:0.8rem; padding:0.4rem 0.85rem;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh Report
+          </button>
+        </div>
+
+        <!-- Overall Status Banner -->
+        <div class="report-overall-banner">
+          <div class="report-overall-left">
+            <div class="report-overall-indicator">
+              <svg class="report-overall-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </div>
+            <div>
+              <div class="report-overall-headline">Loading…</div>
+              <div class="report-overall-summary">Fetching your latest health report…</div>
+            </div>
+          </div>
+          <div class="report-overall-badge-wrap">
+            <span class="status-badge normal report-overall-badge">NORMAL</span>
+          </div>
+        </div>
+
+        <!-- What Should I Do Next? Triage Box -->
+        <div class="report-next-steps-card triage-routine">
+          <div class="report-next-steps-top">
+            <div class="report-next-steps-label-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+              </svg>
+              <span class="report-next-steps-label">What Should I Do Next?</span>
+            </div>
+            <span class="triage-badge report-triage-badge">ROUTINE MONITORING</span>
+          </div>
+          <div class="report-next-steps-headline report-triage-headline">Maintain Healthy Baseline</div>
+          <div class="report-next-steps-action report-triage-action">
+            All vitals within healthy resting range. Continue your normal daily activities and hydration.
+          </div>
+          <div class="report-red-flags-box">
+            <span class="report-red-flags-title">Immediate Care Precaution:</span>
+            <span class="report-red-flags-text">Seek immediate emergency medical care if you experience chest pain, sudden shortness of breath, radiating arm/jaw pain, or severe dizziness.</span>
+          </div>
+        </div>
+
+        <!-- Simplified ECG Interpretation Card -->
+        <div class="report-ecg-card status-ok">
+          <div class="report-ecg-header">
+            <div class="report-ecg-title-wrap">
+              <div class="report-ecg-icon status-ok">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+              </div>
+              <div>
+                <div class="report-ecg-title">Simplified ECG Rhythm Interpretation</div>
+                <div class="report-ecg-subtitle">Lead-I Vector • Plain-English Rhythm Analysis</div>
+              </div>
+            </div>
+            <div class="report-ecg-badges">
+              <span class="ecg-quality-badge report-ecg-quality">98% (Good Signal)</span>
+              <span class="status-badge normal report-ecg-badge">NORMAL SINUS RHYTHM</span>
+            </div>
+          </div>
+
+          <div class="report-ecg-body">
+            <div class="report-ecg-summary">
+              Cardiac electrical activation follows a normal physiological sequence. P-waves precede each narrow QRS complex, indicating synchronized ventricular depolarization without conduction delays on Lead I.
+            </div>
+
+            <div class="report-ecg-intervals-grid">
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">PR Interval</span>
+                <span class="report-ecg-interval-val report-ecg-pr">156 ms</span>
+                <span class="report-ecg-interval-norm">Norm: 120–200 ms</span>
+              </div>
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">QRS Duration</span>
+                <span class="report-ecg-interval-val report-ecg-qrs">88 ms</span>
+                <span class="report-ecg-interval-norm">Norm: 60–100 ms</span>
+              </div>
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">QTc Interval</span>
+                <span class="report-ecg-interval-val report-ecg-qtc">408 ms</span>
+                <span class="report-ecg-interval-norm">Norm: &lt; 440 ms</span>
+              </div>
+              <div class="report-ecg-interval-tile">
+                <span class="report-ecg-interval-label">Rhythm Type</span>
+                <span class="report-ecg-interval-val report-ecg-rhythm" style="color:#22c55e;">Sinus</span>
+                <span class="report-ecg-interval-norm">Lead I Regular</span>
+              </div>
+            </div>
+
+            <div class="report-ecg-limitation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span class="report-ecg-limitation-text">Clinical Limitation Notice: Single-lead Lead I ECG assesses rhythm regularity and rate only. It cannot rule out acute ischemia, structural heart disease, or replace a diagnostic 12-lead ECG.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parameter Finding Cards Grid -->
+        <div class="report-findings-grid">
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+          <div class="report-finding-skeleton"></div>
+        </div>
+
+        <!-- Lifestyle Tips -->
+        <div class="report-tips-section">
+          <div class="report-tips-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>Personalized Lifestyle Guidance</span>
+          </div>
+          <ul class="report-tips-list">
+          </ul>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="report-disclaimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/>
+          </svg>
+          <span class="report-disclaimer-text">This report is for informational and wellness monitoring purposes only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional for medical concerns.</span>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -803,6 +1140,7 @@
       </section>
     </main>
   </div>
+
 
   <!-- ══ Tab 3: Recent Readings ════════════════════════════════════════════════ -->
   <div class="tab-pane" id="tab-readings">
@@ -1296,6 +1634,12 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
       <span class="bottom-nav-label">Live</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="report" aria-label="Health Report">
+      <div class="bottom-nav-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <span class="bottom-nav-label">Report</span>
     </button>
     <button class="bottom-nav-item" data-tab="ecg" aria-label="ECG Diagnostics">
       <div class="bottom-nav-icon-wrap">

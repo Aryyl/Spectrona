@@ -521,3 +521,101 @@ def baseline() -> Response:
         "is_established": bl.is_established,
     })
 
+
+@api_bp.route("/report/latest", methods=["GET", "POST"])
+def report_latest() -> Response:
+    """
+    Generate and return a plain-English HealthReport for the current patient snapshot.
+
+    Returns a JSON object containing:
+      - overall_status  : NORMAL | WATCH | HIGH
+      - overall_headline: short summary title
+      - overall_summary : 2-3 sentence narrative
+      - next_step       : action recommendation triage
+      - ecg_interpretation : Lead-I rhythm and interval assessment
+      - findings        : list of per-parameter assessment cards
+      - lifestyle_tips  : 3-5 actionable tips
+      - disclaimer      : fixed medical disclaimer
+    """
+    import datetime
+    from app.risk.report_generator import generate_report
+    from app.ingestion.normalizer import SensorReading
+    from app.storage.repository import get_latest_reading
+    from app.risk.fusion import FusedRisk
+
+    snap = state_store.snapshot()
+    reading = snap.reading
+    fused_risk = snap.fused_risk
+
+    # If state_store has no reading in memory, try DB fallback
+    if reading is None:
+        device_id = request.args.get("device_id")
+        rec = get_latest_reading(device_id=device_id)
+        if rec:
+            dt = datetime.datetime.fromtimestamp(rec.timestamp_epoch, tz=datetime.timezone.utc)
+            reading = SensorReading(
+                timestamp=dt,
+                timestamp_epoch=rec.timestamp_epoch,
+                device_id=rec.device_id,
+                heart_rate=rec.heart_rate,
+                spo2=rec.spo2,
+                body_temperature=rec.body_temperature,
+                room_temperature=rec.room_temperature,
+                humidity=rec.humidity,
+                bp_sys=rec.bp_sys or 0.0,
+                bp_dia=rec.bp_dia or 0.0,
+            )
+            is_high = (reading.bp_sys >= 140 or reading.bp_dia >= 90 or
+                       (reading.spo2 > 0 and reading.spo2 < 90) or
+                       (reading.heart_rate > 120 or (reading.heart_rate > 0 and reading.heart_rate < 50)))
+            is_watch = (reading.bp_sys >= 130 or reading.bp_dia >= 80 or
+                        (reading.spo2 > 0 and reading.spo2 < 95) or
+                        (reading.heart_rate > 100 or (reading.heart_rate > 0 and reading.heart_rate < 60)))
+            fused_risk = FusedRisk(
+                heat_risk="NORMAL",
+                vital_risk="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
+                respiratory_risk="WATCH" if (reading.spo2 > 0 and reading.spo2 < 95) else "NORMAL",
+                overall_status="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
+                reasons=[],
+                recommendation="Monitoring active.",
+            )
+
+    if reading is None or fused_risk is None:
+        return jsonify({
+            "status": "no_data",
+            "message": "No readings available yet. Waiting for sensor data.",
+        }), 200
+
+    try:
+        ecg_data = None
+        leads_off_val = request.args.get("leads_off", "").strip().lower()
+        if leads_off_val in ("1", "true", "yes"):
+            ecg_data = {"leads_off": True}
+        else:
+            rhythm = request.args.get("rhythm")
+            pr = request.args.get("pr")
+            qrs = request.args.get("qrs")
+            qtc = request.args.get("qtc")
+            lead_q = request.args.get("lead_quality")
+            hr = request.args.get("hr")
+            if any((rhythm, pr, qrs, qtc, lead_q, hr)):
+                ecg_data = {
+                    "leads_off": False,
+                    "rhythm": rhythm,
+                    "pr": pr,
+                    "qrs": qrs,
+                    "qtc": qtc,
+                    "lead_quality": lead_q,
+                }
+                if hr:
+                    try:
+                        ecg_data["hr"] = float(hr)
+                    except ValueError:
+                        pass
+
+        report = generate_report(reading, fused_risk, ecg_data=ecg_data)
+        return jsonify({"status": "ok", "report": report.to_dict()})
+    except Exception as exc:
+        _log.error("Error generating health report: %s", exc)
+        return jsonify({"status": "error", "message": "Report generation failed"}), 500
+
