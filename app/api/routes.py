@@ -544,10 +544,87 @@ def report_latest() -> Response:
     from app.risk.fusion import FusedRisk
 
     snap = state_store.snapshot()
-    reading = snap.reading
-    fused_risk = snap.fused_risk
+    reading = None
+    fused_risk = None
 
-    # If state_store has no reading in memory, try DB fallback
+    # 1. First priority: Check if client submitted an active reading via JSON POST
+    client_payload = request.get_json(silent=True) if request.is_json else None
+    if client_payload and isinstance(client_payload, dict):
+        raw_r = client_payload.get("reading") or client_payload.get("latest") or client_payload
+        if isinstance(raw_r, dict) and any(k in raw_r for k in ("heart_rate", "spo2", "bp_sys", "body_temperature")):
+            try:
+                hr_val = float(raw_r.get("heart_rate") or 0.0)
+                spo2_val = float(raw_r.get("spo2") or 0.0)
+                temp_val = float(raw_r.get("body_temperature") or 0.0)
+                sys_val = float(raw_r.get("bp_sys") or 0.0)
+                dia_val = float(raw_r.get("bp_dia") or 0.0)
+                rtemp_val = float(raw_r.get("room_temperature") or 24.0)
+                hum_val = float(raw_r.get("humidity") or 45.0)
+                dev_val = str(raw_r.get("device_id") or "patient_01")
+                ts_epoch = float(raw_r.get("timestamp_epoch") or datetime.datetime.now(datetime.timezone.utc).timestamp())
+                dt = datetime.datetime.fromtimestamp(ts_epoch, tz=datetime.timezone.utc)
+
+                reading = SensorReading(
+                    timestamp=dt,
+                    timestamp_epoch=ts_epoch,
+                    device_id=dev_val,
+                    heart_rate=hr_val,
+                    spo2=spo2_val,
+                    body_temperature=temp_val,
+                    room_temperature=rtemp_val,
+                    humidity=hum_val,
+                    bp_sys=sys_val,
+                    bp_dia=dia_val,
+                )
+
+                raw_risk = client_payload.get("risk")
+                if isinstance(raw_risk, dict) and "overall_status" in raw_risk:
+                    fused_risk = FusedRisk(
+                        heat_risk=raw_risk.get("heat_risk", "NORMAL"),
+                        vital_risk=raw_risk.get("vital_risk", "NORMAL"),
+                        respiratory_risk=raw_risk.get("respiratory_risk", "NORMAL"),
+                        overall_status=raw_risk.get("overall_status", "NORMAL"),
+                        reasons=raw_risk.get("reasons", []),
+                        recommendation=raw_risk.get("recommendation", "Monitoring active."),
+                    )
+            except Exception as e:
+                _log.debug("Error parsing client-provided reading: %s", e)
+
+    # 2. Second priority: Check if client provided reading parameters via GET query params
+    if reading is None and any(k in request.args for k in ("heart_rate", "hr", "spo2", "bp_sys")):
+        try:
+            hr_val = float(request.args.get("heart_rate") or request.args.get("hr") or 0.0)
+            spo2_val = float(request.args.get("spo2") or 0.0)
+            temp_val = float(request.args.get("body_temperature") or request.args.get("temp") or 0.0)
+            sys_val = float(request.args.get("bp_sys") or 0.0)
+            dia_val = float(request.args.get("bp_dia") or 0.0)
+            rtemp_val = float(request.args.get("room_temperature") or 24.0)
+            hum_val = float(request.args.get("humidity") or 45.0)
+            dev_val = str(request.args.get("device_id") or "patient_01")
+            ts_epoch = datetime.datetime.now(datetime.timezone.utc).timestamp()
+            dt = datetime.datetime.fromtimestamp(ts_epoch, tz=datetime.timezone.utc)
+
+            reading = SensorReading(
+                timestamp=dt,
+                timestamp_epoch=ts_epoch,
+                device_id=dev_val,
+                heart_rate=hr_val,
+                spo2=spo2_val,
+                body_temperature=temp_val,
+                room_temperature=rtemp_val,
+                humidity=hum_val,
+                bp_sys=sys_val,
+                bp_dia=dia_val,
+            )
+        except Exception as e:
+            _log.debug("Error parsing query param reading: %s", e)
+
+    # 3. Third priority: Check in-memory state store
+    if reading is None:
+        reading = snap.reading
+        fused_risk = snap.fused_risk
+
+    # 4. Fourth priority: Database fallback
     if reading is None:
         device_id = request.args.get("device_id")
         rec = get_latest_reading(device_id=device_id)
@@ -565,20 +642,23 @@ def report_latest() -> Response:
                 bp_sys=rec.bp_sys or 0.0,
                 bp_dia=rec.bp_dia or 0.0,
             )
-            is_high = (reading.bp_sys >= 140 or reading.bp_dia >= 90 or
-                       (reading.spo2 > 0 and reading.spo2 < 90) or
-                       (reading.heart_rate > 120 or (reading.heart_rate > 0 and reading.heart_rate < 50)))
-            is_watch = (reading.bp_sys >= 130 or reading.bp_dia >= 80 or
-                        (reading.spo2 > 0 and reading.spo2 < 95) or
-                        (reading.heart_rate > 100 or (reading.heart_rate > 0 and reading.heart_rate < 60)))
-            fused_risk = FusedRisk(
-                heat_risk="NORMAL",
-                vital_risk="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
-                respiratory_risk="WATCH" if (reading.spo2 > 0 and reading.spo2 < 95) else "NORMAL",
-                overall_status="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
-                reasons=[],
-                recommendation="Monitoring active.",
-            )
+
+    # If fused_risk is not yet populated, derive it dynamically
+    if reading is not None and fused_risk is None:
+        is_high = (reading.bp_sys >= 140 or reading.bp_dia >= 90 or
+                   (reading.spo2 > 0 and reading.spo2 < 90) or
+                   (reading.heart_rate > 120 or (reading.heart_rate > 0 and reading.heart_rate < 50)))
+        is_watch = (reading.bp_sys >= 130 or reading.bp_dia >= 80 or
+                    (reading.spo2 > 0 and reading.spo2 < 95) or
+                    (reading.heart_rate > 100 or (reading.heart_rate > 0 and reading.heart_rate < 60)))
+        fused_risk = FusedRisk(
+            heat_risk="NORMAL",
+            vital_risk="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
+            respiratory_risk="WATCH" if (reading.spo2 > 0 and reading.spo2 < 95) else "NORMAL",
+            overall_status="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
+            reasons=[],
+            recommendation="Monitoring active.",
+        )
 
     if reading is None or fused_risk is None:
         return jsonify({
@@ -589,7 +669,9 @@ def report_latest() -> Response:
     try:
         ecg_data = None
         leads_off_val = request.args.get("leads_off", "").strip().lower()
-        if leads_off_val in ("1", "true", "yes"):
+        if client_payload and isinstance(client_payload, dict) and "ecg_data" in client_payload:
+            ecg_data = client_payload["ecg_data"]
+        elif leads_off_val in ("1", "true", "yes"):
             ecg_data = {"leads_off": True}
         else:
             rhythm = request.args.get("rhythm")
@@ -597,7 +679,7 @@ def report_latest() -> Response:
             qrs = request.args.get("qrs")
             qtc = request.args.get("qtc")
             lead_q = request.args.get("lead_quality")
-            hr = request.args.get("hr")
+            hr = request.args.get("hr") or (str(reading.heart_rate) if reading else None)
             if any((rhythm, pr, qrs, qtc, lead_q, hr)):
                 ecg_data = {
                     "leads_off": False,

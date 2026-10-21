@@ -186,3 +186,64 @@ def test_report_dict_serialization():
     assert "lifestyle_tips" in d
     assert isinstance(d["lifestyle_tips"], list)
     assert "disclaimer" in d
+
+
+# ── T9: POST /api/report/latest with Client-Provided Reading ──────────────────
+def test_report_latest_post_stage2_hypertension():
+    from app.main import create_app
+
+    app = create_app()
+    client = app.test_client()
+
+    payload = {
+        "reading": {
+            "device_id": "patient_01",
+            "heart_rate": 76.0,
+            "spo2": 98.0,
+            "body_temperature": 36.6,
+            "bp_sys": 152.0,
+            "bp_dia": 96.0,
+            "room_temperature": 23.5,
+            "humidity": 45.0,
+        }
+    }
+
+    res = client.post("/api/report/latest", json=payload)
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["status"] == "ok"
+    report = data["report"]
+    assert report["overall_status"] == "HIGH"
+    assert "Blood Pressure" in report["overall_summary"]
+    bp_finding = next(f for f in report["findings"] if f["parameter"] == "Blood Pressure")
+    assert bp_finding["status"] == "alert"
+    assert "Stage 2" in bp_finding["headline"]
+
+
+def test_report_latest_post_hypoxia():
+    from app.main import create_app
+
+    app = create_app()
+    client = app.test_client()
+
+    payload = {
+        "reading": {
+            "device_id": "patient_01",
+            "heart_rate": 82.0,
+            "spo2": 88.0,
+            "body_temperature": 36.7,
+            "bp_sys": 118.0,
+            "bp_dia": 78.0,
+        }
+    }
+
+    res = client.post("/api/report/latest", json=payload)
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["status"] == "ok"
+    report = data["report"]
+    assert report["overall_status"] == "HIGH"
+    spo2_finding = next(f for f in report["findings"] if f["parameter"] == "Blood Oxygen (SpO2)")
+    assert spo2_finding["status"] == "alert"
+    assert "Critically Low" in spo2_finding["headline"]
+
