@@ -1,12 +1,12 @@
 /**
  * Jeev One – Progressive Web App Service Worker
- * Version: 2.6.0
+ * Version: 2.8.0
  * 
  * Provides offline caching, instantaneous launch, network-first live code delivery,
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "jeevone-dashboard-v2.7.0";
+const CACHE_NAME = "jeevone-dashboard-v2.8.0";
 const PRECACHE_ASSETS = [
   "/",
   "/login",
@@ -15,11 +15,12 @@ const PRECACHE_ASSETS = [
   "/static/manifest.json",
   "/static/css/dashboard.css?v=2.7",
   "/static/js/dashboard.js?v=2.7",
-  "/static/css/landing.css",
-  "/static/js/landing.js",
+  "/static/css/landing.css?v=8.0.0",
+  "/static/js/landing.js?v=8.0.0",
   "/static/css/login.css",
   "/static/js/login.js",
   "/static/js/icons.js",
+  "/static/images/jeev_one_transparent.png?v=1",
   "/static/images/jeev_one_logo.webp",
   "/static/images/favicon.png",
   "/static/icons/icon-192x192.png",
@@ -35,7 +36,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v2.7.0");
+      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v2.8.0");
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn("[PWA Service Worker] Some assets failed to precache:", err);
       });
@@ -170,7 +171,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
-      }).catch(() => {/* Offline fallback */});
+      }).catch(() => new Response("Offline", { status: 503 }));
     })
   );
 });
