@@ -3,910 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jeev One — Wearable IoT-Based Health Monitoring System</title>
-  <meta name="description" content="Jeev One is a wearable IoT-based health monitoring system integrating physiological sensors, an ESP32 microcontroller, a Raspberry Pi 5 edge gateway, and Firebase Cloud Firestore for remote caregiver access." />
+  <title>JEEV_ONE — Autonomous Edge Health Monitoring &amp; Level 1 ECG Telemetry Node</title>
+  <meta name="description" content="JEEV_ONE is an advanced wearable IoT and edge computing health monitoring station providing continuous physiological vitals, Level 1 ECG diagnostics, and deterministic risk fusion." />
   
-  <!-- Typography -->
+  <!-- Typography: Plus Jakarta Sans, Inter, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   
   <!-- Favicon & PWA App Manifest -->
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#050505" />
+  <meta name="theme-color" content="#eeece0" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Jeev One" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="JEEV_ONE" />
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css?v=2.7.2" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=7.0.0" />
 </head>
-<body>
+<body class="light-theme">
 
-  <!-- Ambient background elements -->
-  <div class="ambient-glow"></div>
-  <div class="ambient-grid"></div>
-
-  <!-- ══ Floating Sticky Navbar ═══════════════════════════════════════════════ -->
-  <div class="nav-wrapper">
-    <nav class="floating-nav" id="floating-nav">
-      <a href="/" class="nav-brand" aria-label="JEEV_ONE Home">
-        <img src="/static/images/jeev_one_logo.webp" alt="JEEV_ONE Logo" class="nav-logo-img" />
+  <!-- ══ Header / Top Navigation Bar ══════════════════════════════════════════ -->
+  <header class="site-header" id="site-header">
+    <div class="header-container">
+      <a href="/" class="brand-link" aria-label="JEEV_ONE Home">
+        <img src="/static/images/jeev one transparent.png" alt="JEEV_ONE Logo" class="brand-logo-img" />
       </a>
 
-      <ul class="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#architecture">Architecture</a></li>
-        <li><a href="#sensors">Sensors</a></li>
-        <li><a href="#insights">Insights</a></li>
-        <li><a href="#video">Demo Video</a></li>
-        <li><a href="#gallery">Gallery</a></li>
-      </ul>
+      <nav class="center-nav" aria-label="Main Navigation">
+        <ul class="nav-menu">
+          <li><a href="#about" class="nav-item">About Us</a></li>
+          <li><a href="#capabilities" class="nav-item">Capabilities</a></li>
+          <li><a href="#architecture" class="nav-item">Architecture</a></li>
+          <li><a href="#sensors" class="nav-item">Sensors</a></li>
+          <li><a href="#edge-system" class="nav-item">Edge Node</a></li>
+          <li><a href="#insights" class="nav-item">Insights</a></li>
+          <li><a href="#gallery" class="nav-item">Hardware</a></li>
+        </ul>
+      </nav>
 
-      <div class="nav-actions">
-        <a href="/login" class="btn-pill-primary nav-cta-desktop">
+      <div class="header-actions">
+        <a href="/dashboard" class="btn-pill-dark header-cta">
           <span>Live Dashboard</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg class="pill-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
-        <button class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-          <span class="hamburger-bar"></span>
-          <span class="hamburger-bar"></span>
-          <span class="hamburger-bar"></span>
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
         </button>
       </div>
-    </nav>
-  </div>
+    </div>
+  </header>
 
-  <!-- Mobile Navigation Drawer & Backdrop -->
+  <!-- Mobile Drawer Menu -->
   <div class="mobile-drawer-backdrop" id="mobile-drawer-backdrop" aria-hidden="true"></div>
   <aside class="mobile-drawer" id="mobile-drawer" aria-label="Mobile Navigation Drawer">
     <div class="drawer-header">
       <a href="/" class="drawer-brand" aria-label="JEEV_ONE Home">
-        <img src="/static/images/jeev_one_logo.webp" alt="JEEV_ONE Logo" class="drawer-logo-img" />
+        <img src="/static/images/jeev one transparent.png" alt="JEEV_ONE Logo" class="drawer-logo-img" />
       </a>
-      <button class="drawer-close-btn" id="drawer-close-btn" aria-label="Close Navigation Menu">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
+      <button class="drawer-close-btn" id="drawer-close-btn" aria-label="Close Navigation Menu">&times;</button>
     </div>
     <div class="drawer-content">
-      <ul class="drawer-nav-list">
-        <li><a href="#about" class="drawer-nav-item"><span class="drawer-nav-num">01</span><span class="drawer-nav-label">About Jeev One</span></a></li>
-        <li><a href="#architecture" class="drawer-nav-item"><span class="drawer-nav-num">02</span><span class="drawer-nav-label">System Architecture</span></a></li>
-        <li><a href="#sensors" class="drawer-nav-item"><span class="drawer-nav-num">03</span><span class="drawer-nav-label">Sensors & Biometrics</span></a></li>
-        <li><a href="#edge-system" class="drawer-nav-item"><span class="drawer-nav-num">04</span><span class="drawer-nav-label">ESP32 & Raspberry Pi 5</span></a></li>
-        <li><a href="#insights" class="drawer-nav-item"><span class="drawer-nav-num">05</span><span class="drawer-nav-label">Deployment Insights</span></a></li>
-        <li><a href="#video" class="drawer-nav-item"><span class="drawer-nav-num">06</span><span class="drawer-nav-label">Prototype Demo Video</span></a></li>
-        <li><a href="#gallery" class="drawer-nav-item"><span class="drawer-nav-num">07</span><span class="drawer-nav-label">Hardware Gallery</span></a></li>
+      <ul class="drawer-links">
+        <li><a href="#about" class="drawer-link">01 // About Us</a></li>
+        <li><a href="#capabilities" class="drawer-link">02 // Capabilities</a></li>
+        <li><a href="#architecture" class="drawer-link">03 // Architecture</a></li>
+        <li><a href="#sensors" class="drawer-link">04 // Sensors &amp; Biometrics</a></li>
+        <li><a href="#edge-system" class="drawer-link">05 // Edge Computing</a></li>
+        <li><a href="#insights" class="drawer-link">06 // Deployment Insights</a></li>
+        <li><a href="#video" class="drawer-link">07 // Demo Video</a></li>
+        <li><a href="#gallery" class="drawer-link">08 // Hardware Gallery</a></li>
       </ul>
-      <div class="drawer-cta-wrap">
-        <a href="/login" class="btn-pill-primary drawer-dashboard-btn">
+      <div class="drawer-cta-box">
+        <a href="/dashboard" class="btn-pill-dark drawer-cta-btn">
           <span>Launch Live Dashboard</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
-        <p class="drawer-system-tag">Continuous IoT Health Monitoring • Jeev One</p>
       </div>
     </div>
   </aside>
 
   <main>
-    <!-- ══ Hero Section ══════════════════════════════════════════════════════ -->
-    <section class="hero-section" id="hero">
-      <div class="hero-bg-image" id="hero-bg-image" aria-hidden="true"></div>
+    <!-- ══ Hero Section (Framed Rounded Card Style) ═══════════════════════════ -->
+    <section class="hero-frame-section" id="hero">
+      <div class="hero-frame-container">
+        <div class="hero-card">
+          <!-- Background Imagery & Gradient Overlay -->
+          <div class="hero-card-bg" style="background-image: url('/static/images/hero-bg.webp');" aria-hidden="true"></div>
+          <div class="hero-card-overlay" aria-hidden="true"></div>
 
-      <div class="container hero-content">
-        <h1 class="hero-title">
-          Jeev One<br />
-          <span class="text-muted-gradient">Wearable Health Monitoring System</span>
-        </h1>
-
-        <p class="hero-subtitle">
-          Instead of checking health measurements only during occasional clinic visits, <strong>Jeev One</strong> monitors selected physiological indicators during everyday activities and synchronizes the recorded data to <strong>Firebase Cloud Firestore</strong> for caregivers and healthcare professionals.
-        </p>
-
-        <div class="hero-actions">
-          <a href="/login" class="btn-pill-primary">
-            <span>Launch Live Dashboard</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-          <a href="#about" class="btn-pill-secondary">
-            <span>Learn About Jeev One</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section: About Jeev One ═════════════════════════════════════════════ -->
-    <section class="section-wrapper" id="about">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// ABOUT JEEV ONE</span>
-          <h2 class="section-title">Everyday Health Intelligence</h2>
-          <p class="section-desc">
-            A wearable IoT-based health monitoring system engineered to capture vital physiological signals during daily life, validate them at the edge, and provide real-time visibility to caregivers and clinicians.
-          </p>
-        </div>
-
-        <div class="about-overview-card">
-          <div class="about-overview-grid">
-            <div class="about-overview-text">
-              <div class="about-lead-badge">THE CORE MISSION</div>
-              <h3 class="about-lead-title">Bridging the Gap Between Clinic Visits and Daily Life</h3>
-              <p class="about-lead-desc">
-                Instead of checking a person's health measurements only during occasional visits to a hospital or clinic, <strong>Jeev One</strong> monitors selected health indicators continuously during everyday activities. The wearable collects multi-parameter telemetry, validates it locally via a Raspberry Pi 5 edge gateway, and synchronizes eligible records to <strong>Firebase Cloud Firestore</strong> so authorized caregivers and doctors can review real-time and historical trends from anywhere.
-              </p>
-              <div class="about-principles-row">
-                <div class="principle-chip">
-                  <span class="chip-icon">⚡</span>
-                  <div>
-                    <strong>Continuous Observation</strong>
-                    <span>Notice health trends before they develop into acute emergencies</span>
-                  </div>
-                </div>
-                <div class="principle-chip">
-                  <span class="chip-icon">🛡️</span>
-                  <div>
-                    <strong>Edge-First Privacy & Integrity</strong>
-                    <span>Local SQLite storage, MQTT validation & deterministic risk engine</span>
-                  </div>
-                </div>
-                <div class="principle-chip">
-                  <span class="chip-icon">🌐</span>
-                  <div>
-                    <strong>Universal Remote Accessibility</strong>
-                    <span>Live cloud sync with zero router port forwarding or lock-in</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="about-highlight-stats">
-              <div class="stat-pill-card">
-                <div class="stat-num">4-in-1</div>
-                <div class="stat-label">Sensory Modalities</div>
-                <div class="stat-sub">ECG, SpO₂, IR Temp & Ambient</div>
-              </div>
-              <div class="stat-pill-card">
-                <div class="stat-num">Pi 5</div>
-                <div class="stat-label">Edge Intelligence</div>
-                <div class="stat-sub">Mosquitto MQTT & Risk Engine</div>
-              </div>
-              <div class="stat-pill-card">
-                <div class="stat-num">&lt; 1s</div>
-                <div class="stat-label">Firestore Sync</div>
-                <div class="stat-sub">Real-Time WebSocket & PWA</div>
-              </div>
-              <div class="stat-pill-card">
-                <div class="stat-num">100%</div>
-                <div class="stat-label">Offline Resilience</div>
-                <div class="stat-sub">Local SQLite Outbox Recovery</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3 Core Architectural Pillars -->
-        <div class="about-pillars-grid">
-          <div class="about-pillar-card">
-            <div class="pillar-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            </div>
-            <div class="pillar-stage">PILLAR 01 / TRANSDUCERS</div>
-            <h4 class="pillar-title">Wearable Sensing Layer</h4>
-            <p class="pillar-desc">
-              Lightweight wearable node driven by an ESP32 microcontroller. Collects Lead-I analog ECG waveforms, optical pulse oximetry (SpO₂), non-contact infrared core body temperature, and room climate conditions during everyday activities.
+          <!-- Hero Centered Content -->
+          <div class="hero-center-content">
+            <h1 class="hero-headline">
+              Unleash Next-Gen Health Intelligence.<br />All In One Place.
+            </h1>
+            <p class="hero-subheadline">
+              Continuous autonomous vital telemetry, Level 1 ECG diagnostics, and deterministic edge risk fusion — where clinical precision meets zero-cloud privacy.
             </p>
-            <div class="pillar-tags">
-              <span>AD8232 ECG</span>
-              <span>MAX30102 SpO₂</span>
-              <span>MLX90614 Temp</span>
-              <span>DHT22 Ambient</span>
-            </div>
-          </div>
-
-          <div class="about-pillar-card">
-            <div class="pillar-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
-            </div>
-            <div class="pillar-stage">PILLAR 02 / EDGE INTELLIGENCE</div>
-            <h4 class="pillar-title">Edge Computing & Gateway</h4>
-            <p class="pillar-desc">
-              The Raspberry Pi 5 runs a Mosquitto MQTT broker, validates incoming sensor timestamps and numeric ranges, computes composite multi-parameter risk scores, and safely records data into local SQLite with outbox synchronization.
-            </p>
-            <div class="pillar-tags">
-              <span>Raspberry Pi 5</span>
-              <span>MQTT Broker (1883)</span>
-              <span>SQLite Database</span>
-              <span>Outbox Retry Sync</span>
-            </div>
-          </div>
-
-          <div class="about-pillar-card">
-            <div class="pillar-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-            </div>
-            <div class="pillar-stage">PILLAR 03 / REMOTE MONITORING</div>
-            <h4 class="pillar-title">Cloud Monitoring & PWA</h4>
-            <p class="pillar-desc">
-              Synchronized records in Firebase Firestore enable zero-latency live updates across authorized mobile phones and laptops through a responsive Progressive Web App without needing open router ports.
-            </p>
-            <div class="pillar-tags">
-              <span>Cloud Firestore</span>
-              <span>Realtime onSnapshot</span>
-              <span>Mobile PWA App</span>
-              <span>Caregiver Access</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="about-cta-bar">
-          <div class="about-cta-text">
-            <strong>Ready to explore the technical details?</strong> Follow the 5-stage pipeline or open the live monitor.
-          </div>
-          <div class="about-cta-btns">
-            <a href="#architecture" class="btn-pill-secondary">
-              <span>Explore 5-Stage Architecture</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            </a>
-            <a href="/login" class="btn-pill-primary">
-              <span>Launch Live Dashboard</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 1: Complete System Architecture ═══════════════════════════ -->
-    <section class="section-wrapper" id="architecture">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 1: END-TO-END PIPELINE</span>
-          <h2 class="section-title">The Complete System Architecture</h2>
-          <p class="section-desc">
-            The system combines wearable sensing, edge computing, and cloud monitoring into a robust, synchronized data pipeline.
-          </p>
-        </div>
-
-        <div class="pipeline-grid">
-          <!-- Step 1: Wearable Sensors -->
-          <div class="pipeline-step">
-            <div>
-              <div class="pipeline-step-num">STAGE 01 / WEARABLE SENSING</div>
-              <span class="pipeline-step-badge">TRANSDUCER LAYER</span>
-              <h3 class="pipeline-step-title">Wearable Sensors</h3>
-              <p class="pipeline-step-desc">
-                Collects multi-parameter biometric and environmental signals during everyday activities: heart rate/ECG, blood oxygen (SpO₂), body temperature, room temperature, and relative humidity.
-              </p>
-            </div>
-            <div class="pipeline-step-details">
-              <span>• AD8232 ECG / HR Module</span>
-              <span>• MAX30102 Optical SpO₂</span>
-              <span>• MLX90614 Infrared Temp</span>
-              <span>• DHT22 Ambient Monitor</span>
-            </div>
-          </div>
-
-          <!-- Step 2: ESP32 Wearable Controller -->
-          <div class="pipeline-step">
-            <div>
-              <div class="pipeline-step-num">STAGE 02 / MICROCONTROLLER</div>
-              <span class="pipeline-step-badge">DATA PACKETIZATION</span>
-              <h3 class="pipeline-step-title">ESP32 Controller</h3>
-              <p class="pipeline-step-desc">
-                Reads connected sensors in scheduled timed slots, synchronizes its clock using NTP so readings have valid Unix timestamps, formats JSON packets, and publishes to MQTT over Wi-Fi.
-              </p>
-            </div>
-            <div class="pipeline-step-details">
-              <span>• NTP Clock Synchronization</span>
-              <span>• Scheduled Timed Polling</span>
-              <span>• Wi-Fi MQTT Publisher</span>
-              <span>• Topic: health/sensors</span>
-            </div>
-          </div>
-
-          <!-- Step 3: Raspberry Pi 5 Gateway -->
-          <div class="pipeline-step">
-            <div>
-              <div class="pipeline-step-num">STAGE 03 / EDGE COMPUTING</div>
-              <span class="pipeline-step-badge">VALIDATION & RISK ENGINE</span>
-              <h3 class="pipeline-step-title">Raspberry Pi 5 Gateway</h3>
-              <p class="pipeline-step-desc">
-                Mosquitto broker receives MQTT messages on port 1883. The gateway validates timestamps, checks numeric ranges, stores records in SQLite with patient associations, derives composite risk scores, and manages the cloud sync outbox.
-              </p>
-            </div>
-            <div class="pipeline-step-details">
-              <span>• Mosquitto MQTT Broker (1883)</span>
-              <span>• Local SQLite Database Storage</span>
-              <span>• Rule-Based Tri-Domain Risk</span>
-              <span>• Systemd Background Daemon</span>
-            </div>
-          </div>
-
-          <!-- Step 4: Firebase Firestore -->
-          <div class="pipeline-step">
-            <div>
-              <div class="pipeline-step-num">STAGE 04 / CLOUD LAYER</div>
-              <span class="pipeline-step-badge">CLOUD FIRESTORE</span>
-              <h3 class="pipeline-step-title">Firebase Cloud Storage</h3>
-              <p class="pipeline-step-desc">
-                Stores synchronized sensor records and derived risk classifications in the <code>patient_readings</code> collection. Enables remote access from any location without opening local Pi ports.
-              </p>
-            </div>
-            <div class="pipeline-step-details">
-              <span>• Collection: patient_readings</span>
-              <span>• Timestamp & Patient ID Index</span>
-              <span>• Outbox Retry Queue Sync</span>
-              <span>• Secure Remote Accessibility</span>
-            </div>
-          </div>
-
-          <!-- Step 5: Web Dashboard & PWA -->
-          <div class="pipeline-step">
-            <div>
-              <div class="pipeline-step-num">STAGE 05 / CLIENT ACCESS</div>
-              <span class="pipeline-step-badge">PROGRESSIVE WEB APP</span>
-              <h3 class="pipeline-step-title">Web Dashboard (PWA)</h3>
-              <p class="pipeline-step-desc">
-                Displays live real-time vitals, Lead-I ECG strip diagnostics, historical telemetry tables, dynamic baseline calibration, and alarm indicators to authorized caregivers and clinicians.
-              </p>
-            </div>
-            <div class="pipeline-step-details">
-              <span>• Realtime onSnapshot Streaming</span>
-              <span>• Mobile PWA Touch Optimized</span>
-              <span>• Multi-Patient Profile Switching</span>
-              <span>• Offline App Shell Resilience</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 2: What Each Sensor Does ═══════════════════════════════════ -->
-    <section class="section-wrapper" id="sensors">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 2: SENSOR TRANSDUCERS</span>
-          <h2 class="section-title">What Each Sensor Does</h2>
-          <p class="section-desc">
-            Accurate physiological tracking requires matched biometric and environmental transducers. Here is what each sensor measures, its daily-life benefit, and verified prototype status.
-          </p>
-        </div>
-
-        <div class="sensors-grid">
-          
-          <!-- Sensor 1: AD8232 ECG -->
-          <div class="sensor-card">
-            <div>
-              <div class="sensor-top">
-                <span class="sensor-badge">CARDIAC ELECTROPHYSIOLOGY</span>
-                <span class="sensor-protocol">PLANNED HARDWARE</span>
-              </div>
-              <h3 class="sensor-name">AD8232 ECG Module</h3>
-              <div class="sensor-metric-tag">Heart Rate (BPM) & Electrical Activity</div>
-              <p class="sensor-desc">
-                Measures the electrical activity of the heart to evaluate cardiac rhythm and calculate heart rate (beats per minute).
-              </p>
-              <div class="sensor-benefit-box">
-                <strong>Daily-life benefit:</strong> Tracks heart-rate trends during rest and activity. ECG waveforms support further rhythm analysis when electrodes are properly attached.
-              </div>
-            </div>
-            <div class="sensor-specs">
-              <div class="spec-item">
-                <span class="spec-label">Signal</span>
-                <span class="spec-val">P-Q-R-S-T wave</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">CMRR</span>
-                <span class="spec-val">80 dB</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Status</span>
-                <span class="spec-val" style="color: #f59e0b;">Firmware Active</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sensor 2: MAX30102 SpO2 -->
-          <div class="sensor-card">
-            <div>
-              <div class="sensor-top">
-                <span class="sensor-badge">PULSE OXIMETRY</span>
-                <span class="sensor-protocol">I2C BUS (0x57)</span>
-              </div>
-              <h3 class="sensor-name">MAX30102 Sensor</h3>
-              <div class="sensor-metric-tag">Blood Oxygen Saturation (SpO₂)</div>
-              <p class="sensor-desc">
-                Estimates the percentage of oxygen saturation in the blood using optical dual-wavelength absorption of red and infrared light.
-              </p>
-              <div class="sensor-benefit-box">
-                <strong>Daily-life benefit:</strong> Helps monitor oxygen-saturation trends and identify readings that may warrant clinical attention. Sensitive to movement, placement, and circulation.
-              </div>
-            </div>
-            <div class="sensor-specs">
-              <div class="spec-item">
-                <span class="spec-label">Range</span>
-                <span class="spec-val">SpO₂ 50–100%</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Sampling</span>
-                <span class="spec-val">Up to 400 Hz</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Status</span>
-                <span class="spec-val" style="color: #4ade80;">Verified Working</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sensor 3: MLX90614 Body Temp -->
-          <div class="sensor-card">
-            <div>
-              <div class="sensor-top">
-                <span class="sensor-badge">THERMOMETRY</span>
-                <span class="sensor-protocol">I2C BUS</span>
-              </div>
-              <h3 class="sensor-name">MLX90614 Sensor</h3>
-              <div class="sensor-metric-tag">Infrared Non-Contact Body Temp</div>
-              <p class="sensor-desc">
-                Measures surface physiological temperature without requiring direct adhesive skin contact using infrared thermopile sensing.
-              </p>
-              <div class="sensor-benefit-box">
-                <strong>Daily-life benefit:</strong> Helps track temperature changes and febrile trends, though non-contact readings are sensitive to distance and surroundings.
-              </div>
-            </div>
-            <div class="sensor-specs">
-              <div class="spec-item">
-                <span class="spec-label">Accuracy</span>
-                <span class="spec-val">±0.2 °C</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Resolution</span>
-                <span class="spec-val">0.02 °C</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Status</span>
-                <span class="spec-val" style="color: #4ade80;">Calibrated</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sensor 4: DHT22 Environmental -->
-          <div class="sensor-card">
-            <div>
-              <div class="sensor-top">
-                <span class="sensor-badge">ENVIRONMENTAL CONTEXT</span>
-                <span class="sensor-protocol">1-WIRE BUS</span>
-              </div>
-              <h3 class="sensor-name">DHT22 (AM2302)</h3>
-              <div class="sensor-metric-tag">Room Temperature & Humidity</div>
-              <p class="sensor-desc">
-                Measures ambient temperature and relative humidity to provide environmental context alongside physiological data.
-              </p>
-              <div class="sensor-benefit-box">
-                <strong>Daily-life benefit:</strong> Identifies hot, humid conditions and environmental heat strain, especially valuable for older adults and heat-vulnerable individuals.
-              </div>
-            </div>
-            <div class="sensor-specs">
-              <div class="spec-item">
-                <span class="spec-label">Humidity</span>
-                <span class="spec-val">0–100% RH</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Temp Range</span>
-                <span class="spec-val">-40 to 80 °C</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Status</span>
-                <span class="spec-val" style="color: #4ade80;">Active</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sensor 5: Blood Pressure (UART) -->
-          <div class="sensor-card">
-            <div>
-              <div class="sensor-top">
-                <span class="sensor-badge">HEMODYNAMICS</span>
-                <span class="sensor-protocol">UART SERIAL</span>
-              </div>
-              <h3 class="sensor-name">Blood Pressure Module</h3>
-              <div class="sensor-metric-tag">Systolic & Diastolic Pressure (mmHg)</div>
-              <p class="sensor-desc">
-                UART-connected blood-pressure monitor intended to capture arterial pressure during periodic timed calibration intervals.
-              </p>
-              <div class="sensor-benefit-box">
-                <strong>Daily-life benefit:</strong> Records blood pressure measurements over time for people with hypertension, once the cuff device is fully integrated.
-              </div>
-            </div>
-            <div class="sensor-specs">
-              <div class="spec-item">
-                <span class="spec-label">Protocol</span>
-                <span class="spec-val">UART 115200</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Cuff Cycle</span>
-                <span class="spec-val">Timed Interval</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Status</span>
-                <span class="spec-val" style="color: #f59e0b;">OFF / In-Dev</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Architecture Note: Timed Sensing vs Continuous -->
-          <div class="sensor-card sensor-card-dashed">
-            <div>
-              <div class="sensor-top">
-                <span class="sensor-badge">ENGINEERING PRINCIPLE</span>
-                <span class="sensor-protocol">ENERGY BUDGET</span>
-              </div>
-              <h3 class="sensor-name">Timed Sensing Cycles</h3>
-              <div class="sensor-metric-tag">Preserving Wearable Battery Life</div>
-              <p class="sensor-desc">
-                A wearable does not necessarily measure every vital continuously. In our prototype, readings are collected in a timed cycle to balance battery longevity and physiological monitoring frequency.
-              </p>
-              <div class="sensor-benefit-box">
-                <strong>Honest prototype state:</strong> ECG electrodes currently report detached when disconnected; sensors undergo periodic polling rather than ICU-style high-drain streams.
-              </div>
-            </div>
-            <div class="sensor-specs">
-              <div class="spec-item">
-                <span class="spec-label">Cycle</span>
-                <span class="spec-val">Timed Slot</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Transport</span>
-                <span class="spec-val">MQTT JSON</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">Validation</span>
-                <span class="spec-val" style="color: #4ade80;">Edge Gateway</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 3 & 4: What We Did with ESP32 & Raspberry Pi 5 ════════════ -->
-    <section class="section-wrapper" id="edge-system">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// SECTION 3 & 4: EMBEDDED & EDGE ENGINEERING</span>
-          <h2 class="section-title">What We Built on the ESP32 & Raspberry Pi 5</h2>
-          <p class="section-desc">
-            How our firmware and edge gateway turn raw electrical signals into validated, synchronized clinical records.
-          </p>
-        </div>
-
-        <div class="about-grid">
-          <!-- ESP32 Achievements -->
-          <div class="about-card">
-            <div class="about-card-number">01 / WEARABLE CONTROLLER</div>
-            <h3 class="about-card-title">What We Have Done with the ESP32</h3>
-            <p class="about-card-text">
-              The ESP32 is the wearable's data-collection and communication controller between the sensors and the Raspberry Pi:
-            </p>
-            <ul style="list-style: none; padding: 0; margin: 1rem 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-              <li>• <strong>Reads sensors</strong> in timed slots to conserve battery.</li>
-              <li>• <strong>Consolidates readings</strong> into a standardized JSON packet.</li>
-              <li>• <strong>NTP Clock Synchronization:</strong> Fixed the <code>timestamp: 0</code> issue; now publishes valid Unix timestamps so the gateway accepts all readings.</li>
-              <li>• <strong>Connects over Wi-Fi MQTT:</strong> Publishes to <code>health/sensors</code> with verified successful transmission.</li>
-            </ul>
-
-            <!-- JSON Protocol Box -->
-            <div class="code-box-wrapper" style="margin-top: 1.25rem;">
-              <div class="code-box-header">
-                <span>MQTT PAYLOAD • health/sensors</span>
-                <span class="table-pill green">VERIFIED FORMAT</span>
-              </div>
-              <div class="code-box-body">
-                <pre><code>{
-  <span class="code-json-key">"device_id"</span>: <span class="code-json-str">"patient_01"</span>,
-  <span class="code-json-key">"timestamp"</span>: <span class="code-json-num">1792414171</span>,
-  <span class="code-json-key">"heart_rate"</span>: <span class="code-json-num">75</span>,
-  <span class="code-json-key">"spo2"</span>: <span class="code-json-num">97</span>,
-  <span class="code-json-key">"body_temperature"</span>: <span class="code-json-num">36.5</span>,
-  <span class="code-json-key">"room_temperature"</span>: <span class="code-json-num">27.3</span>,
-  <span class="code-json-key">"humidity"</span>: <span class="code-json-num">52.1</span>
-}</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- Raspberry Pi 5 Achievements -->
-          <div class="about-card">
-            <div class="about-card-number">02 / EDGE INTELLIGENCE GATEWAY</div>
-            <h3 class="about-card-title">What We Have Done with the Raspberry Pi 5</h3>
-            <p class="about-card-text">
-              The Raspberry Pi 5 acts as the local gateway and edge-computing unit—more than just a bridge to the cloud:
-            </p>
-            <ul style="list-style: none; padding: 0; margin: 1rem 0; display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.9rem; color: var(--text-secondary);">
-              <li>• <strong>MQTT Broker (Mosquitto):</strong> Receives sensor packets on port 1883 and subscribes to <code>health/sensors</code>.</li>
-              <li>• <strong>Validation & Plausibility:</strong> Validates timestamps, numeric types, and physiological limits before recording.</li>
-              <li>• <strong>Local SQLite Database:</strong> Stores historical readings and patient profiles (Patient 1 and Patient 2) completely offline.</li>
-              <li>• <strong>Rule-Based Risk Processing:</strong> Derives vital strain, heat stress, and respiratory risk indicators with recommendations.</li>
-              <li>• <strong>Background Cloud Sync:</strong> Outbox queue uploads eligible patient records to Firebase Firestore with automatic retries.</li>
-              <li>• <strong>Systemd Auto-Start Daemon:</strong> Configured as an enabled system service that boots automatically on power-up.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section: Platform & Deployment Insights (Editorial Accordion) ══════ -->
-    <section class="section-wrapper" id="insights">
-      <div class="container">
-        <div class="editorial-header">
-          <h2 class="editorial-title">DEPLOYMENT INSIGHTS</h2>
-          <p class="editorial-desc">
-            Bridging edge embedded engineering and everyday clinical care. Here is how Jeev One transitions from hardware prototype to real-world impact.
-          </p>
-        </div>
-
-        <div class="editorial-accordion" id="platform-accordion">
-          
-          <!-- Item 01: WHO WILL USE -->
-          <div class="editorial-item" id="target-patients" data-accordion="0">
-            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-who-will-use">
-              <div class="editorial-trigger-left">
-                <span class="editorial-num">01</span>
-                <span class="editorial-item-title">WHO WILL USE</span>
-              </div>
-              <div class="editorial-trigger-right">
-                <span class="editorial-icon">+</span>
-              </div>
-            </button>
-            <div class="editorial-panel" id="panel-who-will-use">
-              <div class="editorial-panel-inner">
-                <div class="editorial-panel-content">
-                  <div class="editorial-block">
-                    <span class="editorial-block-tag green">PRIMARY DEPLOYMENT FOCUS</span>
-                    <h4 class="editorial-block-title">Older Adults & Independent Living</h4>
-                    <p class="editorial-block-text">
-                      Strongest initial fit. Designed for older adults living alone or in assisted living facilities. Collects selected vital signs (heart rate, SpO₂, body temperature, and ambient heat index) continuously during everyday routines, retaining a private history and providing remote visibility to family members and caregivers without requiring frequent clinic visits.
-                    </p>
-                  </div>
-                  <div class="editorial-block">
-                    <span class="editorial-block-tag blue">CLINICIAN-GUIDED EXPANSION</span>
-                    <h4 class="editorial-block-title">Chronic Conditions & Post-Op Recovery</h4>
-                    <p class="editorial-block-text">
-                      Suitable under physician direction for patients with hypertension (once cuff hardware is validated), chronic respiratory conditions requiring longitudinal SpO₂ monitoring, or patients convalescing at home under a structured care plan.
-                    </p>
-                  </div>
-                  <div class="editorial-block caution">
-                    <span class="editorial-block-tag red">CLEAR CLINICAL BOUNDARIES</span>
-                    <h4 class="editorial-block-title">Who It Is NOT Built For</h4>
-                    <p class="editorial-block-text">
-                      Jeev One is a monitoring-support platform, not certified ICU hardware. It should never be used for continuous life-critical emergency alerts or as a replacement for emergency medical care.
-                    </p>
-                  </div>
-                </div>
-                <div class="editorial-tags-side">
-                  <span class="editorial-chip">OLDER ADULTS</span>
-                  <span class="editorial-chip">INDEPENDENT LIVING</span>
-                  <span class="editorial-chip">REMOTE CAREGIVERS</span>
-                  <span class="editorial-chip">CHRONIC CARE</span>
-                  <span class="editorial-chip">POST-OP RECOVERY</span>
-                  <span class="editorial-chip">NOT ICU ALERT</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 02: HOW WILL USE -->
-          <div class="editorial-item" id="use-cases" data-accordion="1">
-            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-how-will-use">
-              <div class="editorial-trigger-left">
-                <span class="editorial-num">02</span>
-                <span class="editorial-item-title">HOW WILL USE</span>
-              </div>
-              <div class="editorial-trigger-right">
-                <span class="editorial-icon">+</span>
-              </div>
-            </button>
-            <div class="editorial-panel" id="panel-how-will-use">
-              <div class="editorial-panel-inner">
-                <div class="editorial-panel-content">
-                  <div class="workflow-card-grid">
-                    <div class="workflow-mini-card">
-                      <div class="mini-step-num">STEP 01 // WEARABLE SENSING</div>
-                      <h4 class="mini-step-title">Passive Everyday Monitoring</h4>
-                      <p class="mini-step-text">
-                        The patient wears the unobtrusive ESP32 module. Sensors sample ECG rhythms, pulse oximetry, infrared core temperature, and ambient room conditions in scheduled low-power cycles without user intervention.
-                      </p>
-                    </div>
-                    <div class="workflow-mini-card">
-                      <div class="mini-step-num">STEP 02 // EDGE COMPUTING</div>
-                      <h4 class="mini-step-title">Raspberry Pi 5 Local Ingestion</h4>
-                      <p class="mini-step-text">
-                        Readings are broadcast via Wi-Fi MQTT to the local Pi 5. The edge gateway validates timestamps, logs records to local SQLite, calculates tri-domain risk heuristics, and stages sync records in an outbox.
-                      </p>
-                    </div>
-                    <div class="workflow-mini-card">
-                      <div class="mini-step-num">STEP 03 // CLOUD & PWA</div>
-                      <h4 class="mini-step-title">Remote Caregiver Oversight</h4>
-                      <p class="mini-step-text">
-                        Records sync to Cloud Firestore in real time. Authorized doctors and family members open the Progressive Web App on their phones or laptops to view live telemetry, ECG waveform traces, and longitudinal trends.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="editorial-tags-side">
-                  <span class="editorial-chip">PASSIVE SENSING</span>
-                  <span class="editorial-chip">WIFI MQTT TELEMETRY</span>
-                  <span class="editorial-chip">EDGE SQLITE LOG</span>
-                  <span class="editorial-chip">TRI-DOMAIN RISK</span>
-                  <span class="editorial-chip">FIRESTORE REAL-TIME</span>
-                  <span class="editorial-chip">MOBILE PWA</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 03: WHAT MAKES JEEV ONE USEFUL VS. BASIC WEARABLES -->
-          <div class="editorial-item" id="comparison" data-accordion="2">
-            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-comparison">
-              <div class="editorial-trigger-left">
-                <span class="editorial-num">03</span>
-                <span class="editorial-item-title">WHAT MAKES JEEV ONE USEFUL VS. BASIC WEARABLES</span>
-              </div>
-              <div class="editorial-trigger-right">
-                <span class="editorial-icon">+</span>
-              </div>
-            </button>
-            <div class="editorial-panel" id="panel-comparison">
-              <div class="editorial-panel-inner">
-                <div class="editorial-panel-content">
-                  <p class="editorial-intro-text">
-                    Basic commercial fitness wearables are closed consumer gadgets tethered to proprietary smartphones with restricted data ownership. Jeev One is an open-architecture, edge-computing health telemetry system:
-                  </p>
-                  <div class="editorial-comp-table-wrap">
-                    <table class="editorial-comp-table">
-                      <thead>
-                        <tr>
-                          <th>Capability</th>
-                          <th>Basic Commercial Wearable</th>
-                          <th class="comp-highlight">Jeev One Health Station</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td><strong>Architecture</strong></td>
-                          <td>Single sensor, battery-optimized only for steps</td>
-                          <td class="comp-highlight"><span class="table-pill green">ESP32 Multi-Sensor</span> (ECG, SpO₂, IR Temp, Ambient)</td>
-                        </tr>
-                        <tr>
-                          <td><strong>Edge Gateway</strong></td>
-                          <td>None (requires proprietary Bluetooth phone app)</td>
-                          <td class="comp-highlight"><span class="table-pill green">Raspberry Pi 5 Gateway</span> (local MQTT & range validation)</td>
-                        </tr>
-                        <tr>
-                          <td><strong>Data Ownership</strong></td>
-                          <td>Locked in proprietary vendor cloud databases</td>
-                          <td class="comp-highlight"><span class="table-pill green">Private Local SQLite</span> (complete audit trail & history)</td>
-                        </tr>
-                        <tr>
-                          <td><strong>Cloud Sync</strong></td>
-                          <td>Walled-garden proprietary API</td>
-                          <td class="comp-highlight"><span class="table-pill green">Firebase Cloud Firestore</span> (open SDK & remote access)</td>
-                        </tr>
-                        <tr>
-                          <td><strong>Profiles & Risk</strong></td>
-                          <td>Single consumer account; basic fitness calorie burn</td>
-                          <td class="comp-highlight"><span class="table-pill green">Multi-Patient Profiles</span> + Tri-Domain Clinical Risk</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="editorial-tags-side">
-                  <span class="editorial-chip">OPEN ARCHITECTURE</span>
-                  <span class="editorial-chip">LOCAL SQLITE DATA</span>
-                  <span class="editorial-chip">RASPBERRY PI 5</span>
-                  <span class="editorial-chip">FIRESTORE SYNC</span>
-                  <span class="editorial-chip">MULTI-PATIENT</span>
-                  <span class="editorial-chip">TRI-DOMAIN RISK</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item 04: WHAT NEEDS TO BE COMPLETED BEFORE REAL-WORLD DEPLOYMENT -->
-          <div class="editorial-item" id="roadmap" data-accordion="3">
-            <button class="editorial-trigger" type="button" aria-expanded="false" aria-controls="panel-roadmap">
-              <div class="editorial-trigger-left">
-                <span class="editorial-num">04</span>
-                <span class="editorial-item-title">WHAT NEEDS TO BE COMPLETED BEFORE REAL-WORLD DEPLOYMENT</span>
-              </div>
-              <div class="editorial-trigger-right">
-                <span class="editorial-icon">+</span>
-              </div>
-            </button>
-            <div class="editorial-panel" id="panel-roadmap">
-              <div class="editorial-panel-inner">
-                <div class="editorial-panel-content">
-                  <div class="editorial-milestones-grid">
-                    <div class="milestone-col">
-                      <div class="milestone-status-header green-status">
-                        <span class="status-dot green-dot"></span>
-                        <strong>Completed & Verified Pipeline</strong>
-                      </div>
-                      <ul class="milestone-list">
-                        <li><strong>ESP32 NTP Timestamps:</strong> Fixed timestamp 0 issue; firmware synchronizes via NTP and publishes valid Unix timestamps.</li>
-                        <li><strong>Raspberry Pi MQTT Broker:</strong> Local Mosquitto on port 1883 actively receives and validates sensor packets.</li>
-                        <li><strong>Cloud Firestore Sync:</strong> Outbox retry queue uploads patient records to <code>patient_readings</code> collection.</li>
-                        <li><strong>PWA Web Dashboard:</strong> Real-time onSnapshot streaming, Lead-I ECG strip monitor, and mobile touch interface.</li>
-                      </ul>
-                    </div>
-                    <div class="milestone-col">
-                      <div class="milestone-status-header amber-status">
-                        <span class="status-dot amber-dot"></span>
-                        <strong>Required Before Clinical Pilot</strong>
-                      </div>
-                      <ul class="milestone-list">
-                        <li><strong>Reference Instrument Calibration:</strong> Benchmarking physical sensor accuracy against certified medical instruments.</li>
-                        <li><strong>Electrode Attachment & Motion Artifacts:</strong> Refining wearable ECG electrode placement and movement filtering algorithms.</li>
-                        <li><strong>Hardware Blood Pressure Integration:</strong> Integrating the UART cuff module for timed blood pressure capture.</li>
-                        <li><strong>Offline Endurance Testing:</strong> Stress-testing disconnected operations and high-volume local SQLite recovery.</li>
-                        <li><strong>Granular Security Rules:</strong> Hardening Firestore per-patient access control prior to patient trials.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <div class="editorial-tags-side">
-                  <span class="editorial-chip">REFERENCE CALIBRATION</span>
-                  <span class="editorial-chip">MOTION ARTIFACT FILTER</span>
-                  <span class="editorial-chip">BP CUFF INTEGRATION</span>
-                  <span class="editorial-chip">OFFLINE STRESS TEST</span>
-                  <span class="editorial-chip">SECURITY HARDENING</span>
-                  <span class="editorial-chip">CLINICAL PROTOCOL</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ Section 10: Demo Video Showcase ═══════════════════════════════════ -->
-    <section class="section-wrapper" id="video">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// PROTOTYPE DEMONSTRATION</span>
-          <h2 class="section-title">See Jeev One in Action</h2>
-          <p class="section-desc">
-            Watch the live hardware deployment walkthrough demonstrating real-time biometric acquisition, edge risk calculation, and fail-safe operation.
-          </p>
-        </div>
-
-        <div class="video-container">
-          <div class="video-player-wrapper" id="video-player-wrapper">
-            <iframe 
-              id="demo-video-iframe" 
-              class="demo-video-iframe"
-              src="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/preview" 
-              allow="autoplay; encrypted-media; fullscreen" 
-              allowfullscreen
-              loading="lazy"
-              title="Jeev One Prototype Demonstration Video"
-            ></iframe>
-          </div>
-
-          <div class="video-meta-bar">
-            <span>FORMAT: 1080P 60FPS</span>
-            <span>TOPIC: SENSOR TELEMETRY & EDGE RISK ENGINE</span>
-            <div class="video-meta-actions">
-              <a href="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="drive-source-link">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                <span>Google Drive Link</span>
+            <div class="hero-cta-wrap">
+              <a href="/dashboard" class="btn-pill-dark hero-main-btn">
+                <span>Start your own journey</span>
               </a>
             </div>
           </div>
@@ -914,131 +115,1112 @@
       </div>
     </section>
 
-    <!-- ══ Section 11: Hardware & Schematics Gallery ═════════════════════════ -->
-    <section class="section-wrapper" id="gallery">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">// HARDWARE & SCHEMATICS GALLERY</span>
-          <h2 class="section-title">Physical Artifacts & Schematics</h2>
-          <p class="section-desc">
-            Explore the physical benchtop validation unit, real-world wearable arm deployment, and complete electronic circuit wiring diagram.
-          </p>
+    <!-- ══ About Section (Warm Editorial Magazine Layout) ═══════════════════ -->
+    <section class="about-editorial-section" id="about">
+      <div class="section-container">
+        
+        <!-- 1. Left-Aligned Uppercase Editorial Title -->
+        <h2 class="about-display-title">ABOUT JEEV_ONE</h2>
+
+        <!-- 2. Wide Rounded Lifestyle Photography Placeholder -->
+        <div class="about-banner-placeholder" role="img" aria-label="Lifestyle photography placeholder showcasing everyday living and human wellness">
+          <!-- Replace with your lifestyle photo: <img src="/static/images/your-life-banner.jpg" alt="Everyday human vitality" /> -->
+          <div class="placeholder-inner">
+            <div class="placeholder-icon-wrap" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+            <span class="placeholder-eyebrow">LIFESTYLE BANNER PLACEHOLDER</span>
+            <p class="placeholder-caption">Space reserved for everyday life, family wellness, and calm independent living photography.</p>
+          </div>
         </div>
 
-        <div class="gallery-grid">
-          <!-- Gallery Item 1: Benchtop Assembly -->
-          <div class="gallery-card" data-full="/static/images/prototype1.webp" data-title="Jeev One Benchtop Validation Assembly" data-desc="Dual-processor edge assembly connecting the ESP32 biometric acquisition node with the Raspberry Pi 5 telemetry host, active cooling stack, and breadboard sensor array." tabindex="0" role="button" aria-label="View Benchtop Validation Assembly">
-            <div class="gallery-img-wrap">
-              <img src="/static/images/prototype1.webp" alt="Jeev One Benchtop Validation Assembly" loading="lazy">
-              <div class="gallery-zoom-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                <span>Expand</span>
+        <!-- 3. Asymmetric Split Editorial Lead Row -->
+        <div class="about-intro-split">
+          <div class="about-intro-left">
+            <p class="about-lead-statement">
+              JEEV_ONE was created with a clear purpose: to make continuous health monitoring comfortable, seamless, and deeply reliable.
+            </p>
+          </div>
+          <div class="about-intro-right">
+            <p class="about-side-note">
+              Combining wearable physiological sensing with local edge computing, our team is driven by a passion for everyday human care and true data sovereignty.
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. Calm 3-Column Editorial Grid -->
+        <div class="about-editorial-grid">
+          
+          <!-- Row 1, Col 1 -->
+          <div class="about-col">
+            <span class="editorial-micro-heading">What we do?</span>
+            <p class="editorial-feature-statement">
+              We provide continuous vital intelligence with a personal, offline-first touch.
+            </p>
+          </div>
+
+          <!-- Row 1, Col 2 -->
+          <div class="about-col">
+            <span class="editorial-micro-heading">Our Sensors</span>
+            <p class="editorial-muted-para">
+              Our wearable sensing stack captures multi-parameter biometrics including Lead-I electrical ECG via AD8232, optical SpO₂ via MAX30102, and non-contact core temperature via MLX90614 — calibrated for effortless daily wear.
+            </p>
+            <p class="editorial-muted-para">
+              To make monitoring even more meaningful, ambient room temperature and humidity via DHT22 combine with periodic UART blood pressure intervals so caregivers gain complete environmental and physiological context.
+            </p>
+          </div>
+
+          <!-- Row 1, Col 3: Secondary Lifestyle Placeholder -->
+          <div class="about-col about-col-media">
+            <div class="about-inline-placeholder" role="img" aria-label="Everyday wellness placeholder image">
+              <!-- Replace with lifestyle image: <img src="/static/images/your-life-card.jpg" alt="Daily care and comfort" /> -->
+              <div class="placeholder-inner compact">
+                <span class="placeholder-eyebrow">LIFE &amp; WELLNESS</span>
+                <p class="placeholder-caption">Lifestyle photo placeholder</p>
               </div>
-            </div>
-            <div class="gallery-content">
-              <div class="gallery-meta-top">
-                <span class="gallery-tag">BENCHTOP VALIDATION</span>
-                <span class="gallery-id">FIG. 01</span>
-              </div>
-              <h3 class="gallery-item-title">Benchtop Validation Assembly</h3>
-              <p class="gallery-item-desc">
-                Interconnects the ESP32 sensor multiplexer, MLX90614 infrared transducer, DHT22 environmental sensor, TTL blood pressure interface, and Raspberry Pi 5 edge server.
-              </p>
             </div>
           </div>
 
-          <!-- Gallery Item 2: Wearable Arm Deployment -->
-          <div class="gallery-card" data-full="/static/images/prototype3.webp" data-title="Jeev One Wearable Field Demo" data-desc="Forearm-mounted working prototype demonstrating concurrent acquisition of blood pressure, SpO2, heart rate, skin temperature, and environmental heat strain." tabindex="0" role="button" aria-label="View Wearable Arm Integration">
-            <div class="gallery-img-wrap">
-              <img src="/static/images/prototype3.webp" alt="Jeev One Wearable Field Prototype" loading="lazy">
-              <div class="gallery-zoom-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                <span>Expand</span>
-              </div>
-            </div>
-            <div class="gallery-content">
-              <div class="gallery-meta-top">
-                <span class="gallery-tag">WORKING DEMO</span>
-                <span class="gallery-id">FIG. 02</span>
-              </div>
-              <h3 class="gallery-item-title">Wearable Arm Integration</h3>
-              <p class="gallery-item-desc">
-                Live working demonstration attached to human subject showing forearm sensor band, MAX30102 optical PPG probe, MLX90614 core temp transducer, and wrist BP cuff.
-              </p>
-            </div>
+          <!-- Row 2, Col 1: Intentional Editorial Whitespace -->
+          <div class="about-col about-col-spacer" aria-hidden="true"></div>
+
+          <!-- Row 2, Col 2 -->
+          <div class="about-col">
+            <span class="editorial-micro-heading">Accessibility &amp; Privacy</span>
+            <p class="editorial-strong-para">
+              At JEEV_ONE, autonomy and privacy are at the heart of what we do. We believe health awareness should be effortless and dignified for everyone.
+            </p>
+            <p class="editorial-muted-para">
+              Built especially for older adults living independently and post-operative recovery, every measurement is validated locally on the Raspberry Pi 5 and preserved in private SQLite WAL storage without cloud dependency.
+            </p>
           </div>
 
-          <!-- Gallery Item 3: Circuit Diagram -->
-          <div class="gallery-card" data-full="/static/images/circuit_diagram.webp?v=3" data-title="Jeev One Full Circuit & Schematic Diagram" data-desc="Complete electronic inter-component schematic depicting I2C, UART, 1-Wire, and GPIO signal routing to ESP-32, AD8232 ECG sensor, and Raspberry Pi 5 with 3.5-inch touch LCD." tabindex="0" role="button" aria-label="View System Circuit Wiring Diagram">
-            <div class="gallery-img-wrap gallery-img-schematic">
-              <img src="/static/images/circuit_diagram.webp?v=3" alt="Jeev One Circuit Wiring Diagram" loading="lazy">
-              <div class="gallery-zoom-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                <span>Expand</span>
+          <!-- Row 2, Col 3 -->
+          <div class="about-col">
+            <span class="editorial-micro-heading">Our Edge Intelligence</span>
+            <p class="editorial-muted-para">
+              Our ESP32 microcontroller and Raspberry Pi 5 gateway aren’t just simple data relays — they execute deterministic tri-domain risk scoring and adaptive EMA baseline calibration in real time.
+            </p>
+            <p class="editorial-muted-para">
+              Whether connected across a home network or running in disconnected environments, vital trends stay accurate, auditable, and reassuring for families and clinicians alike.
+            </p>
+            <a href="#architecture" class="editorial-cta-link">EXPLORE ARCHITECTURE ↗</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Warm Sand Transition & Key Numbers Band ════════════════════════════ -->
+    <section class="warm-sand-band">
+      <div class="section-container">
+        <div class="warm-band-header">
+          <span class="warm-band-eyebrow">• WITH JEEV_ONE •</span>
+          <h3 class="warm-band-statement">
+            We make everyday health monitoring a harmonious blend of precision and privacy. Explore our edge intelligence or start tracking live vitals now!
+          </h3>
+          <a href="/dashboard" class="editorial-cta-link center">LAUNCH LIVE DASHBOARD ↗</a>
+        </div>
+
+        <div class="facts-grid">
+          <div class="fact-col">
+            <div class="fact-num">12 000+</div>
+            <div class="fact-caption">Hours of telemetry logged</div>
+          </div>
+          <div class="fact-col">
+            <div class="fact-num">89%</div>
+            <div class="fact-caption">Anomaly Early Detection Rate</div>
+          </div>
+          <div class="fact-col">
+            <div class="fact-num">1,200+</div>
+            <div class="fact-caption">Active Monitored Vitals</div>
+          </div>
+          <div class="fact-col">
+            <div class="fact-num">125+</div>
+            <div class="fact-caption">Validation Bench Tests</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Services & Capabilities Section (Warm Alabaster #eeece0) ═════════ -->
+    <section class="capabilities-section" id="capabilities">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">Services &amp; Capabilities</span>
+            <h2 class="editorial-display-heading">SYSTEM CAPABILITIES</h2>
+          </div>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              Explore our full range of autonomous vital telemetry, clinical ECG analysis, and deterministic edge risk fusion — engineered for continuous bedside stability and effortless everyday living.
+            </p>
+          </div>
+        </div>
+
+        <div class="services-editorial-grid">
+          <!-- Left Column: Numbered Interactive Selector -->
+          <div class="services-index-list" role="tablist" aria-label="JEEV_ONE System Capabilities">
+            <button
+              type="button"
+              class="service-index-item active"
+              id="service-tab-0"
+              role="tab"
+              aria-selected="true"
+              aria-controls="service-pane-0"
+              data-service-index="0"
+            >
+              <div class="service-item-meta">
+                <span class="service-num">01</span>
+                <span class="service-cat">BIOMETRIC TELEMETRY</span>
+              </div>
+              <div class="service-item-body">
+                <h3 class="service-item-title">Continuous Vital Telemetry</h3>
+                <p class="service-item-brief">Multi-parameter Heart Rate, SpO₂, Core Temperature &amp; Blood Pressure tracking.</p>
+              </div>
+              <span class="service-item-arrow" aria-hidden="true">↗</span>
+            </button>
+
+            <button
+              type="button"
+              class="service-index-item"
+              id="service-tab-1"
+              role="tab"
+              aria-selected="false"
+              aria-controls="service-pane-1"
+              data-service-index="1"
+            >
+              <div class="service-item-meta">
+                <span class="service-num">02</span>
+                <span class="service-cat">ELECTROPHYSIOLOGY</span>
+              </div>
+              <div class="service-item-body">
+                <h3 class="service-item-title">Level 1 ECG Diagnostics</h3>
+                <p class="service-item-brief">250 SPS Lead-I electrical waveform, morphological intervals &amp; rhythm screening.</p>
+              </div>
+              <span class="service-item-arrow" aria-hidden="true">↗</span>
+            </button>
+
+            <button
+              type="button"
+              class="service-index-item"
+              id="service-tab-2"
+              role="tab"
+              aria-selected="false"
+              aria-controls="service-pane-2"
+              data-service-index="2"
+            >
+              <div class="service-item-meta">
+                <span class="service-num">03</span>
+                <span class="service-cat">RISK INTELLIGENCE</span>
+              </div>
+              <div class="service-item-body">
+                <h3 class="service-item-title">Deterministic Edge Risk Fusion</h3>
+                <p class="service-item-brief">Local Vital, Thermal, and Respiratory strain scoring with adaptive EMA baselines.</p>
+              </div>
+              <span class="service-item-arrow" aria-hidden="true">↗</span>
+            </button>
+
+            <button
+              type="button"
+              class="service-index-item"
+              id="service-tab-3"
+              role="tab"
+              aria-selected="false"
+              aria-controls="service-pane-3"
+              data-service-index="3"
+            >
+              <div class="service-item-meta">
+                <span class="service-num">04</span>
+                <span class="service-cat">EDGE SOVEREIGNTY</span>
+              </div>
+              <div class="service-item-body">
+                <h3 class="service-item-title">Zero-Cloud Offline Resilience</h3>
+                <p class="service-item-brief">Local Mosquitto MQTT + SQLite WAL persistence built for air-gapped deployment.</p>
+              </div>
+              <span class="service-item-arrow" aria-hidden="true">↗</span>
+            </button>
+          </div>
+
+          <!-- Right Column: Elevated Warm Ivory Preview Panel -->
+          <div class="service-preview-panel">
+            <!-- Pane 0: Continuous Vital Telemetry -->
+            <div class="service-pane active" id="service-pane-0" role="tabpanel" aria-labelledby="service-tab-0">
+              <div class="service-pane-top">
+                <span class="service-pane-badge">01 // BIOMETRIC TELEMETRY</span>
+                <span class="service-pane-tag">5 Synchronized Domains</span>
+              </div>
+              <h3 class="service-pane-title">Multi-Parameter Surveillance Without Daily Friction</h3>
+              <p class="service-pane-desc">
+                Captures physiological and ambient vitals seamlessly inside a single wearable node — combining cardiac pulse rate, optical blood oxygen, infrared skin temperature, ambient heat strain, and scheduled cuff pressure.
+              </p>
+
+              <div class="service-metric-strip">
+                <div class="service-metric-cell">
+                  <span class="metric-label">Vital Channels</span>
+                  <strong class="metric-val">HR · SpO₂ · Temp · BP</strong>
+                </div>
+                <div class="service-metric-cell">
+                  <span class="metric-label">Bounds Filter</span>
+                  <strong class="metric-val">Plausibility Checked</strong>
+                </div>
+                <div class="service-metric-cell">
+                  <span class="metric-label">Client Refresh</span>
+                  <strong class="metric-val">&lt; 10 ms Local SSE</strong>
+                </div>
+              </div>
+
+              <ul class="service-highlights">
+                <li>Cross-checks wearable readings against anatomical ranges before logging so transient sensor noise never triggers false alarms.</li>
+                <li>Pairs internal body temperature with room humidity to distinguish true fever spikes from warm environmental conditions.</li>
+                <li>Streams structured JSON frames over Wi-Fi directly into live clinical dials and longitudinal history charts.</li>
+              </ul>
+
+              <div class="service-pane-footer">
+                <div class="service-chip-row">
+                  <span class="service-chip">Heart Rate (BPM)</span>
+                  <span class="service-chip">Optical SpO₂</span>
+                  <span class="service-chip">IR Thermometry</span>
+                </div>
+                <div class="service-action-links">
+                  <a href="#sensors" class="editorial-cta-link">INSPECT SENSORS ↗</a>
+                  <a href="/dashboard" class="editorial-cta-link">OPEN LIVE DASHBOARD ↗</a>
+                </div>
               </div>
             </div>
-            <div class="gallery-content">
-              <div class="gallery-meta-top">
-                <span class="gallery-tag">ELECTRONIC SCHEMATIC</span>
-                <span class="gallery-id">FIG. 03</span>
+
+            <!-- Pane 1: Level 1 ECG Diagnostics -->
+            <div class="service-pane" id="service-pane-1" role="tabpanel" aria-labelledby="service-tab-1" hidden>
+              <div class="service-pane-top">
+                <span class="service-pane-badge">02 // ELECTROPHYSIOLOGY</span>
+                <span class="service-pane-tag">250 SPS Lead-I Capture</span>
               </div>
-              <h3 class="gallery-item-title">System Circuit Wiring Diagram</h3>
-              <p class="gallery-item-desc">
-                Full engineering schematic specifying pin assignments, I2C pull-up architecture, UART RX/TX serial lines, 5V power rails, and 3.5" TFT display pinout.
+              <h3 class="service-pane-title">Clinical Lead-I Rhythm &amp; Morphological Analysis</h3>
+              <p class="service-pane-desc">
+                Samples raw bio-potential voltages via the AD8232 analog front-end at 250 samples per second — enabling beat-to-beat R-peak detection, interval geometry inspection, and arrhythmic irregularity screening.
               </p>
+
+              <div class="service-ecg-visual" aria-label="Decorative Lead-I P-Q-R-S-T electrocardiogram waveform illustration">
+                <div class="ecg-visual-meta">
+                  <span>LEAD I · 250 SPS REFERENCE MORPHOLOGY</span>
+                  <span class="ecg-visual-live">PR · QRS · QTc</span>
+                </div>
+                <svg class="ecg-svg-trace" viewBox="0 0 640 96" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <pattern id="ecg-warm-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(38, 44, 29, 0.08)" stroke-width="1" />
+                    </pattern>
+                  </defs>
+                  <rect width="640" height="96" fill="url(#ecg-warm-grid)" rx="8" />
+                  <path
+                    d="M 0,58 L 42,58 C 48,58 51,49 58,49 C 65,49 68,58 74,58 L 90,58 L 95,64 L 103,14 L 111,76 L 118,58 L 136,58 C 145,58 152,41 163,41 C 174,41 181,58 190,58 L 242,58 C 248,58 251,49 258,49 C 265,49 268,58 274,58 L 290,58 L 295,64 L 303,14 L 311,76 L 318,58 L 336,58 C 345,58 352,41 363,41 C 374,41 381,58 390,58 L 442,58 C 448,58 451,49 458,49 C 465,49 468,58 474,58 L 490,58 L 495,64 L 503,14 L 511,76 L 518,58 L 536,58 C 545,58 552,41 563,41 C 574,41 581,58 590,58 L 640,58"
+                    fill="none"
+                    stroke="#157835"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <ul class="service-highlights">
+                <li><strong>Morphological Intervals:</strong> Evaluates PR, QRS complex width, and corrected QTc trends locally on the Raspberry Pi 5.</li>
+                <li><strong>High Common-Mode Rejection:</strong> 80 dB CMRR front-end suppresses 50/60 Hz ambient mains hum during daily wear.</li>
+                <li><strong>Canvas Oscilloscope:</strong> Streams clean beat buffers directly to the browser canvas scope for clinician inspection.</li>
+              </ul>
+
+              <div class="service-pane-footer">
+                <div class="service-chip-row">
+                  <span class="service-chip">AD8232 Lead-I</span>
+                  <span class="service-chip">80 dB CMRR</span>
+                  <span class="service-chip">Canvas Scope</span>
+                </div>
+                <div class="service-action-links">
+                  <a href="#sensors" class="editorial-cta-link">SEE AD8232 SPECS ↗</a>
+                  <a href="/dashboard" class="editorial-cta-link">OPEN LIVE DASHBOARD ↗</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane 2: Deterministic Edge Risk Fusion -->
+            <div class="service-pane" id="service-pane-2" role="tabpanel" aria-labelledby="service-tab-2" hidden>
+              <div class="service-pane-top">
+                <span class="service-pane-badge">03 // RISK INTELLIGENCE</span>
+                <span class="service-pane-tag">Zero Black-Box AI</span>
+              </div>
+              <h3 class="service-pane-title">Explainable Tri-Domain Scoring &amp; Personal Baselines</h3>
+              <p class="service-pane-desc">
+                Replaces opaque cloud models with deterministic clinical equations. Vital, Thermal, and Respiratory risk axes combine with an adaptive Exponential Moving Average (α = 0.05) baseline calibrated to each individual.
+              </p>
+
+              <div class="service-metric-strip">
+                <div class="service-metric-cell">
+                  <span class="metric-label">Adaptive Baseline</span>
+                  <strong class="metric-val">Slow EMA (α = 0.05)</strong>
+                </div>
+                <div class="service-metric-cell">
+                  <span class="metric-label">Risk Axes</span>
+                  <strong class="metric-val">Vital · Heat · Resp</strong>
+                </div>
+                <div class="service-metric-cell">
+                  <span class="metric-label">Debounce Logic</span>
+                  <strong class="metric-val">Clinical Hysteresis</strong>
+                </div>
+              </div>
+
+              <ul class="service-highlights">
+                <li>Learns normal resting heart rate, core temperature, and SpO₂ range gradually so deviations stand out clearly.</li>
+                <li>Applies clinical hysteresis debouncing to alert state transitions, preventing brief motion artifacts from causing alarm fatigue.</li>
+                <li>Every alert leaves an explainable formula trace and timestamped severity change inside the local audit database.</li>
+              </ul>
+
+              <div class="service-pane-footer">
+                <div class="service-chip-row">
+                  <span class="service-chip">Heat Index</span>
+                  <span class="service-chip">EMA Baselines</span>
+                  <span class="service-chip">Hysteresis</span>
+                </div>
+                <div class="service-action-links">
+                  <a href="#architecture" class="editorial-cta-link">EXPLORE ARCHITECTURE ↗</a>
+                  <a href="/dashboard" class="editorial-cta-link">OPEN LIVE DASHBOARD ↗</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane 3: Zero-Cloud Offline Resilience -->
+            <div class="service-pane" id="service-pane-3" role="tabpanel" aria-labelledby="service-tab-3" hidden>
+              <div class="service-pane-top">
+                <span class="service-pane-badge">04 // EDGE SOVEREIGNTY</span>
+                <span class="service-pane-tag">100% Autonomous LAN</span>
+              </div>
+              <h3 class="service-pane-title">Private Local Persistence Built for Air-Gapped Care</h3>
+              <p class="service-pane-desc">
+                Designed from day one to keep running even when home Wi-Fi drops internet connectivity or power cycles — keeping patient histories private inside local storage under an enabled systemd service.
+              </p>
+
+              <div class="service-metric-strip">
+                <div class="service-metric-cell">
+                  <span class="metric-label">Messaging Bus</span>
+                  <strong class="metric-val">Mosquitto :1883</strong>
+                </div>
+                <div class="service-metric-cell">
+                  <span class="metric-label">Storage Engine</span>
+                  <strong class="metric-val">SQLite WAL Mode</strong>
+                </div>
+                <div class="service-metric-cell">
+                  <span class="metric-label">Clock Sync</span>
+                  <strong class="metric-val">NTP Epoch Validation</strong>
+                </div>
+              </div>
+
+              <ul class="service-highlights">
+                <li>Write-Ahead Log SQLite journaling lets simultaneous dashboard queries and ingestion writes run smoothly without lock stalls.</li>
+                <li>ESP32 NTP synchronization + Pi-side epoch guard resolves cold-boot <code>timestamp: 0</code> anomalies before records commit.</li>
+                <li>Installable Progressive Web App (PWA) serves dashboards across phones and clinic tablets purely over local Wi-Fi.</li>
+              </ul>
+
+              <div class="service-pane-footer">
+                <div class="service-chip-row">
+                  <span class="service-chip">Mosquitto MQTT</span>
+                  <span class="service-chip">SQLite WAL</span>
+                  <span class="service-chip">PWA Offline</span>
+                </div>
+                <div class="service-action-links">
+                  <a href="#edge-system" class="editorial-cta-link">INSPECT PI 5 GATEWAY ↗</a>
+                  <a href="/dashboard" class="editorial-cta-link">OPEN LIVE DASHBOARD ↗</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-  </main>
 
-  <!-- ══ Minimalist Footer ═══════════════════════════════════════════════════ -->
-  <footer class="landing-footer">
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-brand">
-          <a href="/" class="footer-logo-link" aria-label="Jeev One Home">
-            <img src="/static/images/jeev_one_logo.webp" alt="Jeev One Logo" class="footer-logo-img" />
-          </a>
-          <p class="footer-brand-desc">
-            Wearable IoT-based health monitoring system. Bridging physiological sensors, ESP32 microcontrollers, Raspberry Pi 5 edge intelligence, and Firebase Cloud Firestore for remote caregiver awareness.
-          </p>
+    <!-- ══ Section: Complete System Architecture (Warm Sand #e6e3d2) ══════════ -->
+    <section class="arch-editorial-section" id="architecture">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">System Architecture</span>
+            <h2 class="editorial-display-heading">FIVE-STAGE EDGE PIPELINE</h2>
+          </div>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              Every biometric packet flows from skin-contact and ambient transducers across deterministic local validation to live browser scopes in under 10 ms — with zero mandatory cloud dependency.
+            </p>
+          </div>
         </div>
 
-        <div class="footer-links-group">
-          <div>
-            <div class="footer-column-title">Platform</div>
-            <ul class="footer-column-links">
-              <li><a href="/login">Live Dashboard</a></li>
-              <li><a href="#architecture">Architecture</a></li>
-              <li><a href="#sensors">Sensors</a></li>
-              <li><a href="#edge-system">ESP32 & Pi 5</a></li>
-            </ul>
+        <ol class="arch-flow-grid">
+          <!-- Stage 01 -->
+          <li class="arch-stage-col">
+            <div class="arch-stage-top">
+              <span class="arch-stage-num">01</span>
+              <span class="arch-stage-arrow" aria-hidden="true">→</span>
+            </div>
+            <span class="arch-stage-tag">TRANSDUCER LAYER</span>
+            <h3 class="arch-stage-title">Wearable Sensing</h3>
+            <p class="arch-stage-desc">
+              Captures simultaneous Lead-I cardiac biopotentials, optical pulse oximetry, IR core temperature, and room humidity.
+            </p>
+            <div class="arch-chips-wrap">
+              <span class="arch-chip">AD8232</span>
+              <span class="arch-chip">MAX30102</span>
+              <span class="arch-chip">MLX90614</span>
+              <span class="arch-chip">DHT22</span>
+            </div>
+          </li>
+
+          <!-- Stage 02 -->
+          <li class="arch-stage-col">
+            <div class="arch-stage-top">
+              <span class="arch-stage-num">02</span>
+              <span class="arch-stage-arrow" aria-hidden="true">→</span>
+            </div>
+            <span class="arch-stage-tag">MICROCONTROLLER</span>
+            <h3 class="arch-stage-title">ESP32 Controller</h3>
+            <p class="arch-stage-desc">
+              Samples sensors on timed duty cycles, synchronizes Unix epochs via NTP, and serializes structured JSON payloads over Wi-Fi.
+            </p>
+            <div class="arch-chips-wrap">
+              <span class="arch-chip">NTP Sync</span>
+              <span class="arch-chip">Timed Slots</span>
+              <span class="arch-chip">MQTT JSON</span>
+            </div>
+          </li>
+
+          <!-- Stage 03 -->
+          <li class="arch-stage-col">
+            <div class="arch-stage-top">
+              <span class="arch-stage-num">03</span>
+              <span class="arch-stage-arrow" aria-hidden="true">→</span>
+            </div>
+            <span class="arch-stage-tag">EDGE GATEWAY</span>
+            <h3 class="arch-stage-title">Raspberry Pi 5</h3>
+            <p class="arch-stage-desc">
+              Mosquitto broker receives port 1883 frames; ingestion validates bounds and persists durable records in SQLite WAL.
+            </p>
+            <div class="arch-chips-wrap">
+              <span class="arch-chip">Mosquitto :1883</span>
+              <span class="arch-chip">Validator</span>
+              <span class="arch-chip">SQLite WAL</span>
+            </div>
+          </li>
+
+          <!-- Stage 04 -->
+          <li class="arch-stage-col">
+            <div class="arch-stage-top">
+              <span class="arch-stage-num">04</span>
+              <span class="arch-stage-arrow" aria-hidden="true">→</span>
+            </div>
+            <span class="arch-stage-tag">RISK ENGINE</span>
+            <h3 class="arch-stage-title">Risk &amp; Baselines</h3>
+            <p class="arch-stage-desc">
+              Evaluates Vital, Thermal, and Respiratory strain against slow-EMA personal baselines with clinical hysteresis debouncing.
+            </p>
+            <div class="arch-chips-wrap">
+              <span class="arch-chip">Vital</span>
+              <span class="arch-chip">Thermal</span>
+              <span class="arch-chip">Respiratory</span>
+              <span class="arch-chip">EMA</span>
+            </div>
+          </li>
+
+          <!-- Stage 05 -->
+          <li class="arch-stage-col arch-stage-terminal">
+            <div class="arch-stage-top">
+              <span class="arch-stage-num">05</span>
+              <span class="arch-stage-end" aria-hidden="true">●</span>
+            </div>
+            <span class="arch-stage-tag">CLIENT ACCESS</span>
+            <h3 class="arch-stage-title">Web &amp; PWA Client</h3>
+            <p class="arch-stage-desc">
+              Renders zero-latency dials, smooth Lead-I canvas oscilloscope traces, alert chimes, and historical clinician exports.
+            </p>
+            <div class="arch-chips-wrap">
+              <span class="arch-chip">SSE /stream</span>
+              <span class="arch-chip">Canvas Scope</span>
+              <span class="arch-chip">Alerts</span>
+            </div>
+          </li>
+        </ol>
+
+        <!-- End-to-End Transport Contract Ribbon -->
+        <div class="arch-contract-bar">
+          <div class="contract-chain">
+            <span class="contract-label">LIVE TRANSPORT CONTRACT</span>
+            <div class="contract-nodes">
+              <span class="contract-node">I2C / 1-Wire / UART</span>
+              <span class="contract-sep" aria-hidden="true">→</span>
+              <span class="contract-node">MQTT (health/sensors)</span>
+              <span class="contract-sep" aria-hidden="true">→</span>
+              <span class="contract-node">SQLite WAL Storage</span>
+              <span class="contract-sep" aria-hidden="true">→</span>
+              <span class="contract-node">SSE /stream &amp; PWA</span>
+            </div>
           </div>
-          <div>
-            <div class="footer-column-title">Clinical Context</div>
-            <ul class="footer-column-links">
-              <li><a href="#use-cases">Use Cases</a></li>
-              <li><a href="#target-patients">Target Groups</a></li>
-              <li><a href="#comparison">Compare Matrix</a></li>
-              <li><a href="#roadmap">Roadmap</a></li>
-            </ul>
+          <a href="#edge-system" class="editorial-cta-link contract-cta">INSPECT FIRMWARE &amp; GATEWAY ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Section: Inside the Wearable / Sensors (Warm Alabaster #eeece0, Simple & Zero Pills) ══ -->
+    <section class="sensors-editorial-section" id="sensors">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">Inside the Wearable</span>
+            <h2 class="editorial-display-heading">WHAT IT CHECKS FOR YOU</h2>
           </div>
-          <div>
-            <div class="footer-column-title">Media & Artifacts</div>
-            <ul class="footer-column-links">
-              <li><a href="#video">Demo Video</a></li>
-              <li><a href="#gallery">Hardware Gallery</a></li>
-              <li><a href="#about">About Jeev One</a></li>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              You do not need medical training to understand JEEV_ONE. Five quiet sensors gently check your heart, breathing oxygen, temperature, blood pressure, and room comfort — turning daily readings into clear answers for you and your family.
+            </p>
+          </div>
+        </div>
+
+        <!-- 1. Primary Heart & Breathing Pair -->
+        <div class="sensors-simple-featured">
+          <!-- Heart & Rhythm: Deep Olive-Charcoal -->
+          <article class="sensor-simple-card dark">
+            <div class="sensor-simple-top">
+              <span class="sensor-step-label">01 · HEART &amp; RHYTHM</span>
+              <span class="sensor-ready-mark dark">
+                <span class="ready-square active" aria-hidden="true"></span>Active in Wearable
+              </span>
+            </div>
+            <h3 class="sensor-simple-title">Heart Rate &amp; Rhythm Check</h3>
+            <p class="sensor-simple-desc">
+              Follows every beat and checks your heart’s natural electrical rhythm, so irregular heartbeats or sudden pulse changes are spotted early without a hospital wire setup.
+            </p>
+            <div class="sensor-simple-takeaways">
+              <div class="takeaway-cell">
+                <span>Checks</span>
+                <strong>Beats &amp; rhythm</strong>
+              </div>
+              <div class="takeaway-cell">
+                <span>Feel</span>
+                <strong>Light daily wear</strong>
+              </div>
+              <div class="takeaway-cell">
+                <span>Sensor inside</span>
+                <strong>AD8232 ECG</strong>
+              </div>
+            </div>
+          </article>
+
+          <!-- Blood Oxygen: Warm Ivory -->
+          <article class="sensor-simple-card light">
+            <div class="sensor-simple-top">
+              <span class="sensor-step-label">02 · BREATHING &amp; OXYGEN</span>
+              <span class="sensor-ready-mark light">
+                <span class="ready-square active" aria-hidden="true"></span>Ready &amp; Verified
+              </span>
+            </div>
+            <h3 class="sensor-simple-title">Blood Oxygen Level (SpO₂)</h3>
+            <p class="sensor-simple-desc">
+              Shines a gentle, painless light onto the skin to measure how well oxygen moves through your bloodstream—helping catch shallow breathing or quiet drops while resting.
+            </p>
+            <div class="sensor-simple-takeaways">
+              <div class="takeaway-cell">
+                <span>Checks</span>
+                <strong>Oxygen % in blood</strong>
+              </div>
+              <div class="takeaway-cell">
+                <span>How it feels</span>
+                <strong>Painless optical light</strong>
+              </div>
+              <div class="takeaway-cell">
+                <span>Sensor inside</span>
+                <strong>MAX30102</strong>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- 2. Everyday Body, Pressure & Room Trio (Open Editorial Columns) -->
+        <div class="sensors-simple-trio">
+          <article class="sensor-trio-col">
+            <div class="trio-head-row">
+              <span class="sensor-step-label">03 · BODY HEAT</span>
+              <span class="sensor-ready-mark light"><span class="ready-square active" aria-hidden="true"></span>Calibrated</span>
+            </div>
+            <h3 class="trio-title">Touch-Free Temperature</h3>
+            <p class="trio-desc">
+              Watches if your body temperature starts rising toward a fever—without needing a thermometer under your tongue or sticky skin patches.
+            </p>
+            <div class="trio-foot-note">Accurate to ±0.2 °C · MLX90614</div>
+          </article>
+
+          <article class="sensor-trio-col">
+            <div class="trio-head-row">
+              <span class="sensor-step-label">04 · BLOOD PRESSURE</span>
+              <span class="sensor-ready-mark warn"><span class="ready-square warn" aria-hidden="true"></span>In Testing</span>
+            </div>
+            <h3 class="trio-title">Resting Blood Pressure</h3>
+            <p class="trio-desc">
+              Gently checks your upper and lower blood pressure numbers at quiet scheduled times so doctors and family can see long-term heart trends.
+            </p>
+            <div class="trio-foot-note">Scheduled rest checks · Wrist Cuff</div>
+          </article>
+
+          <article class="sensor-trio-col">
+            <div class="trio-head-row">
+              <span class="sensor-step-label">05 · ROOM COMFORT</span>
+              <span class="sensor-ready-mark light"><span class="ready-square active" aria-hidden="true"></span>Active</span>
+            </div>
+            <h3 class="trio-title">Room Heat &amp; Humidity</h3>
+            <p class="trio-desc">
+              Checks how warm or muggy your bedroom feels, helping JEEV_ONE tell the difference between a warm afternoon and a real fever or health strain.
+            </p>
+            <div class="trio-foot-note">Smart indoor context · DHT22</div>
+          </article>
+        </div>
+
+        <!-- 3. Everyday Reassurance Strip -->
+        <aside class="battery-reassurance-banner" aria-label="Automatic battery-friendly sensing note">
+          <div class="reassurance-copy">
+            <span class="editorial-micro-heading">Built for Everyday Comfort</span>
+            <h3 class="reassurance-title">Checks Automatically — Without Draining Your Battery</h3>
+            <p class="reassurance-desc">
+              You never need to press buttons or stay plugged into a wall monitor. Sensors wake on a quiet schedule to save power and keep the wearable comfortable all day—while still sending an instant alert to family if any reading looks unusual.
+            </p>
+          </div>
+          <div class="reassurance-points">
+            <div class="reassurance-cell">
+              <span>Effortless</span>
+              <strong>Hands-free schedule</strong>
+            </div>
+            <div class="reassurance-cell">
+              <span>Longer Wear</span>
+              <strong>Saves battery life</strong>
+            </div>
+            <div class="reassurance-cell">
+              <span>Peace of Mind</span>
+              <strong>Instant alert on spikes</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ══ Section: Embedded & Edge Engineering (Warm Sand #e6e3d2) ═══════════ -->
+    <section class="edge-editorial-section" id="edge-system">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">Embedded Engineering</span>
+            <h2 class="editorial-display-heading">ESP32 &amp; RASPBERRY PI 5 STACK</h2>
+          </div>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              How microcontroller scheduling on the ESP32 and local edge validation on the Raspberry Pi 5 convert raw sensor voltages into auditable, zero-cloud clinical records.
+            </p>
+          </div>
+        </div>
+
+        <div class="edge-editorial-grid">
+          <!-- Left Panel: ESP32 Controller -->
+          <div class="edge-editorial-panel">
+            <div class="edge-panel-head">
+              <span class="edge-card-tag">01 // WEARABLE CONTROLLER</span>
+              <h3 class="edge-card-title">What We Have Done with the ESP32</h3>
+              <p class="edge-card-desc">
+                The ESP32 serves as the wearable’s real-time acquisition and communication controller between physical transducers and the local Raspberry Pi 5 gateway:
+              </p>
+            </div>
+
+            <ul class="edge-ledger-list">
+              <li>
+                <strong>Timed Polling</strong>
+                <span>Schedules duty-cycled sensor slots to preserve compact wearable battery life.</span>
+              </li>
+              <li>
+                <strong>Payload Packaging</strong>
+                <span>Serializes synchronized multi-parameter readings into clean standardized JSON packets.</span>
+              </li>
+              <li>
+                <strong>NTP Clock Synchronization</strong>
+                <span>Resolves cold-boot <code>timestamp: 0</code> anomalies and publishes valid Unix epochs.</span>
+              </li>
+              <li>
+                <strong>Wi-Fi MQTT Publisher</strong>
+                <span>Streams packets reliably to topic <code>health/sensors</code> with local retry handling.</span>
+              </li>
             </ul>
+
+            <div class="code-box-clean">
+              <div class="code-header">
+                <span>MQTT PAYLOAD • health/sensors</span>
+                <span class="code-schema-tag">VERIFIED SCHEMA</span>
+              </div>
+              <pre><code>{
+  <span class="k">"device_id"</span>: <span class="s">"patient_01"</span>,
+  <span class="k">"timestamp"</span>: <span class="n">1792414171</span>,
+  <span class="k">"heart_rate"</span>: <span class="n">75</span>,
+  <span class="k">"spo2"</span>: <span class="n">97</span>,
+  <span class="k">"body_temperature"</span>: <span class="n">36.5</span>,
+  <span class="k">"room_temperature"</span>: <span class="n">27.3</span>,
+  <span class="k">"humidity"</span>: <span class="n">52.1</span>
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Right Panel: Raspberry Pi 5 Gateway -->
+          <div class="edge-editorial-panel">
+            <div class="edge-panel-head">
+              <span class="edge-card-tag">02 // EDGE INTELLIGENCE GATEWAY</span>
+              <h3 class="edge-card-title">What We Have Done with the Raspberry Pi 5</h3>
+              <p class="edge-card-desc">
+                The Raspberry Pi 5 acts as an autonomous local compute node — performing full validation, baseline adaptation, and risk fusion without cloud relays:
+              </p>
+            </div>
+
+            <ul class="edge-ledger-list">
+              <li>
+                <strong>Mosquitto Broker</strong>
+                <span>High-throughput local MQTT messaging bus bound on port 1883 with zero cloud reliance.</span>
+              </li>
+              <li>
+                <strong>Physiological Validation</strong>
+                <span>Verifies epoch timestamps, numeric types, and human anatomical bounds before commits.</span>
+              </li>
+              <li>
+                <strong>Local SQLite WAL Database</strong>
+                <span>High-concurrency Write-Ahead Log retaining continuous local clinical telemetry histories.</span>
+              </li>
+              <li>
+                <strong>Deterministic Risk Engine</strong>
+                <span>Computes vital, thermal, and respiratory strain against slow-EMA personal baselines.</span>
+              </li>
+              <li>
+                <strong>Systemd Auto-Start Daemon</strong>
+                <span>Configured as an enabled system unit that recovers cleanly after any power cycle.</span>
+              </li>
+            </ul>
+
+            <div class="edge-runtime-strip" aria-label="Edge gateway runtime services">
+              <div class="runtime-cell">
+                <span class="runtime-label"><span class="status-square" aria-hidden="true"></span> Local Broker</span>
+                <strong class="runtime-value">Mosquitto :1883</strong>
+              </div>
+              <div class="runtime-cell">
+                <span class="runtime-label"><span class="status-square" aria-hidden="true"></span> Persistence</span>
+                <strong class="runtime-value">SQLite WAL Active</strong>
+              </div>
+              <div class="runtime-cell">
+                <span class="runtime-label"><span class="status-square" aria-hidden="true"></span> Web API</span>
+                <strong class="runtime-value">Port 8000 SSE</strong>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="footer-bottom">
-        <div>© 2026 Jeev One Project. Open Architecture Health Computing.</div>
-        <div style="font-size: 0.78rem; color: var(--text-muted);">Monitoring-support system. Not an emergency medical diagnosis tool.</div>
+    <!-- ══ Section: Platform & Deployment Insights (Warm Alabaster #eeece0) ══ -->
+    <section class="insights-editorial-section" id="insights">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">Clinical Context</span>
+            <h2 class="editorial-display-heading">DEPLOYMENT &amp; CLINICAL IMPACT</h2>
+          </div>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              Bridging embedded edge engineering with everyday human care — built for independent aging, chronic condition monitoring, and uncompromised patient privacy.
+            </p>
+          </div>
+        </div>
+
+        <div class="editorial-accordion" id="platform-accordion">
+          <!-- Item 01: WHO WILL USE -->
+          <div class="editorial-accordion-item" data-accordion="0">
+            <button class="accordion-trigger" type="button" aria-expanded="false">
+              <span class="accordion-trigger-num">01</span>
+              <span class="accordion-trigger-title">WHO WILL USE JEEV_ONE</span>
+              <span class="accordion-icon" aria-hidden="true">+</span>
+            </button>
+            <div class="accordion-panel">
+              <div class="accordion-panel-inner">
+                <div class="insight-two-col">
+                  <div class="insight-block">
+                    <span class="editorial-micro-heading">Primary Deployment Focus</span>
+                    <h4>Older Adults &amp; Independent Living</h4>
+                    <p>
+                      Strongest initial fit. Designed for older adults living independently or in assisted living homes — capturing vital signs unobtrusively during daily routines while retaining private local records and notifying families when clinical drift occurs.
+                    </p>
+                  </div>
+                  <div class="insight-block insight-block-divider">
+                    <span class="editorial-micro-heading">Clinician-Guided Expansion</span>
+                    <h4>Chronic Conditions &amp; Post-Op Recovery</h4>
+                    <p>
+                      Well suited under physician oversight for patients managing hypertension, chronic respiratory recovery requiring longitudinal SpO₂ review, or structured post-discharge home monitoring without frequent clinic travel.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 02: HOW JEEV_ONE OPERATES -->
+          <div class="editorial-accordion-item" data-accordion="1">
+            <button class="accordion-trigger" type="button" aria-expanded="false">
+              <span class="accordion-trigger-num">02</span>
+              <span class="accordion-trigger-title">HOW JEEV_ONE OPERATES IN DAILY LIFE</span>
+              <span class="accordion-icon" aria-hidden="true">+</span>
+            </button>
+            <div class="accordion-panel">
+              <div class="accordion-panel-inner">
+                <div class="workflow-three-col">
+                  <div class="workflow-step-col">
+                    <span class="workflow-step-code">STEP 01</span>
+                    <h4>Passive Everyday Monitoring</h4>
+                    <p>
+                      The patient wears the compact ESP32 node. Sensors sample vitals in quiet, scheduled low-power intervals without interrupting daily life.
+                    </p>
+                  </div>
+                  <div class="workflow-step-col">
+                    <span class="workflow-step-code">STEP 02</span>
+                    <h4>Raspberry Pi 5 Local Ingestion</h4>
+                    <p>
+                      Frames arrive over local Wi-Fi MQTT. The gateway verifies timestamps, commits SQLite WAL records, and evaluates tri-domain clinical strain.
+                    </p>
+                  </div>
+                  <div class="workflow-step-col">
+                    <span class="workflow-step-code">STEP 03</span>
+                    <h4>Zero-Latency Live Dashboard</h4>
+                    <p>
+                      Clinicians and caregivers inspect live vitals, Lead-I waveforms, and longitudinal baselines directly over local LAN on desktop or mobile PWA.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 03: COMPARISON MATRIX -->
+          <div class="editorial-accordion-item" data-accordion="2">
+            <button class="accordion-trigger" type="button" aria-expanded="false">
+              <span class="accordion-trigger-num">03</span>
+              <span class="accordion-trigger-title">WHAT MAKES JEEV_ONE USEFUL VS. BASIC WEARABLES</span>
+              <span class="accordion-icon" aria-hidden="true">+</span>
+            </button>
+            <div class="accordion-panel">
+              <div class="accordion-panel-inner">
+                <div class="table-wrap-clean">
+                  <table class="clean-comp-table">
+                    <thead>
+                      <tr>
+                        <th>Capability</th>
+                        <th>Basic Consumer Wearable</th>
+                        <th class="highlight-col">JEEV_ONE Health Node</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>Architecture</strong></td>
+                        <td>Single optical LED, battery-tuned primarily for step counts</td>
+                        <td class="highlight-col">
+                          <strong class="comp-lead">ESP32 Multi-Sensor Stack</strong> — synchronized Lead-I ECG, SpO₂, IR core temp, and ambient context
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>Edge Gateway</strong></td>
+                        <td>None; depends continuously on proprietary mobile Bluetooth apps</td>
+                        <td class="highlight-col">
+                          <strong class="comp-lead">Raspberry Pi 5 Gateway</strong> — dedicated local MQTT broker, bounds checks, and deterministic risk scoring
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>Data Ownership</strong></td>
+                        <td>Health logs locked inside vendor-controlled cloud servers</td>
+                        <td class="highlight-col">
+                          <strong class="comp-lead">Private Local SQLite WAL</strong> — full local custody with exportable clinical records and alert history
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>Offline Resilience</strong></td>
+                        <td>Stalls or drops insights when internet or phone sync disconnects</td>
+                        <td class="highlight-col">
+                          <strong class="comp-lead">100% Autonomous LAN</strong> — continues monitoring and alerting in air-gapped or low-connectivity homes
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Section: Prototype Demo Video (Warm Sand #e6e3d2) ══════════════════ -->
+    <section class="video-editorial-section" id="video">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">Video Demonstration</span>
+            <h2 class="editorial-display-heading">SEE JEEV_ONE IN ACTION</h2>
+          </div>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              Watch the complete benchtop and wearable walkthrough covering real-time sensor acquisition, deterministic edge risk scoring, and local fail-safe alerting.
+            </p>
+            <a href="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="editorial-cta-link header-cta-inline">
+              OPEN ON GOOGLE DRIVE ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="video-editorial-frame">
+          <div class="video-embed-box">
+            <iframe
+              id="demo-video-iframe"
+              class="video-iframe"
+              src="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/preview"
+              allow="autoplay; encrypted-media; fullscreen"
+              allowfullscreen
+              loading="lazy"
+              title="JEEV_ONE Prototype Demonstration Video"
+            ></iframe>
+          </div>
+          <div class="video-meta-strip">
+            <div class="video-meta-cell">
+              <span class="video-meta-label">Capture Format</span>
+              <strong>1080p 60fps</strong>
+            </div>
+            <div class="video-meta-cell">
+              <span class="video-meta-label">Walkthrough Scope</span>
+              <strong>Sensor Telemetry &amp; Edge Risk Engine</strong>
+            </div>
+            <div class="video-meta-cell video-meta-action">
+              <a href="https://drive.google.com/file/d/1C6Xry7zICzCy3FXPjTBZhnT55SCDWpd6/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="editorial-cta-link">
+                FULL VIDEO LINK ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Section: Hardware & Schematics Gallery (Warm Alabaster #eeece0) ═════ -->
+    <section class="gallery-editorial-section" id="gallery">
+      <div class="section-container">
+        <div class="editorial-section-header">
+          <div class="editorial-header-left">
+            <span class="editorial-micro-heading">Hardware Artifacts</span>
+            <h2 class="editorial-display-heading">PROTOTYPES &amp; SCHEMATICS</h2>
+          </div>
+          <div class="editorial-header-right">
+            <p class="editorial-header-copy">
+              Explore the benchtop dual-processor validation build, forearm wearable field unit, and complete electronic wiring schematic. Select any plate to inspect in full view.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-editorial-grid">
+          <!-- Plate 01: Benchtop Assembly -->
+          <article class="gallery-editorial-card" data-full="/static/images/prototype1.webp" data-title="JEEV_ONE Benchtop Validation Assembly" data-desc="Dual-processor edge assembly connecting the ESP32 biometric acquisition node with Raspberry Pi 5 telemetry host and breadboard sensor array." tabindex="0" role="button" aria-label="Expand Benchtop Validation Assembly">
+            <div class="gallery-plate-frame">
+              <img src="/static/images/prototype1.webp" alt="JEEV_ONE Benchtop Validation Assembly" loading="lazy" />
+            </div>
+            <div class="gallery-plate-meta">
+              <span class="gallery-fig-tag">FIG. 01 · BENCHTOP VALIDATION</span>
+              <span class="gallery-expand-cue" aria-hidden="true">EXPAND +</span>
+            </div>
+            <h3 class="gallery-plate-title">Benchtop Validation Assembly</h3>
+            <p class="gallery-plate-desc">
+              Interconnects the ESP32 sensor multiplexer, MLX90614 infrared transducer, DHT22 monitor, and Raspberry Pi 5 edge host.
+            </p>
+          </article>
+
+          <!-- Plate 02: Wearable Arm Integration -->
+          <article class="gallery-editorial-card" data-full="/static/images/prototype3.webp" data-title="JEEV_ONE Wearable Field Demo" data-desc="Forearm-mounted working prototype demonstrating concurrent acquisition of blood pressure, SpO2, heart rate, skin temperature, and environmental heat strain." tabindex="0" role="button" aria-label="Expand Wearable Arm Integration">
+            <div class="gallery-plate-frame">
+              <img src="/static/images/prototype3.webp" alt="JEEV_ONE Wearable Field Demo" loading="lazy" />
+            </div>
+            <div class="gallery-plate-meta">
+              <span class="gallery-fig-tag">FIG. 02 · WORKING DEMO</span>
+              <span class="gallery-expand-cue" aria-hidden="true">EXPAND +</span>
+            </div>
+            <h3 class="gallery-plate-title">Wearable Arm Integration</h3>
+            <p class="gallery-plate-desc">
+              Forearm-mounted working prototype pairing the sensor band, optical PPG probe, MLX90614 thermopile, and wrist BP cuff.
+            </p>
+          </article>
+
+          <!-- Plate 03: System Circuit Wiring Diagram -->
+          <article class="gallery-editorial-card" data-full="/static/images/circuit_diagram.webp?v=3" data-title="JEEV_ONE Circuit &amp; Schematic Diagram" data-desc="Complete electronic schematic depicting I2C, UART, 1-Wire, and GPIO signal routing to ESP32, AD8232 ECG sensor, and Raspberry Pi 5 with 3.5-inch touch LCD." tabindex="0" role="button" aria-label="Expand System Circuit Wiring Diagram">
+            <div class="gallery-plate-frame">
+              <img src="/static/images/circuit_diagram.webp?v=3" alt="JEEV_ONE Circuit Wiring Diagram" loading="lazy" />
+            </div>
+            <div class="gallery-plate-meta">
+              <span class="gallery-fig-tag">FIG. 03 · ELECTRONIC SCHEMATIC</span>
+              <span class="gallery-expand-cue" aria-hidden="true">EXPAND +</span>
+            </div>
+            <h3 class="gallery-plate-title">System Circuit Wiring Diagram</h3>
+            <p class="gallery-plate-desc">
+              Complete wiring schematic detailing I2C pull-ups, UART RX/TX channels, 5V power rails, AD8232 leads, and 3.5&quot; touch display.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ Editorial Footer (Warm Sand #e6e3d2) ════════════════════════════════ -->
+  <footer class="site-footer">
+    <div class="section-container">
+      <div class="footer-top-row">
+        <div class="footer-brand-col">
+          <a href="/" class="brand-link" aria-label="JEEV_ONE Home">
+            <img src="/static/images/jeev one transparent.png" alt="JEEV_ONE Logo" class="brand-logo-img" />
+          </a>
+          <p class="footer-tagline">
+            Autonomous edge health monitoring node &amp; Level 1 ECG telemetry station. Bridging wearable biometrics, ESP32 scheduling, and Raspberry Pi 5 edge intelligence.
+          </p>
+          <a href="/dashboard" class="editorial-cta-link">LAUNCH LIVE DASHBOARD ↗</a>
+        </div>
+
+        <div class="footer-nav-col">
+          <div class="editorial-micro-heading footer-col-heading">Platform</div>
+          <ul class="footer-links">
+            <li><a href="/dashboard">Live Dashboard</a></li>
+            <li><a href="#about">About JEEV_ONE</a></li>
+            <li><a href="#capabilities">Capabilities</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-nav-col">
+          <div class="editorial-micro-heading footer-col-heading">Hardware</div>
+          <ul class="footer-links">
+            <li><a href="#sensors">Sensors &amp; Biometrics</a></li>
+            <li><a href="#edge-system">ESP32 &amp; Pi 5</a></li>
+            <li><a href="#video">Demo Video</a></li>
+            <li><a href="#gallery">Schematics Gallery</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-nav-col">
+          <div class="editorial-micro-heading footer-col-heading">Clinical Context</div>
+          <ul class="footer-links">
+            <li><a href="#insights">Target Groups</a></li>
+            <li><a href="#insights">Deployment Insights</a></li>
+            <li><a href="#insights">Comparison Matrix</a></li>
+            <li><a href="/api/health">System API Status</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-row">
+        <div class="footer-copy">© 2026 JEEV_ONE Project. Autonomous Edge Health Computing.</div>
+        <div class="footer-disclaimer">Edge monitoring-support system designed for continuous local physiological surveillance.</div>
       </div>
     </div>
   </footer>
@@ -1058,6 +1240,6 @@
     </div>
   </div>
 
-  <script src="/static/js/landing.js?v=2.6.5"></script>
+  <script src="/static/js/landing.js?v=7.0.0"></script>
 </body>
 </html>
