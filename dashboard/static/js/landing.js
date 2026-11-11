@@ -1,7 +1,7 @@
 /**
  * landing.js
  * ==========
- * Interactive behavior for the JEEV_ONE editorial landing page.
+ * Interactive behavior for the Jeev One editorial landing page.
  */
 
 "use strict";

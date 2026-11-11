@@ -1,26 +1,32 @@
 /**
  * Jeev One – Progressive Web App Service Worker
- * Version: 2.8.0
+ * Version: 3.6.0
  * 
  * Provides offline caching, instantaneous launch, network-first live code delivery,
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "jeevone-dashboard-v2.8.0";
+const CACHE_NAME = "jeevone-dashboard-v3.6.0";
 const PRECACHE_ASSETS = [
   "/",
   "/login",
   "/dashboard",
   "/manifest.json",
   "/static/manifest.json",
-  "/static/css/dashboard.css?v=2.7",
-  "/static/js/dashboard.js?v=2.7",
-  "/static/css/landing.css?v=8.0.0",
-  "/static/js/landing.js?v=8.0.0",
+  "/static/css/dashboard.css?v=3.6",
+  "/static/js/dashboard.js?v=3.6",
+  "/static/css/landing.css?v=10.0.0",
+  "/static/js/landing.js?v=9.0.0",
   "/static/css/login.css",
   "/static/js/login.js",
   "/static/js/icons.js",
+  "/static/images/dashboard-hero-wellness.jpg",
+  "/static/images/dashboard-report-companion.jpg",
+  "/static/images/avatar-patient-1.jpg",
+  "/static/images/avatar-patient-2.jpg",
   "/static/images/jeev_one_transparent.png?v=1",
+  "/static/images/about-big-banner.jpg?v=1",
+  "/static/images/about-small-banner.jpg?v=1",
   "/static/images/jeev_one_logo.webp",
   "/static/images/favicon.png",
   "/static/icons/icon-192x192.png",
@@ -29,14 +35,14 @@ const PRECACHE_ASSETS = [
   "/static/icons/icon-maskable-512x512.png",
   "/static/icons/apple-touch-icon.png",
   "https://cdn.jsdelivr.net/npm/chart.js",
-  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
 ];
 
 // ── Install: Precache Dashboard App Shell ────────────────────────────────────
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v2.8.0");
+      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v3.6.0");
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn("[PWA Service Worker] Some assets failed to precache:", err);
       });

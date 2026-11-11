@@ -645,16 +645,22 @@ def report_latest() -> Response:
 
     # If fused_risk is not yet populated, derive it dynamically
     if reading is not None and fused_risk is None:
+        from app.processing.features import _heat_index
+        hi_val = _heat_index(reading.room_temperature, reading.humidity)
+        heat_status = "HIGH" if hi_val >= 37.0 else ("WATCH" if hi_val >= 32.0 else "LOW")
         is_high = (reading.bp_sys >= 140 or reading.bp_dia >= 90 or
                    (reading.spo2 > 0 and reading.spo2 < 90) or
-                   (reading.heart_rate > 120 or (reading.heart_rate > 0 and reading.heart_rate < 50)))
+                   (reading.body_temperature >= 39.0) or
+                   (reading.heart_rate >= 120 or (reading.heart_rate > 0 and reading.heart_rate <= 40)))
         is_watch = (reading.bp_sys >= 130 or reading.bp_dia >= 80 or
                     (reading.spo2 > 0 and reading.spo2 < 95) or
-                    (reading.heart_rate > 100 or (reading.heart_rate > 0 and reading.heart_rate < 60)))
+                    (reading.body_temperature >= 37.5) or
+                    (reading.heart_rate >= 100 or (reading.heart_rate > 0 and reading.heart_rate <= 60)))
+        resp_status = "HIGH" if (reading.spo2 > 0 and reading.spo2 < 90) else ("WATCH" if (reading.spo2 > 0 and reading.spo2 < 95) else "NORMAL")
         fused_risk = FusedRisk(
-            heat_risk="NORMAL",
+            heat_risk=heat_status,
             vital_risk="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
-            respiratory_risk="WATCH" if (reading.spo2 > 0 and reading.spo2 < 95) else "NORMAL",
+            respiratory_risk=resp_status,
             overall_status="HIGH" if is_high else ("WATCH" if is_watch else "NORMAL"),
             reasons=[],
             recommendation="Monitoring active.",
@@ -668,12 +674,20 @@ def report_latest() -> Response:
 
     try:
         ecg_data = None
+        baseline_ctx = None
+        patient_ctx = None
         leads_off_val = request.args.get("leads_off", "").strip().lower()
-        if client_payload and isinstance(client_payload, dict) and "ecg_data" in client_payload:
-            ecg_data = client_payload["ecg_data"]
-        elif leads_off_val in ("1", "true", "yes"):
+        if client_payload and isinstance(client_payload, dict):
+            if "ecg_data" in client_payload:
+                ecg_data = client_payload["ecg_data"]
+            if isinstance(client_payload.get("baseline"), dict):
+                baseline_ctx = client_payload["baseline"]
+            if isinstance(client_payload.get("patient"), dict):
+                patient_ctx = client_payload["patient"]
+
+        if leads_off_val in ("1", "true", "yes") and ecg_data is None:
             ecg_data = {"leads_off": True}
-        else:
+        elif ecg_data is None:
             rhythm = request.args.get("rhythm")
             pr = request.args.get("pr")
             qrs = request.args.get("qrs")
@@ -695,7 +709,42 @@ def report_latest() -> Response:
                     except ValueError:
                         pass
 
-        report = generate_report(reading, fused_risk, ecg_data=ecg_data)
+        # Resolve patient profile and baseline context if omitted by client
+        store = load_user_store()
+        matched_user = None
+        for u in store.get("users", {}).values():
+            if u.get("device_id") == reading.device_id:
+                matched_user = u
+                break
+        if matched_user is None:
+            matched_user = get_active_user()
+
+        if patient_ctx is None and matched_user:
+            patient_ctx = {
+                "name": matched_user.get("name"),
+                "role": matched_user.get("role"),
+                "demographics": matched_user.get("demographics"),
+                "device_id": matched_user.get("device_id"),
+            }
+
+        if baseline_ctx is None:
+            bl_curr = baseline_engine.current
+            if bl_curr.is_established and reading.device_id == "patient_01":
+                baseline_ctx = {
+                    "heart_rate": bl_curr.heart_rate,
+                    "spo2": bl_curr.spo2,
+                    "body_temperature": bl_curr.body_temperature,
+                }
+            elif matched_user and isinstance(matched_user.get("baseline"), dict):
+                baseline_ctx = matched_user["baseline"]
+
+        report = generate_report(
+            reading,
+            fused_risk,
+            ecg_data=ecg_data,
+            baseline=baseline_ctx,
+            patient=patient_ctx,
+        )
         return jsonify({"status": "ok", "report": report.to_dict()})
     except Exception as exc:
         _log.error("Error generating health report: %s", exc)
