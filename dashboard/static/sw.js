@@ -6,15 +6,15 @@
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "jeevone-dashboard-v3.6.0";
+const CACHE_NAME = "jeevone-dashboard-v3.7.0";
 const PRECACHE_ASSETS = [
   "/",
   "/login",
   "/dashboard",
   "/manifest.json",
   "/static/manifest.json",
-  "/static/css/dashboard.css?v=3.6",
-  "/static/js/dashboard.js?v=3.6",
+  "/static/css/dashboard.css?v=3.7",
+  "/static/js/dashboard.js?v=3.7",
   "/static/css/landing.css?v=10.0.0",
   "/static/js/landing.js?v=9.0.0",
   "/static/css/login.css",
@@ -42,7 +42,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v3.6.0");
+      console.log("[PWA Service Worker] Pre-caching offline dashboard shell v3.7.0");
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn("[PWA Service Worker] Some assets failed to precache:", err);
       });

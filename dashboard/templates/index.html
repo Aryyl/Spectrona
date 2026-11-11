@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=3.6" />
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=3.7" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Default Light-First Colorful Theme; only activate dark if user explicitly chose dark -->
   <script>
@@ -948,148 +948,318 @@
       <!-- ══ Tab 3: ECG Diagnostics & History Archive ════════════════════════ -->
       <div class="tab-pane" id="tab-ecg">
         <main class="main-grid">
-          <section class="welcome-section ecg-hero-banner">
+
+          <!-- ── Studio Hero Banner ─────────────────────────────────────────────── -->
+          <section class="welcome-section ecg-ai-hero-banner">
             <div class="welcome-text">
-              <h2>ECG Level 1 Diagnostic History &amp; Strip Archive</h2>
-              <p>Continuous Lead I recordings, rhythm interval measurements, and automated cardiac morphology evaluations stored locally.</p>
+              <h2>AI-Powered ECG Analysis</h2>
+              <p>Real-time cardiac rhythm monitoring and intelligent ECG interpretation.</p>
             </div>
             <div class="welcome-actions">
-              <div class="telemetry-buffer-pill">
-                <span class="status-pulse-dot" style="display:inline-block; width:7px; height:7px; background:#16A34A; border-radius:50%; box-shadow:0 0 6px #16A34A; margin-right:6px;"></span>
-                <span>Lead I Analog Front-End (250 Hz)</span>
+              <div class="ecg-status-cluster" id="ecg-ai-status-cluster">
+                <div class="ecg-status-chip" id="ecg-stream-chip">
+                  <span class="status-pulse-dot ecg-pulse-green"></span>
+                  <span id="ecg-stream-label">Lead I · 250 Hz</span>
+                </div>
+                <div class="ecg-status-chip ecg-model-chip" id="ecg-model-chip">
+                  <span class="ecg-model-icon">⚡</span>
+                  <span id="ecg-model-label">JeevECG-Demo-v1.0</span>
+                </div>
+                <div class="ecg-status-chip" id="ecg-sqi-chip">
+                  <span id="ecg-sqi-label">SQI: 94.2%</span>
+                </div>
               </div>
-              <button class="btn btn-primary" id="btn-export-ecg-csv">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Export ECG Data</span>
-              </button>
+              <div style="display:flex;gap:0.5rem;align-items:center;">
+                <button class="btn btn-primary" id="btn-ecg-record" onclick="toggleECGRecording()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+                  <span id="ecg-record-btn-label">Start Recording</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-ecg-export-csv">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Export CSV</span>
+                </button>
+              </div>
             </div>
           </section>
 
-          <!-- Interactive 10-Second High-Resolution ECG Strip Viewer Card -->
-          <section class="card col-full">
+          <!-- ── Analysis Progress Stepper ─────────────────────────────────────── -->
+          <section class="card col-full ecg-stepper-card" id="ecg-stepper-section">
+            <div class="ecg-analysis-stepper" id="ecg-analysis-stepper">
+              <div class="ecg-step done" data-step="1"><div class="ecg-step-dot"></div><span>Signal Acquisition</span></div>
+              <div class="ecg-step-line done"></div>
+              <div class="ecg-step done" data-step="2"><div class="ecg-step-dot"></div><span>Preprocessing</span></div>
+              <div class="ecg-step-line done"></div>
+              <div class="ecg-step done" data-step="3"><div class="ecg-step-dot"></div><span>Quality Gate</span></div>
+              <div class="ecg-step-line done"></div>
+              <div class="ecg-step done" data-step="4"><div class="ecg-step-dot"></div><span>AI Inference</span></div>
+              <div class="ecg-step-line done"></div>
+              <div class="ecg-step done" data-step="5"><div class="ecg-step-dot"></div><span>Report Ready</span></div>
+            </div>
+          </section>
+
+          <!-- ── Main ECG Waveform Monitor ─────────────────────────────────────── -->
+          <section class="card col-full ecg-ai-monitor-card">
             <div class="table-card-header">
               <div>
-                <h3 class="card-title" style="margin-bottom: 0.25rem;">
-                  <span>Diagnostic Rhythm Strip Reviewer (10 Seconds)</span>
-                  <span class="status-badge normal" id="ecg-strip-status-badge">NORMAL SINUS RHYTHM</span>
+                <h3 class="card-title" style="margin-bottom:0.25rem;">
+                  <span>Diagnostic ECG Strip</span>
+                  <span class="status-badge normal" id="ecg-ai-rhythm-badge">NORMAL SINUS RHYTHM</span>
                 </h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);" id="ecg-strip-meta-text">
-                  Selected Recording: <strong>#ECG-2041</strong> • Calibrated 25 mm/s • 10 mm/mV • Lead I (LA-RA)
+                <span style="font-size:0.78rem;color:var(--text-muted);" id="ecg-ai-strip-meta">
+                  Recording: <strong id="ecg-ai-rec-id">ECG-DEMO-2041</strong> · 25 mm/s · 10 mm/mV · Lead I (LA-RA) · 30s
                 </span>
               </div>
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span class="ecg-calibration-pill">1.0 mV Pulse Active</span>
-                <span class="ecg-calibration-pill">Bandwidth: 0.5 - 40 Hz</span>
+              <div class="ecg-toolbar" id="ecg-ai-toolbar">
+                <!-- Speed -->
+                <div class="ecg-ctrl-group">
+                  <span class="ecg-ctrl-label">Speed</span>
+                  <div class="ecg-ctrl-btns">
+                    <button class="ecg-ctrl-btn" data-speed="12.5" onclick="setEcgSpeed(12.5)">12.5</button>
+                    <button class="ecg-ctrl-btn active" data-speed="25" onclick="setEcgSpeed(25)">25</button>
+                    <button class="ecg-ctrl-btn" data-speed="50" onclick="setEcgSpeed(50)">50</button>
+                  </div>
+                  <span class="ecg-ctrl-unit">mm/s</span>
+                </div>
+                <!-- Gain -->
+                <div class="ecg-ctrl-group">
+                  <span class="ecg-ctrl-label">Gain</span>
+                  <div class="ecg-ctrl-btns">
+                    <button class="ecg-ctrl-btn" data-gain="5" onclick="setEcgGain(5)">5</button>
+                    <button class="ecg-ctrl-btn active" data-gain="10" onclick="setEcgGain(10)">10</button>
+                    <button class="ecg-ctrl-btn" data-gain="20" onclick="setEcgGain(20)">20</button>
+                  </div>
+                  <span class="ecg-ctrl-unit">mm/mV</span>
+                </div>
+                <!-- Scenario selector -->
+                <div class="ecg-ctrl-group">
+                  <span class="ecg-ctrl-label">Demo</span>
+                  <select class="ecg-scenario-select" id="ecg-scenario-select" onchange="loadECGScenario(this.value)">
+                    <option value="0">Normal Sinus Rhythm</option>
+                    <option value="1">Atrial Fibrillation</option>
+                    <option value="2">Sinus Bradycardia</option>
+                    <option value="3">PVC Pattern</option>
+                  </select>
+                </div>
+                <!-- Fullscreen -->
+                <button class="ecg-ctrl-btn ecg-fullscreen-btn" id="btn-ecg-fullscreen" onclick="toggleEcgFullscreen()" title="Full Screen">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                </button>
               </div>
             </div>
 
-            <div class="ecg-archive-monitor-frame" style="margin-top: 1rem;">
+            <div class="ecg-ai-monitor-frame" id="ecg-ai-monitor-frame">
               <div class="ecg-monitor-topbar">
-                <div class="ecg-monitor-channel">LEAD I — CALIBRATED 250 SPS PLAYBACK</div>
+                <div class="ecg-monitor-channel" id="ecg-ai-channel-label">LEAD I — AI-ENHANCED · 250 SPS · JeevECG-Demo-v1.0</div>
                 <div class="ecg-monitor-vitals-overlay">
-                  <span>HR: <strong id="strip-overlay-hr">72 bpm</strong></span>
+                  <span>HR: <strong id="ecg-ai-overlay-hr">72 bpm</strong></span>
                   <span class="ecg-overlay-divider">|</span>
-                  <span>RR: <strong id="strip-overlay-rr">833 ms</strong></span>
+                  <span>RR: <strong id="ecg-ai-overlay-rr">833 ms</strong></span>
                   <span class="ecg-overlay-divider">|</span>
-                  <span>PR: <strong id="strip-overlay-pr">158 ms</strong></span>
+                  <span>PR: <strong id="ecg-ai-overlay-pr">158 ms</strong></span>
                   <span class="ecg-overlay-divider">|</span>
-                  <span>QRS: <strong id="strip-overlay-qrs">86 ms</strong></span>
+                  <span>QRS: <strong id="ecg-ai-overlay-qrs">86 ms</strong></span>
                   <span class="ecg-overlay-divider">|</span>
-                  <span>QTc: <strong id="strip-overlay-qtc">412 ms</strong></span>
+                  <span>QTc: <strong id="ecg-ai-overlay-qtc">412 ms</strong></span>
                 </div>
-                <div class="ecg-monitor-notch">GRID: 0.04s / 0.1mV</div>
+                <div class="ecg-monitor-notch">SQI: <strong id="ecg-ai-sqi-topbar">94.2%</strong> · NOTCH: 50Hz</div>
+              </div>
+              <!-- Lead-off warning overlay (hidden by default) -->
+              <div class="ecg-lead-off-overlay" id="ecg-lead-off-overlay" style="display:none;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>LEAD CONTACT WARNING — Reattach Electrodes</span>
               </div>
               <div class="ecg-canvas-wrapper">
-                <canvas id="archive-ecg-canvas" width="1340" height="165"></canvas>
+                <canvas id="ecg-ai-canvas" width="1340" height="200"></canvas>
               </div>
             </div>
           </section>
 
-          <!-- Previous ECG Records Table Card (col-8) -->
-          <section class="card col-8">
-            <div class="table-card-header">
+          <!-- ── Arrhythmia Detection Timeline ─────────────────────────────────── -->
+          <section class="card col-full ecg-timeline-card" id="ecg-timeline-card">
+            <div class="table-card-header" style="margin-bottom:0.75rem;">
               <div>
-                <h3 class="card-title" style="margin-bottom: 0.25rem;">Previous ECG Telemetry Recordings</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Historical rhythm sessions logged into local edge storage (click row to inspect strip)</span>
+                <h3 class="card-title" style="margin-bottom:0.2rem;">Arrhythmia Detection Timeline</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Click any episode to jump to that segment in the waveform above</span>
               </div>
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span class="status-badge normal" id="ecg-counter-badge">8 LOGGED SESSIONS</span>
+              <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+                <span class="ecg-legend-item ecg-legend-normal">Normal</span>
+                <span class="ecg-legend-item ecg-legend-attention">Attention</span>
+                <span class="ecg-legend-item ecg-legend-high">High Priority</span>
+                <span class="ecg-legend-item ecg-legend-grey">Inconclusive</span>
+              </div>
+            </div>
+            <div class="ecg-timeline-track" id="ecg-timeline-track">
+              <!-- Populated by JS -->
+            </div>
+            <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.6rem;line-height:1.4;">
+              ⚠ Segment colours represent algorithmic findings only — not a confirmed medical diagnosis. Consult a qualified clinician.
+            </p>
+          </section>
+
+          <!-- ── AI Classification Result + Signal Quality ─────────────────────── -->
+          <section class="card col-8 ecg-classification-card" id="ecg-classification-card">
+            <h3 class="card-title" style="margin-bottom:1rem;">AI Classification Result</h3>
+
+            <!-- Primary rhythm block -->
+            <div class="ecg-rhythm-result-block" id="ecg-rhythm-result-block">
+              <div class="ecg-rhythm-icon" id="ecg-rhythm-icon">❤️</div>
+              <div class="ecg-rhythm-main">
+                <div class="ecg-rhythm-name" id="ecg-rhythm-name">Normal Sinus Rhythm</div>
+                <div class="ecg-rhythm-code" id="ecg-rhythm-code">NSR</div>
+              </div>
+              <div class="ecg-confidence-block">
+                <div class="ecg-confidence-pct" id="ecg-confidence-pct">97.8%</div>
+                <div class="ecg-confidence-label">Confidence</div>
+                <div class="ecg-severity-badge normal" id="ecg-severity-badge">NORMAL</div>
               </div>
             </div>
 
-            <div class="data-table-wrapper" style="margin-top: 1rem;">
-              <table class="data-table" id="ecg-history-table">
+            <!-- Cardiac Metrics Grid -->
+            <div style="margin-top:1.2rem;">
+              <div style="font-size:0.72rem;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);font-weight:700;margin-bottom:0.75rem;">Cardiac Metrics</div>
+              <div class="ecg-metrics-bento" id="ecg-metrics-bento">
+                <!-- 3 col × 4 row metrics grid, populated by JS -->
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">Avg HR</span><span class="ecg-metric-val" id="ecgm-avg-hr">72 bpm</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">Min HR</span><span class="ecg-metric-val" id="ecgm-min-hr">68 bpm</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">Max HR</span><span class="ecg-metric-val" id="ecgm-max-hr">78 bpm</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">Avg RR</span><span class="ecg-metric-val" id="ecgm-rr">833 ms</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">PR Interval</span><span class="ecg-metric-val" id="ecgm-pr">158 ms</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">QRS Duration</span><span class="ecg-metric-val" id="ecgm-qrs">86 ms</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">QT Interval</span><span class="ecg-metric-val" id="ecgm-qt">380 ms</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">QTc (Bazett)</span><span class="ecg-metric-val" id="ecgm-qtc">412 ms</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">R-Peaks</span><span class="ecg-metric-val" id="ecgm-rpeaks">36</span></div>
+                <div class="ecg-metric-tile ecg-metric-highlight"><span class="ecg-metric-label">Abnormal Beats</span><span class="ecg-metric-val" id="ecgm-abnormal">0</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">Classified</span><span class="ecg-metric-val" id="ecgm-classified">100%</span></div>
+                <div class="ecg-metric-tile"><span class="ecg-metric-label">Duration</span><span class="ecg-metric-val" id="ecgm-duration">30 s</span></div>
+              </div>
+            </div>
+
+            <!-- Analysis timestamp + recording info -->
+            <div style="margin-top:1rem;padding-top:0.8rem;border-top:1px solid var(--glass-border);display:flex;gap:1.2rem;flex-wrap:wrap;">
+              <span style="font-size:0.75rem;color:var(--text-muted);">Recording: <strong id="ecg-rec-id-bottom">ECG-DEMO-2041</strong></span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Analyzed: <strong id="ecg-analyzed-at">—</strong></span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Model: <strong>JeevECG-Demo-v1.0</strong></span>
+            </div>
+          </section>
+
+          <!-- ── Signal Quality Card ───────────────────────────────────────────── -->
+          <section class="card col-4 ecg-sqi-card" id="ecg-sqi-card">
+            <h3 class="card-title" style="margin-bottom:1rem;">Signal Quality</h3>
+
+            <div class="ecg-sqi-gauge-wrapper">
+              <canvas id="ecg-sqi-gauge" width="160" height="90"></canvas>
+              <div class="ecg-sqi-gauge-label">
+                <div class="ecg-sqi-pct-big" id="ecg-sqi-pct-big">94.2%</div>
+                <div class="ecg-sqi-verdict" id="ecg-sqi-verdict">Excellent</div>
+              </div>
+            </div>
+
+            <div class="node-specs-list" style="margin-top:1rem;">
+              <div class="node-spec-row"><span class="node-spec-key">Noise Level</span><span class="node-spec-val" id="ecg-sqi-noise">Low</span></div>
+              <div class="node-spec-row"><span class="node-spec-key">Baseline Wander</span><span class="node-spec-val" id="ecg-sqi-wander">Minimal</span></div>
+              <div class="node-spec-row"><span class="node-spec-key">Lead Contact</span><span class="node-spec-val" id="ecg-sqi-lead-contact">Good</span></div>
+              <div class="node-spec-row"><span class="node-spec-key">LO+ / LO−</span><span class="node-spec-val" style="color:var(--risk-normal);">OK / OK</span></div>
+              <div class="node-spec-row"><span class="node-spec-key">Sampling Rate</span><span class="node-spec-val">250 Hz</span></div>
+              <div class="node-spec-row"><span class="node-spec-key">Analysis Suitability</span><span class="node-spec-val ecg-sqi-suit" id="ecg-sqi-suit">Suitable ✓</span></div>
+            </div>
+          </section>
+
+          <!-- ── AI Summary + Clinical Review + Supported Classes ─────────────── -->
+          <section class="card col-8 ecg-summary-card" id="ecg-summary-card">
+            <h3 class="card-title" style="margin-bottom:1rem;">ECG Analysis Summary</h3>
+
+            <div class="ecg-summary-headline-block" id="ecg-summary-headline-block">
+              <div class="ecg-summary-icon" id="ecg-summary-icon">✅</div>
+              <div>
+                <div class="ecg-summary-headline" id="ecg-summary-headline">Normal Cardiac Rhythm Detected</div>
+                <div class="ecg-summary-detail" id="ecg-summary-detail">The algorithm identified a regular sinus rhythm throughout the entire 30-second recording. P waves consistently precede each QRS complex with stable PR interval, indicating coordinated atrial and ventricular depolarization.</div>
+              </div>
+            </div>
+
+            <div class="ecg-summary-meta-row" style="margin-top:0.9rem;">
+              <div class="ecg-summary-meta-pill">Abnormal Events: <strong id="ecg-sum-events">0</strong></div>
+              <div class="ecg-summary-meta-pill">Recording Quality: <strong id="ecg-sum-quality">Excellent</strong></div>
+            </div>
+
+            <div class="ecg-next-steps-box" id="ecg-next-steps-box" style="margin-top:0.9rem;">
+              <div class="ecg-next-label">Suggested Next Steps</div>
+              <div class="ecg-next-text" id="ecg-next-text">Continue routine monitoring. No algorithmic flags raised.</div>
+            </div>
+
+            <!-- Clinical Review -->
+            <div class="ecg-review-block" style="margin-top:1rem;padding-top:0.9rem;border-top:1px solid var(--glass-border);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+                <span style="font-size:0.8rem;font-weight:700;color:var(--text);">Clinical Review Status</span>
+                <span class="status-badge" id="ecg-review-status-badge">UNREVIEWED</span>
+              </div>
+              <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <button class="btn btn-secondary" onclick="markECGReviewed()" style="font-size:0.76rem;">Mark as Reviewed (Clinician)</button>
+                <button class="btn btn-primary" id="btn-ecg-print-report" onclick="printECGReport()" style="font-size:0.76rem;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  Generate ECG Report
+                </button>
+              </div>
+            </div>
+
+            <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.8rem;line-height:1.4;" id="ecg-ai-disclaimer">This analysis is generated by a demonstration AI model for informational purposes only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional.</p>
+          </section>
+
+          <!-- ── Supported Model Classes ───────────────────────────────────────── -->
+          <section class="card col-4 ecg-classes-card">
+            <h3 class="card-title" style="margin-bottom:1rem;">Model Scope</h3>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.75rem;">JeevECG-Demo-v1.0 — Supported Classes</div>
+            <div class="ecg-classes-list">
+              <div class="ecg-class-row active-class"><span class="ecg-class-dot" style="background:#16A34A;"></span>Normal Sinus Rhythm (NSR)</div>
+              <div class="ecg-class-row active-class"><span class="ecg-class-dot" style="background:#DC2626;"></span>Atrial Fibrillation (AFib)</div>
+              <div class="ecg-class-row active-class"><span class="ecg-class-dot" style="background:#D97706;"></span>Sinus Bradycardia</div>
+              <div class="ecg-class-row active-class"><span class="ecg-class-dot" style="background:#D97706;"></span>Sinus Tachycardia</div>
+              <div class="ecg-class-row active-class"><span class="ecg-class-dot" style="background:#D97706;"></span>PVC — Premature Ventricular Contraction</div>
+              <div class="ecg-class-row active-class"><span class="ecg-class-dot" style="background:#D97706;"></span>PAC — Premature Atrial Contraction</div>
+              <div class="ecg-class-row inactive-class"><span class="ecg-class-dot" style="background:#9CA3AF;"></span>SVT (not in demo scope)</div>
+              <div class="ecg-class-row inactive-class"><span class="ecg-class-dot" style="background:#9CA3AF;"></span>VT (not in demo scope)</div>
+            </div>
+            <div style="margin-top:1rem;padding-top:0.8rem;border-top:1px solid var(--glass-border);">
+              <div class="node-specs-list">
+                <div class="node-spec-row"><span class="node-spec-key">Front-End IC</span><span class="node-spec-val">AD8232 / MAX30003</span></div>
+                <div class="node-spec-row"><span class="node-spec-key">Lead Type</span><span class="node-spec-val">Lead I (Bipolar)</span></div>
+                <div class="node-spec-row"><span class="node-spec-key">Sampling Rate</span><span class="node-spec-val">250 Hz (4 ms)</span></div>
+                <div class="node-spec-row"><span class="node-spec-key">Filters</span><span class="node-spec-val">50Hz Notch + HP/LP</span></div>
+                <div class="node-spec-row"><span class="node-spec-key">Resolution</span><span class="node-spec-val">12-bit ADC</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── ECG Recording Archive ─────────────────────────────────────────── -->
+          <section class="card col-full ecg-archive-card">
+            <div class="table-card-header">
+              <div>
+                <h3 class="card-title" style="margin-bottom:0.25rem;">ECG Recording Archive</h3>
+                <span style="font-size:0.78rem;color:var(--text-muted);">Previous sessions · Click a row to load recording into the analysis panel above</span>
+              </div>
+              <span class="status-badge normal" id="ecg-archive-count-badge">8 SESSIONS</span>
+            </div>
+            <div class="data-table-wrapper" style="margin-top:1rem;">
+              <table class="data-table" id="ecg-archive-table">
                 <thead>
                   <tr>
-                    <th>Session Time</th>
+                    <th>Recording ID</th>
+                    <th>Timestamp</th>
+                    <th>Duration</th>
                     <th>Classification</th>
+                    <th>Confidence</th>
                     <th>HR</th>
-                    <th>R-R</th>
-                    <th>PR</th>
-                    <th>QRS</th>
                     <th>QTc</th>
-                    <th>Quality</th>
+                    <th>SQI</th>
                     <th>Action</th>
                   </tr>
                 </thead>
-                <tbody id="ecg-history-tbody">
-                  <!-- Dynamically populated by JS -->
+                <tbody id="ecg-archive-tbody">
+                  <!-- Populated by JS -->
                 </tbody>
               </table>
             </div>
           </section>
 
-          <!-- Hardware & Diagnostic Clinical Guide Card (col-4) -->
-          <section class="card col-4">
-            <h3 class="card-title">ECG Hardware &amp; Norms</h3>
-
-            <div class="node-specs-list">
-              <div class="node-spec-row">
-                <span class="node-spec-key">Front-End IC</span>
-                <span class="node-spec-val">AD8232 / MAX30003</span>
-              </div>
-              <div class="node-spec-row">
-                <span class="node-spec-key">Lead Type</span>
-                <span class="node-spec-val">Lead I (Bipolar 3-Electrode)</span>
-              </div>
-              <div class="node-spec-row">
-                <span class="node-spec-key">Sampling Rate</span>
-                <span class="node-spec-val">250 Hz (4 ms period)</span>
-              </div>
-              <div class="node-spec-row">
-                <span class="node-spec-key">Filters</span>
-                <span class="node-spec-val">50Hz Notch + 0.5-40Hz HP/LP</span>
-              </div>
-              <div class="node-spec-row">
-                <span class="node-spec-key">Resolution</span>
-                <span class="node-spec-val">12-bit ADC (1 mV / 10mm)</span>
-              </div>
-            </div>
-
-            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-              <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.65rem; font-family: var(--font-mono); text-transform: uppercase;">
-                Clinical Reference Ranges (Adult)
-              </div>
-              <div class="ecg-norms-grid">
-                <div class="ecg-norm-item">
-                  <span class="ecg-norm-label">PR Interval</span>
-                  <span class="ecg-norm-val">120 - 200 ms</span>
-                </div>
-                <div class="ecg-norm-item">
-                  <span class="ecg-norm-label">QRS Duration</span>
-                  <span class="ecg-norm-val">60 - 100 ms</span>
-                </div>
-                <div class="ecg-norm-item">
-                  <span class="ecg-norm-label">QTc Interval</span>
-                  <span class="ecg-norm-val">&lt; 440 ms (Normal)</span>
-                </div>
-                <div class="ecg-norm-item">
-                  <span class="ecg-norm-label">Resting HR</span>
-                  <span class="ecg-norm-val">60 - 100 bpm</span>
-                </div>
-              </div>
-            </div>
-          </section>
         </main>
       </div>
 
@@ -1710,6 +1880,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="/static/js/icons.js"></script>
-  <script src="/static/js/dashboard.js?v=3.6"></script>
+  <script src="/static/js/dashboard.js?v=3.7"></script>
 </body>
 </html>

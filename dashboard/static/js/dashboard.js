@@ -3785,3 +3785,635 @@ function _renderClientReportFromReading(reading, risk, saveSnapshot = false) {
 
 
 
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AI ECG Analysis Studio — JeevOne Demo v3.7
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Demo Data Scenarios ───────────────────────────────────────────────────────
+const ECG_DEMO_SCENARIOS = [
+  {
+    recording_id: "ECG-DEMO-2041", patient_id: "patient_01",
+    primary_rhythm: "Normal Sinus Rhythm", rhythm_code: "NSR",
+    confidence: 97.8, severity: "normal",
+    icon: "❤️", summaryIcon: "✅",
+    duration_sec: 30,
+    metrics: { avg_hr_bpm: 72, min_hr_bpm: 68, max_hr_bpm: 78, avg_rr_ms: 833,
+               pr_ms: 158, qrs_ms: 86, qt_ms: 380, qtc_ms: 412,
+               r_peaks_detected: 36, abnormal_beats: 0, pct_classified: 100.0 },
+    signal_quality: { sqi_score: 0.942, suitable: true, noise_level: "Low", baseline_wander: "Minimal", lead_contact: "Good" },
+    timeline_episodes: [
+      { start_sec: 0, end_sec: 30, rhythm: "NSR", severity: "normal", label: "Normal Sinus Rhythm" }
+    ],
+    summary: {
+      headline: "Normal Cardiac Rhythm Detected",
+      detail: "The algorithm identified a regular sinus rhythm throughout the entire 30-second recording. P waves consistently precede each QRS complex with a stable PR interval, indicating coordinated atrial and ventricular depolarization. All measured intervals fall within standard clinical reference ranges.",
+      abnormal_events: 0, quality: "Excellent",
+      next_steps: "Continue routine monitoring. No algorithmic flags raised."
+    }
+  },
+  {
+    recording_id: "ECG-DEMO-2042", patient_id: "patient_01",
+    primary_rhythm: "Atrial Fibrillation", rhythm_code: "AFib",
+    confidence: 91.3, severity: "high_priority",
+    icon: "⚠️", summaryIcon: "🔴",
+    duration_sec: 30,
+    metrics: { avg_hr_bpm: 94, min_hr_bpm: 72, max_hr_bpm: 128, avg_rr_ms: 638,
+               pr_ms: null, qrs_ms: 88, qt_ms: null, qtc_ms: null,
+               r_peaks_detected: 47, abnormal_beats: 47, pct_classified: 100.0 },
+    signal_quality: { sqi_score: 0.89, suitable: true, noise_level: "Low", baseline_wander: "Moderate", lead_contact: "Good" },
+    timeline_episodes: [
+      { start_sec: 0,  end_sec: 8,    rhythm: "NSR",  severity: "normal",       label: "Normal Sinus" },
+      { start_sec: 8,  end_sec: 30,   rhythm: "AFib", severity: "high_priority",label: "Atrial Fibrillation" },
+      { start_sec: 14, end_sec: 14.4, rhythm: "PVC",  severity: "attention",    label: "PVC" },
+      { start_sec: 22, end_sec: 22.4, rhythm: "PVC",  severity: "attention",    label: "PVC" }
+    ],
+    summary: {
+      headline: "Irregular Rhythm Pattern Detected",
+      detail: "The algorithm detected an irregular R-R interval pattern beginning at approximately 8 seconds, consistent with the AFib pattern class. No discernible P waves are present during this segment. The ventricular rate is irregular ranging from 72–128 bpm. Two isolated premature complexes were also flagged.",
+      abnormal_events: 3, quality: "Good",
+      next_steps: "Consult a qualified cardiologist for clinical evaluation. This algorithmic finding requires professional medical assessment."
+    }
+  },
+  {
+    recording_id: "ECG-DEMO-2043", patient_id: "patient_02",
+    primary_rhythm: "Sinus Bradycardia", rhythm_code: "Sinus Bradycardia",
+    confidence: 95.1, severity: "attention",
+    icon: "🫀", summaryIcon: "🟡",
+    duration_sec: 30,
+    metrics: { avg_hr_bpm: 48, min_hr_bpm: 44, max_hr_bpm: 52, avg_rr_ms: 1250,
+               pr_ms: 172, qrs_ms: 90, qt_ms: 440, qtc_ms: 393,
+               r_peaks_detected: 24, abnormal_beats: 0, pct_classified: 100.0 },
+    signal_quality: { sqi_score: 0.961, suitable: true, noise_level: "Minimal", baseline_wander: "None", lead_contact: "Excellent" },
+    timeline_episodes: [
+      { start_sec: 0, end_sec: 30, rhythm: "Sinus Bradycardia", severity: "attention", label: "Sinus Bradycardia — 48 bpm" }
+    ],
+    summary: {
+      headline: "Slow Heart Rate Pattern Detected",
+      detail: "The algorithm classified this recording as Sinus Bradycardia — a sinus rhythm with a resting rate below 60 bpm. P wave morphology is preserved and PR interval is within normal range. This may be physiologically normal in athletes or during rest/sleep.",
+      abnormal_events: 0, quality: "Excellent",
+      next_steps: "No immediate algorithmic alert. Correlate with patient context and symptoms."
+    }
+  },
+  {
+    recording_id: "ECG-DEMO-2044", patient_id: "patient_01",
+    primary_rhythm: "Normal Sinus with PVCs", rhythm_code: "PVC",
+    confidence: 88.7, severity: "attention",
+    icon: "⚡", summaryIcon: "🟡",
+    duration_sec: 30,
+    metrics: { avg_hr_bpm: 76, min_hr_bpm: 70, max_hr_bpm: 82, avg_rr_ms: 789,
+               pr_ms: 155, qrs_ms: 148, qt_ms: 400, qtc_ms: 435,
+               r_peaks_detected: 38, abnormal_beats: 5, pct_classified: 100.0 },
+    signal_quality: { sqi_score: 0.912, suitable: true, noise_level: "Low", baseline_wander: "Minimal", lead_contact: "Good" },
+    timeline_episodes: [
+      { start_sec: 0,    end_sec: 7,    rhythm: "NSR", severity: "normal",    label: "Normal Sinus" },
+      { start_sec: 7.2,  end_sec: 7.6,  rhythm: "PVC", severity: "attention", label: "PVC #1" },
+      { start_sec: 7.6,  end_sec: 14,   rhythm: "NSR", severity: "normal",    label: "Normal Sinus" },
+      { start_sec: 14.1, end_sec: 14.5, rhythm: "PVC", severity: "attention", label: "PVC #2" },
+      { start_sec: 14.5, end_sec: 21,   rhythm: "NSR", severity: "normal",    label: "Normal Sinus" },
+      { start_sec: 21.2, end_sec: 21.6, rhythm: "PVC", severity: "attention", label: "PVC #3" },
+      { start_sec: 21.6, end_sec: 28,   rhythm: "NSR", severity: "normal",    label: "Normal Sinus" },
+      { start_sec: 28.1, end_sec: 28.5, rhythm: "PVC", severity: "attention", label: "PVC #4" },
+      { start_sec: 28.5, end_sec: 30,   rhythm: "NSR", severity: "normal",    label: "Normal Sinus" }
+    ],
+    summary: {
+      headline: "Premature Ventricular Contractions Detected",
+      detail: "The algorithm identified 5 isolated premature ventricular complexes (PVCs) against a background of normal sinus rhythm. PVCs are characterized by wide, aberrant QRS morphology and lack of a preceding P wave. The underlying sinus rhythm remains regular.",
+      abnormal_events: 5, quality: "Good",
+      next_steps: "Isolated PVCs are frequently benign. Clinical correlation recommended if symptomatic or frequent."
+    }
+  }
+];
+
+// ── ECG Archive Demo Data ─────────────────────────────────────────────────────
+const ECG_ARCHIVE_RECORDS = [
+  { recording_id: "ECG-DEMO-2041", ts: "Nov 11, 2026 · 10:14 AM", duration: "30s", classification: "Normal Sinus Rhythm", confidence: "97.8%", hr: "72", qtc: "412 ms", sqi: "94%", scenario: 0 },
+  { recording_id: "ECG-DEMO-2042", ts: "Nov 11, 2026 · 09:52 AM", duration: "30s", classification: "Atrial Fibrillation", confidence: "91.3%", hr: "94", qtc: "—", sqi: "89%", scenario: 1 },
+  { recording_id: "ECG-DEMO-2043", ts: "Nov 10, 2026 · 08:33 PM", duration: "30s", classification: "Sinus Bradycardia", confidence: "95.1%", hr: "48", qtc: "393 ms", sqi: "96%", scenario: 2 },
+  { recording_id: "ECG-DEMO-2044", ts: "Nov 10, 2026 · 03:17 PM", duration: "30s", classification: "NSR with PVCs", confidence: "88.7%", hr: "76", qtc: "435 ms", sqi: "91%", scenario: 3 },
+  { recording_id: "ECG-DEMO-2038", ts: "Nov 09, 2026 · 11:04 AM", duration: "30s", classification: "Normal Sinus Rhythm", confidence: "98.2%", hr: "69", qtc: "408 ms", sqi: "95%", scenario: 0 },
+  { recording_id: "ECG-DEMO-2035", ts: "Nov 09, 2026 · 08:58 AM", duration: "30s", classification: "Sinus Tachycardia", confidence: "93.4%", hr: "108", qtc: "389 ms", sqi: "92%", scenario: 0 },
+  { recording_id: "ECG-DEMO-2031", ts: "Nov 08, 2026 · 07:22 PM", duration: "30s", classification: "Normal Sinus Rhythm", confidence: "96.9%", hr: "74", qtc: "415 ms", sqi: "97%", scenario: 0 },
+  { recording_id: "ECG-DEMO-2028", ts: "Nov 07, 2026 · 12:45 PM", duration: "30s", classification: "NSR with PVCs", confidence: "87.1%", hr: "78", qtc: "432 ms", sqi: "90%", scenario: 3 }
+];
+
+// ── ECG Waveform Morphology Templates ────────────────────────────────────────
+// Normal PQRST template (normalized: t=0..1 of beat period, y=normalized mV)
+const ECG_NSR_TEMPLATE = [
+  { t: 0.00, y: 0.00 },
+  { t: 0.10, y: 0.08 }, { t: 0.14, y: 0.20 }, { t: 0.18, y: 0.08 }, // P wave
+  { t: 0.26, y: 0.00 }, // PR segment
+  { t: 0.30, y: -0.12 }, // Q
+  { t: 0.34, y: 1.20 },  // R peak
+  { t: 0.38, y: -0.30 }, // S
+  { t: 0.46, y: 0.00 }, // ST
+  { t: 0.56, y: 0.22 }, { t: 0.62, y: 0.30 }, { t: 0.68, y: 0.00 }, // T
+  { t: 1.00, y: 0.00 }
+];
+
+// AFib template: no P wave, irregular baseline flutter, narrow QRS
+const ECG_AFIB_TEMPLATE = [
+  { t: 0.00, y: 0.00 },
+  // fibrillatory flutter at start
+  { t: 0.05, y: 0.06 }, { t: 0.10, y: -0.04 }, { t: 0.15, y: 0.08 }, { t: 0.20, y: -0.03 },
+  { t: 0.25, y: 0.05 }, { t: 0.30, y: -0.08 }, // Q
+  { t: 0.33, y: 1.10 },  // R
+  { t: 0.37, y: -0.25 }, // S
+  { t: 0.44, y: 0.00 },
+  { t: 0.52, y: 0.18 }, { t: 0.57, y: 0.22 }, { t: 0.62, y: 0.00 }, // T
+  { t: 0.70, y: 0.04 }, { t: 0.78, y: -0.03 }, { t: 0.85, y: 0.05 }, { t: 0.92, y: -0.02 }, // flutter
+  { t: 1.00, y: 0.00 }
+];
+
+// PVC template: wide bizarre QRS, no P, inverted T
+const ECG_PVC_TEMPLATE = [
+  { t: 0.00, y: 0.00 },
+  { t: 0.10, y: -0.05 }, // slight dip (no P)
+  { t: 0.22, y: -0.20 }, // deep Q
+  { t: 0.30, y: 1.60 },  // very tall R
+  { t: 0.42, y: -0.70 }, // deep S
+  { t: 0.52, y: -0.10 },
+  { t: 0.60, y: -0.35 }, { t: 0.68, y: -0.42 }, { t: 0.76, y: -0.15 }, // inverted T
+  { t: 0.86, y: 0.00 },
+  { t: 1.00, y: 0.00 }
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let _ecgCurrentScenario = 0;
+let _ecgAnimId = null;
+let _ecgSweepX = 0;
+let _ecgPhase = 0;
+let _ecgLastTime = null;
+let _ecgSpeed = 25;    // mm/s
+let _ecgGain  = 10;    // mm/mV
+let _ecgIsRecording = false;
+let _ecgReviewStatus = "UNREVIEWED";
+
+// ── Init on Tab Activation ────────────────────────────────────────────────────
+function initAIECGTab() {
+  buildECGArchiveTable();
+  loadECGScenario(0);
+  startECGLiveSweep();
+  updateECGStepperDone();
+}
+
+// ── Tab switch hook: wire into existing tab-switching ─────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  // Hook onto existing tab switch
+  document.querySelectorAll("[data-tab]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.tab === "ecg") {
+        setTimeout(initAIECGTab, 80);
+      }
+    });
+  });
+});
+
+// ── Load a Demo Scenario ──────────────────────────────────────────────────────
+function loadECGScenario(idx) {
+  _ecgCurrentScenario = parseInt(idx, 10);
+  const sc = ECG_DEMO_SCENARIOS[_ecgCurrentScenario];
+  if (!sc) return;
+
+  // Update rhythm badge
+  const badge = document.getElementById("ecg-ai-rhythm-badge");
+  if (badge) {
+    badge.textContent = sc.rhythm_code;
+    badge.className = "status-badge " + (sc.severity === "normal" ? "normal" : sc.severity === "high_priority" ? "critical" : "watch");
+  }
+
+  // Strip meta
+  setText("ecg-ai-rec-id", sc.recording_id);
+  setText("ecg-rec-id-bottom", sc.recording_id);
+  setText("ecg-analyzed-at", new Date().toLocaleTimeString());
+
+  // Overlay metrics
+  const m = sc.metrics;
+  setText("ecg-ai-overlay-hr",  m.avg_hr_bpm + " bpm");
+  setText("ecg-ai-overlay-rr",  m.avg_rr_ms + " ms");
+  setText("ecg-ai-overlay-pr",  m.pr_ms ? m.pr_ms + " ms" : "—");
+  setText("ecg-ai-overlay-qrs", m.qrs_ms + " ms");
+  setText("ecg-ai-overlay-qtc", m.qtc_ms ? m.qtc_ms + " ms" : "—");
+
+  // Metrics bento
+  setText("ecgm-avg-hr",  m.avg_hr_bpm + " bpm");
+  setText("ecgm-min-hr",  m.min_hr_bpm + " bpm");
+  setText("ecgm-max-hr",  m.max_hr_bpm + " bpm");
+  setText("ecgm-rr",      m.avg_rr_ms + " ms");
+  setText("ecgm-pr",      m.pr_ms ? m.pr_ms + " ms" : "Unavailable");
+  setText("ecgm-qrs",     m.qrs_ms + " ms");
+  setText("ecgm-qt",      m.qt_ms ? m.qt_ms + " ms" : "Unavailable");
+  setText("ecgm-qtc",     m.qtc_ms ? m.qtc_ms + " ms" : "Unavailable");
+  setText("ecgm-rpeaks",  m.r_peaks_detected);
+  setText("ecgm-abnormal",m.abnormal_beats);
+  setText("ecgm-classified", m.pct_classified + "%");
+  setText("ecgm-duration",   sc.duration_sec + " s");
+
+  // Classification block
+  setText("ecg-rhythm-name", sc.primary_rhythm);
+  setText("ecg-rhythm-code", sc.rhythm_code);
+  setText("ecg-rhythm-icon", sc.icon);
+  setText("ecg-confidence-pct", sc.confidence + "%");
+  const sevBadge = document.getElementById("ecg-severity-badge");
+  if (sevBadge) {
+    sevBadge.textContent = sc.severity.replace("_", " ").toUpperCase();
+    sevBadge.className = "ecg-severity-badge " + sc.severity;
+  }
+
+  // SQI
+  const sqi = sc.signal_quality;
+  const sqiPct = Math.round(sqi.sqi_score * 1000) / 10;
+  setText("ecg-sqi-label", "SQI: " + sqiPct + "%");
+  setText("ecg-ai-sqi-topbar", sqiPct + "%");
+  setText("ecg-sqi-pct-big", sqiPct + "%");
+  const verdict = sqiPct >= 90 ? "Excellent" : sqiPct >= 75 ? "Good" : sqiPct >= 55 ? "Acceptable" : "Poor";
+  setText("ecg-sqi-verdict", verdict);
+  setText("ecg-sqi-noise", sqi.noise_level);
+  setText("ecg-sqi-wander", sqi.baseline_wander || "Minimal");
+  setText("ecg-sqi-lead-contact", sqi.lead_contact);
+  setText("ecg-sqi-suit", sqi.suitable ? "Suitable ✓" : "Unsuitable ✗");
+  drawSQIGauge(sqi.sqi_score);
+
+  // Summary
+  const sum = sc.summary;
+  setText("ecg-summary-icon",     sc.summaryIcon);
+  setText("ecg-summary-headline", sum.headline);
+  setText("ecg-summary-detail",   sum.detail);
+  setText("ecg-sum-events",  sum.abnormal_events);
+  setText("ecg-sum-quality", sum.quality);
+  setText("ecg-next-text",   sum.next_steps);
+
+  // Monitor frame class (highlight severity)
+  const frame = document.getElementById("ecg-ai-monitor-frame");
+  if (frame) {
+    frame.className = "ecg-ai-monitor-frame";
+    if (sc.severity === "high_priority") frame.classList.add("scenario-afib");
+    else if (sc.severity === "attention") frame.classList.add("scenario-attention");
+  }
+
+  // Timeline
+  buildECGTimeline(sc.timeline_episodes, sc.duration_sec);
+
+  // Reset waveform sweep to new scenario
+  restartECGSweep();
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ── Arrhythmia Timeline ───────────────────────────────────────────────────────
+function buildECGTimeline(episodes, totalSec) {
+  const track = document.getElementById("ecg-timeline-track");
+  if (!track) return;
+  track.innerHTML = "";
+  episodes.forEach((ep, i) => {
+    const pct = ((ep.end_sec - ep.start_sec) / totalSec * 100).toFixed(2);
+    const seg = document.createElement("div");
+    seg.className = "ecg-timeline-seg seg-" +
+      (ep.severity === "normal" ? "normal" :
+       ep.severity === "high_priority" ? "high" :
+       ep.severity === "attention" ? "attention" : "inconclusive");
+    seg.style.width = pct + "%";
+    seg.title = ep.label + " — " + ep.start_sec + "s to " + ep.end_sec + "s";
+    seg.innerHTML = `<span class="seg-label">${ep.label}</span>`;
+    seg.onclick = () => jumpECGToTime(ep.start_sec, totalSec);
+    track.appendChild(seg);
+  });
+}
+
+function jumpECGToTime(startSec, totalSec) {
+  // For demo: restart sweep from that proportion of beat phase
+  const canvas = document.getElementById("ecg-ai-canvas");
+  if (!canvas) return;
+  const pct = startSec / totalSec;
+  _ecgSweepX = pct * canvas.width * 0.9;
+  _ecgPhase  = pct;
+}
+
+// ── ECG Live Sweep Animation ──────────────────────────────────────────────────
+function startECGLiveSweep() {
+  if (_ecgAnimId) cancelAnimationFrame(_ecgAnimId);
+  const canvas = document.getElementById("ecg-ai-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  resizeECGCanvas(canvas);
+  _ecgSweepX = 0;
+  _ecgPhase  = 0;
+  _ecgLastTime = null;
+
+  function frame(ts) {
+    if (!_ecgLastTime) _ecgLastTime = ts;
+    const dt = (ts - _ecgLastTime) / 1000; // seconds
+    _ecgLastTime = ts;
+    renderECGSweepFrame(ctx, canvas, dt);
+    _ecgAnimId = requestAnimationFrame(frame);
+  }
+  _ecgAnimId = requestAnimationFrame(frame);
+}
+
+function restartECGSweep() {
+  _ecgSweepX = 0;
+  _ecgPhase  = 0;
+  _ecgLastTime = null;
+}
+
+function resizeECGCanvas(canvas) {
+  const wrapper = canvas.parentElement;
+  if (!wrapper) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = wrapper.clientWidth || 1200;
+  canvas.width  = w * dpr;
+  canvas.height = 200 * dpr;
+  canvas.style.width  = w + "px";
+  canvas.style.height = "200px";
+}
+
+function renderECGSweepFrame(ctx, canvas, dt) {
+  const sc = ECG_DEMO_SCENARIOS[_ecgCurrentScenario];
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.width, H = canvas.height;
+  const centerY = H * 0.52;
+  const gainScale = (_ecgGain / 10);     // 10 mm/mV is baseline
+  const speedScale = (_ecgSpeed / 25);   // 25 mm/s is baseline
+  const scaleY = H * 0.33 * gainScale;
+
+  // pixels per second based on speed; 25 mm/s at screen = ~2.5 * dpr px/frame at 60fps
+  const pxPerSec = 70 * dpr * speedScale;
+  const advPx = pxPerSec * dt;
+
+  // Clear sweep ghost region (eraser ahead of cursor)
+  const clearW = 36 * dpr;
+  ctx.fillStyle = "#0C1F17";
+  ctx.fillRect(_ecgSweepX, 0, clearW, H);
+
+  // Draw medical grid if sweep is at start
+  if (_ecgSweepX < advPx + 2) {
+    drawECGGrid(ctx, W, H);
+  }
+
+  // Pick template based on scenario/phase
+  const beatPeriod = 60.0 / sc.metrics.avg_hr_bpm; // seconds per beat
+  const pxPerBeat  = pxPerSec * beatPeriod;
+
+  // Choose template for current beat (if PVC scenario, every ~6th beat is PVC)
+  let template = ECG_NSR_TEMPLATE;
+  if (sc.rhythm_code === "AFib") template = ECG_AFIB_TEMPLATE;
+
+  // For PVC scenario, inject PVC template at certain phase positions
+  if (sc.rhythm_code === "PVC") {
+    // approx PVC beats at positions matching timeline
+    const beatIdx = Math.floor(_ecgPhase / beatPeriod);
+    const pvcBeats = [6, 13, 20, 27, 34];
+    if (pvcBeats.includes(beatIdx % 38)) template = ECG_PVC_TEMPLATE;
+    else template = ECG_NSR_TEMPLATE;
+  }
+
+  // For Bradycardia — widen periods naturally via hr in beat calculation (already handled)
+
+  // Draw one chunk of waveform
+  ctx.strokeStyle = sc.severity === "high_priority" ? "#f87171" : sc.severity === "attention" ? "#fbbf24" : "#22c55e";
+  ctx.lineWidth = 2 * dpr;
+  ctx.shadowColor = ctx.strokeStyle;
+  ctx.shadowBlur = 5;
+  ctx.beginPath();
+
+  const phaseInBeat = (_ecgPhase % beatPeriod) / beatPeriod; // 0..1
+  let prevX = _ecgSweepX, prevY = centerY, isFirst = true;
+
+  // Draw ~advPx + a bit more for smooth look
+  const steps = Math.max(4, Math.round(advPx / dpr) + 2);
+  for (let s = 0; s <= steps; s++) {
+    const px = _ecgSweepX + (s / steps) * advPx;
+    const beatPhaseLocal = ((_ecgPhase + (s / steps) * dt) % beatPeriod) / beatPeriod;
+    const y = interpolateTemplate(template, beatPhaseLocal);
+    const canvY = centerY - y * scaleY;
+    if (isFirst) { ctx.moveTo(px, canvY); isFirst = false; }
+    else ctx.lineTo(px, canvY);
+    prevX = px; prevY = canvY;
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // R-peak marker dot on high R
+  const curY = interpolateTemplate(template, phaseInBeat);
+  if (curY > 0.9) {
+    ctx.fillStyle = "#a78bfa";
+    ctx.beginPath();
+    ctx.arc(_ecgSweepX, centerY - curY * scaleY, 4 * dpr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Advance position and phase
+  _ecgSweepX += advPx;
+  _ecgPhase  += dt;
+  if (_ecgSweepX >= W) {
+    _ecgSweepX = 0;
+    drawECGGrid(ctx, W, H);
+  }
+}
+
+function drawECGGrid(ctx, W, H) {
+  const dpr = window.devicePixelRatio || 1;
+  ctx.fillStyle = "#0C1F17";
+  ctx.fillRect(0, 0, W, H);
+  const minor = 16 * dpr, major = minor * 5;
+  ctx.strokeStyle = "rgba(74,222,128,0.07)";
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  for (let x = 0; x < W; x += minor) { ctx.moveTo(x,0); ctx.lineTo(x,H); }
+  for (let y = 0; y < H; y += minor) { ctx.moveTo(0,y); ctx.lineTo(W,y); }
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(74,222,128,0.18)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 0; x < W; x += major) { ctx.moveTo(x,0); ctx.lineTo(x,H); }
+  for (let y = 0; y < H; y += major) { ctx.moveTo(0,y); ctx.lineTo(W,y); }
+  ctx.stroke();
+  // Cal pulse
+  const dpr2 = dpr;
+  ctx.strokeStyle = "#4ade80"; ctx.lineWidth = 2 * dpr2;
+  const cs = 10 * dpr2, cw = 20 * dpr2, ch = H * 0.3;
+  ctx.beginPath();
+  ctx.moveTo(cs,H*0.52); ctx.lineTo(cs+4,H*0.52);
+  ctx.lineTo(cs+4,H*0.52-ch); ctx.lineTo(cs+cw,H*0.52-ch);
+  ctx.lineTo(cs+cw,H*0.52); ctx.lineTo(cs+cw+6,H*0.52);
+  ctx.stroke();
+  ctx.fillStyle="#86efac"; ctx.font=`${9*dpr2}px JetBrains Mono,monospace`;
+  ctx.fillText("1mV",cs,H*0.52-ch-5);
+}
+
+function interpolateTemplate(template, t) {
+  // t in [0,1]; return y by linear interpolation between template keyframes
+  for (let i = 1; i < template.length; i++) {
+    if (t <= template[i].t) {
+      const seg = (t - template[i-1].t) / (template[i].t - template[i-1].t);
+      return template[i-1].y + seg * (template[i].y - template[i-1].y);
+    }
+  }
+  return 0;
+}
+
+// ── SQI Arc Gauge ─────────────────────────────────────────────────────────────
+function drawSQIGauge(score) {
+  const canvas = document.getElementById("ecg-sqi-gauge");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = 160 * dpr;
+  canvas.height = 90  * dpr;
+  canvas.style.width  = "160px";
+  canvas.style.height = "90px";
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H * 0.95, r = W * 0.42;
+  const startA = Math.PI, endA = 0;
+
+  ctx.clearRect(0, 0, W, H);
+  // Track
+  ctx.beginPath(); ctx.arc(cx, cy, r, startA, endA); 
+  ctx.strokeStyle = "rgba(107,114,128,0.25)"; ctx.lineWidth = 10 * dpr; ctx.lineCap="round"; ctx.stroke();
+  // Fill
+  const scoreAngle = startA + score * Math.PI;
+  const color = score > 0.85 ? "#22c55e" : score > 0.65 ? "#f59e0b" : "#ef4444";
+  ctx.beginPath(); ctx.arc(cx, cy, r, startA, scoreAngle);
+  ctx.strokeStyle = color; ctx.lineWidth = 10 * dpr; ctx.lineCap="round"; ctx.stroke();
+  // Glow dot
+  const dotX = cx + r * Math.cos(scoreAngle);
+  const dotY = cy + r * Math.sin(scoreAngle);
+  ctx.beginPath(); ctx.arc(dotX, dotY, 7*dpr, 0, Math.PI*2);
+  ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 12; ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// ── Build Archive Table ───────────────────────────────────────────────────────
+function buildECGArchiveTable() {
+  const tbody = document.getElementById("ecg-archive-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  ECG_ARCHIVE_RECORDS.forEach(rec => {
+    const cls = rec.classification.includes("Fibrillation") ? "critical" :
+                (rec.classification.includes("PVC") || rec.classification.includes("Brady") || rec.classification.includes("Tachy")) ? "watch" : "normal";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span style="font-family:var(--font-mono);font-size:0.76rem;font-weight:700;">${rec.recording_id}</span></td>
+      <td style="font-size:0.78rem;color:var(--text-muted);">${rec.ts}</td>
+      <td style="font-family:var(--font-mono);">${rec.duration}</td>
+      <td><span class="status-badge ${cls}" style="font-size:0.65rem;">${rec.classification}</span></td>
+      <td style="font-family:var(--font-mono);font-weight:700;">${rec.confidence}</td>
+      <td style="font-family:var(--font-mono);">${rec.hr} bpm</td>
+      <td style="font-family:var(--font-mono);">${rec.qtc}</td>
+      <td style="font-family:var(--font-mono);">${rec.sqi}</td>
+      <td><button class="btn btn-secondary" style="font-size:0.68rem;padding:4px 10px;" onclick="loadECGScenario(${rec.scenario});document.getElementById('ecg-scenario-select').value='${rec.scenario}';">Load</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Control Functions ─────────────────────────────────────────────────────────
+function setEcgSpeed(val) {
+  _ecgSpeed = val;
+  document.querySelectorAll("[data-speed]").forEach(b => {
+    b.classList.toggle("active", parseFloat(b.dataset.speed) === val);
+  });
+}
+
+function setEcgGain(val) {
+  _ecgGain = val;
+  document.querySelectorAll("[data-gain]").forEach(b => {
+    b.classList.toggle("active", parseFloat(b.dataset.gain) === val);
+  });
+}
+
+function toggleECGRecording() {
+  _ecgIsRecording = !_ecgIsRecording;
+  const btn  = document.getElementById("btn-ecg-record");
+  const lbl  = document.getElementById("ecg-record-btn-label");
+  if (btn) {
+    btn.style.background = _ecgIsRecording ? "#DC2626" : "";
+    btn.style.borderColor = _ecgIsRecording ? "#DC2626" : "";
+  }
+  if (lbl) lbl.textContent = _ecgIsRecording ? "Stop Recording" : "Start Recording";
+  if (_ecgIsRecording) {
+    updateECGStepper(1);
+    setTimeout(() => updateECGStepper(2), 800);
+    setTimeout(() => updateECGStepper(3), 1600);
+    setTimeout(() => updateECGStepper(4), 2600);
+    setTimeout(() => { updateECGStepperDone(); if(_ecgIsRecording){toggleECGRecording();} }, 4000);
+  }
+}
+
+function updateECGStepper(activeStep) {
+  document.querySelectorAll(".ecg-step").forEach((el, i) => {
+    el.classList.remove("done", "active");
+    if (i < activeStep) el.classList.add("done");
+    else if (i === activeStep) el.classList.add("active");
+  });
+  document.querySelectorAll(".ecg-step-line").forEach((el, i) => {
+    el.classList.toggle("done", i < activeStep);
+  });
+}
+function updateECGStepperDone() {
+  document.querySelectorAll(".ecg-step").forEach(el => { el.classList.remove("active"); el.classList.add("done"); });
+  document.querySelectorAll(".ecg-step-line").forEach(el => el.classList.add("done"));
+}
+
+function toggleEcgFullscreen() {
+  const frame = document.getElementById("ecg-ai-monitor-frame");
+  if (!frame) return;
+  if (!document.fullscreenElement) {
+    frame.requestFullscreen && frame.requestFullscreen();
+  } else {
+    document.exitFullscreen && document.exitFullscreen();
+  }
+}
+
+function markECGReviewed() {
+  _ecgReviewStatus = "REVIEWED";
+  const badge = document.getElementById("ecg-review-status-badge");
+  if (badge) {
+    badge.textContent = "REVIEWED ✓";
+    badge.className = "status-badge normal";
+  }
+}
+
+function printECGReport() {
+  const sc = ECG_DEMO_SCENARIOS[_ecgCurrentScenario];
+  const m  = sc.metrics;
+  const win = window.open("", "_blank", "width=850,height=1100");
+  if (!win) return;
+  win.document.write(`<!DOCTYPE html><html><head><title>ECG Report — ${sc.recording_id}</title>
+  <style>
+    body{font-family:'Inter',sans-serif;margin:32px;color:#1B2016;background:#fff;}
+    h1{font-size:1.4rem;margin:0 0 4px;}h2{font-size:1rem;margin:1rem 0 0.4rem;color:#374151;}
+    .sub{color:#6B7280;font-size:0.85rem;}.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:0.75rem;font-weight:700;}
+    .normal{background:#DCFCE7;color:#166534;}.attention{background:#FEF9C3;color:#854D0E;}.high_priority{background:#FEE2E2;color:#991B1B;}
+    table{width:100%;border-collapse:collapse;margin-top:0.5rem;}td,th{padding:7px 10px;border:1px solid #E5E7EB;font-size:0.82rem;}
+    th{background:#F3F4F6;font-weight:700;}
+    .disclaimer{font-size:0.72rem;color:#9CA3AF;margin-top:1.5rem;padding-top:0.75rem;border-top:1px solid #E5E7EB;}
+    @media print{body{margin:16px;}}
+  </style></head><body>
+  <h1>JeevOne — ECG Analysis Report</h1>
+  <div class="sub">Recording: ${sc.recording_id} &nbsp;|&nbsp; Analyzed: ${new Date().toLocaleString()} &nbsp;|&nbsp; Model: JeevECG-Demo-v1.0</div>
+  <div style="margin-top:12px;"><span class="badge ${sc.severity}">${sc.primary_rhythm}</span> &nbsp; Confidence: <strong>${sc.confidence}%</strong></div>
+  <h2>Summary</h2><p>${sc.summary.detail}</p>
+  <p><strong>Next Steps:</strong> ${sc.summary.next_steps}</p>
+  <h2>Cardiac Metrics</h2>
+  <table><tr><th>Parameter</th><th>Value</th><th>Reference</th></tr>
+  <tr><td>Average HR</td><td>${m.avg_hr_bpm} bpm</td><td>60–100 bpm</td></tr>
+  <tr><td>Min / Max HR</td><td>${m.min_hr_bpm} / ${m.max_hr_bpm} bpm</td><td>—</td></tr>
+  <tr><td>Average RR</td><td>${m.avg_rr_ms} ms</td><td>600–1000 ms</td></tr>
+  <tr><td>PR Interval</td><td>${m.pr_ms ? m.pr_ms + " ms" : "Unavailable"}</td><td>120–200 ms</td></tr>
+  <tr><td>QRS Duration</td><td>${m.qrs_ms} ms</td><td>60–100 ms</td></tr>
+  <tr><td>QTc Interval</td><td>${m.qtc_ms ? m.qtc_ms + " ms" : "Unavailable"}</td><td>&lt; 440 ms</td></tr>
+  <tr><td>R-Peaks Detected</td><td>${m.r_peaks_detected}</td><td>—</td></tr>
+  <tr><td>Abnormal Beats</td><td>${m.abnormal_beats}</td><td>—</td></tr>
+  </table>
+  <h2>Signal Quality</h2>
+  <p>SQI Score: <strong>${Math.round(sc.signal_quality.sqi_score * 1000) / 10}%</strong> — ${sc.summary.quality} &nbsp;|&nbsp; Lead Contact: ${sc.signal_quality.lead_contact}</p>
+  <div class="disclaimer">This report is generated by a demonstration AI model for informational and wellness monitoring purposes only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional for clinical concerns.</div>
+  </body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
+}

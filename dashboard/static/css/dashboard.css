@@ -2624,7 +2624,7 @@ body.pwa-standalone {
 .ios-modal-footer { padding-top: 1rem; border-top: 1px solid var(--glass-border); }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   HEALTH REPORT & PERSONALIZED GUIDANCE (Vibrant Bento System v3.5)
+   HEALTH REPORT & PERSONALIZED GUIDANCE (Vibrant Bento System v3.7)
    ══════════════════════════════════════════════════════════════════════════════ */
 .report-bento-grid {
   align-items: stretch;
@@ -3522,3 +3522,183 @@ body.pwa-standalone {
     page-break-inside: avoid; break-inside: avoid;
   }
 }
+
+
+/* ------------------------------------------------------------------------------
+   AI ECG Analysis Studio � JeevOne v3.7
+   ------------------------------------------------------------------------------ */
+
+/* -- ECG Hero Banner ---------------------------------------------------------- */
+.ecg-ai-hero-banner { background: linear-gradient(135deg, #0C1F17 0%, #0F2A1E 60%, #131F17 100%); border: 1px solid rgba(74,222,128,0.18); }
+.ecg-ai-hero-banner .welcome-text h2 { color: #E2F5D8; }
+.ecg-ai-hero-banner .welcome-text p  { color: rgba(226,245,216,0.72); }
+[data-theme="dark"] .ecg-ai-hero-banner { background: linear-gradient(135deg, #0A1A11 0%, #0E2219 60%, #0F1C13 100%); }
+
+/* -- ECG Status Chips --------------------------------------------------------- */
+.ecg-status-cluster { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.ecg-status-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 10px;
+  background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.28);
+  font-size: 0.75rem; font-weight: 600; color: #4ADE80; font-family: var(--font-mono);
+}
+.ecg-model-chip { background: rgba(124,58,237,0.14); border-color: rgba(167,139,250,0.35); color: #A78BFA; }
+.ecg-pulse-green {
+  display: inline-block; width: 7px; height: 7px; background: #4ADE80; border-radius: 50%;
+  box-shadow: 0 0 6px #4ADE80; animation: ecgPulse 1.4s ease-in-out infinite;
+}
+@keyframes ecgPulse { 0%,100%{opacity:1;box-shadow:0 0 6px #4ADE80;} 50%{opacity:0.5;box-shadow:0 0 14px #4ADE80;} }
+
+/* -- Analysis Stepper --------------------------------------------------------- */
+.ecg-stepper-card { padding: 1rem 1.4rem; }
+.ecg-analysis-stepper { display: flex; align-items: center; gap: 0; }
+.ecg-step {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  font-size: 0.7rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;
+}
+.ecg-step-dot {
+  width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--glass-border-strong);
+  background: var(--surface2); transition: all 0.3s ease;
+}
+.ecg-step.done .ecg-step-dot { background: var(--risk-normal); border-color: var(--risk-normal); box-shadow: 0 0 10px var(--risk-normal-glow); }
+.ecg-step.done { color: var(--risk-normal); }
+.ecg-step.active .ecg-step-dot { background: var(--accent-amber); border-color: var(--accent-amber); animation: ecgPulse 1s infinite; }
+.ecg-step-line { flex: 1; height: 2px; background: var(--glass-border-strong); min-width: 24px; transition: background 0.3s; }
+.ecg-step-line.done { background: var(--risk-normal); }
+@media (max-width: 700px) { .ecg-step span { display: none; } .ecg-step-dot { width: 16px; height: 16px; } }
+
+/* -- ECG Monitor Frame -------------------------------------------------------- */
+.ecg-ai-monitor-card { padding-bottom: 0; overflow: hidden; }
+.ecg-ai-monitor-frame { margin-top: 1rem; border-radius: var(--radius-md); overflow: hidden; border: 1px solid rgba(74,222,128,0.2); }
+.ecg-canvas-wrapper { background: #0C1F17; overflow-x: auto; }
+#ecg-ai-canvas { display: block; }
+
+/* -- Toolbar Controls --------------------------------------------------------- */
+.ecg-toolbar { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }
+.ecg-ctrl-group { display: flex; align-items: center; gap: 5px; }
+.ecg-ctrl-label { font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; }
+.ecg-ctrl-unit  { font-size: 0.65rem; color: var(--text-dim); font-family: var(--font-mono); }
+.ecg-ctrl-btns  { display: flex; gap: 2px; }
+.ecg-ctrl-btn {
+  padding: 4px 9px; border-radius: 8px; border: 1px solid var(--glass-border-strong);
+  background: var(--surface2); color: var(--text-muted); font-size: 0.72rem; font-weight: 600;
+  cursor: pointer; font-family: var(--font-mono); transition: all 0.15s;
+}
+.ecg-ctrl-btn:hover { background: var(--surface3); color: var(--text); }
+.ecg-ctrl-btn.active { background: #0C1F17; color: #4ADE80; border-color: rgba(74,222,128,0.5); }
+.ecg-fullscreen-btn { padding: 5px 9px; }
+.ecg-scenario-select {
+  padding: 4px 8px; border-radius: 8px; border: 1px solid var(--glass-border-strong);
+  background: var(--surface2); color: var(--text); font-size: 0.75rem; font-family: var(--font-mono);
+  cursor: pointer; outline: none;
+}
+
+/* -- Lead-Off Overlay --------------------------------------------------------- */
+.ecg-lead-off-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; color: #FBBF24; z-index: 10;
+}
+.ecg-ai-monitor-frame { position: relative; }
+
+/* -- Arrhythmia Timeline ------------------------------------------------------ */
+.ecg-timeline-card { padding-bottom: 1rem; }
+.ecg-timeline-track {
+  height: 44px; border-radius: 10px; overflow: hidden;
+  display: flex; border: 1px solid var(--glass-border); background: var(--surface2);
+  position: relative;
+}
+.ecg-timeline-seg {
+  height: 100%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; font-family: var(--font-mono);
+  cursor: pointer; overflow: hidden; transition: filter 0.15s; position: relative;
+  border-right: 1px solid rgba(0,0,0,0.12);
+}
+.ecg-timeline-seg:hover { filter: brightness(1.15); }
+.ecg-timeline-seg.seg-normal     { background: rgba(22,163,74,0.22); color: #16A34A; }
+.ecg-timeline-seg.seg-attention  { background: rgba(217,119,6,0.28); color: #D97706; }
+.ecg-timeline-seg.seg-high       { background: rgba(220,38,38,0.28); color: #DC2626; }
+.ecg-timeline-seg.seg-inconclusive{ background: rgba(107,114,128,0.22); color: #6B7280; }
+.ecg-timeline-seg .seg-label { padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size:0.62rem; }
+.ecg-timeline-seg .seg-time { font-size: 0.58rem; opacity: 0.75; }
+
+/* Legend */
+.ecg-legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: 7px; }
+.ecg-legend-normal     { background: rgba(22,163,74,0.14); color: #16A34A; }
+.ecg-legend-attention  { background: rgba(217,119,6,0.16); color: #D97706; }
+.ecg-legend-high       { background: rgba(220,38,38,0.14); color: #DC2626; }
+.ecg-legend-grey       { background: rgba(107,114,128,0.14); color: #6B7280; }
+
+/* -- Cardiac Metrics Bento Grid ----------------------------------------------- */
+.ecg-metrics-bento {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+}
+@media (max-width: 1100px) { .ecg-metrics-bento { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .ecg-metrics-bento { grid-template-columns: repeat(2, 1fr); } }
+.ecg-metric-tile {
+  background: var(--surface2); border: 1px solid var(--glass-border); border-radius: 12px;
+  padding: 0.65rem 0.75rem; display: flex; flex-direction: column; gap: 4px;
+}
+.ecg-metric-highlight { border-color: var(--accent-amber); background: var(--accent-amber-soft); }
+.ecg-metric-label { font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; font-weight: 700; }
+.ecg-metric-val   { font-size: 1.05rem; font-weight: 800; color: var(--text); font-family: var(--font-mono); }
+
+/* -- Rhythm Result Block ------------------------------------------------------ */
+.ecg-rhythm-result-block {
+  display: flex; align-items: center; gap: 1rem; padding: 1rem 1.1rem;
+  border-radius: 14px; background: var(--surface2); border: 1px solid var(--glass-border);
+}
+.ecg-rhythm-icon { font-size: 2rem; }
+.ecg-rhythm-main { flex: 1; }
+.ecg-rhythm-name { font-size: 1.1rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+.ecg-rhythm-code { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); font-weight: 700; margin-top: 3px; }
+.ecg-confidence-block { text-align: right; }
+.ecg-confidence-pct { font-size: 1.5rem; font-weight: 800; color: var(--accent); font-family: var(--font-mono); }
+.ecg-confidence-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-family: var(--font-mono); }
+.ecg-severity-badge {
+  display: inline-block; margin-top: 5px; padding: 2px 10px; border-radius: 7px;
+  font-size: 0.65rem; font-weight: 800; font-family: var(--font-mono); text-transform: uppercase;
+}
+.ecg-severity-badge.normal     { background: var(--risk-normal-soft); color: var(--risk-normal); }
+.ecg-severity-badge.attention  { background: var(--risk-watch-soft);  color: var(--risk-watch); }
+.ecg-severity-badge.high_priority { background: var(--risk-high-soft);color: var(--risk-high); }
+
+/* -- SQI Gauge ---------------------------------------------------------------- */
+.ecg-sqi-gauge-wrapper { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.ecg-sqi-gauge-label { text-align: center; }
+.ecg-sqi-pct-big { font-size: 2rem; font-weight: 800; color: var(--accent); font-family: var(--font-mono); }
+.ecg-sqi-verdict { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.ecg-sqi-suit { color: var(--risk-normal); font-weight: 700; }
+
+/* -- ECG Summary -------------------------------------------------------------- */
+.ecg-summary-headline-block { display: flex; gap: 0.9rem; align-items: flex-start; }
+.ecg-summary-icon { font-size: 2.2rem; flex-shrink: 0; margin-top: 2px; }
+.ecg-summary-headline { font-size: 1rem; font-weight: 800; color: var(--text); margin-bottom: 0.4rem; }
+.ecg-summary-detail { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
+.ecg-summary-meta-row { display: flex; gap: 0.65rem; flex-wrap: wrap; }
+.ecg-summary-meta-pill {
+  font-size: 0.75rem; padding: 4px 12px; border-radius: 9px;
+  background: var(--surface2); border: 1px solid var(--glass-border); color: var(--text-muted);
+}
+.ecg-summary-meta-pill strong { color: var(--text); }
+.ecg-next-steps-box {
+  background: var(--accent-sky-soft); border: 1px solid rgba(120,197,231,0.4); border-radius: 12px; padding: 0.75rem 0.9rem;
+}
+[data-theme="dark"] .ecg-next-steps-box { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.2); }
+.ecg-next-label { font-size: 0.68rem; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+.ecg-next-text  { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+
+/* -- Model Classes List ------------------------------------------------------- */
+.ecg-classes-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.ecg-class-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 9px; font-size: 0.78rem; }
+.ecg-class-row.active-class   { background: var(--surface2); color: var(--text); font-weight: 600; }
+.ecg-class-row.inactive-class { background: transparent; color: var(--text-dim); font-style: italic; }
+.ecg-class-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* -- Archive Table Row Hover -------------------------------------------------- */
+#ecg-archive-tbody tr { cursor: pointer; }
+#ecg-archive-tbody tr:hover td { background: var(--accent-soft) !important; }
+
+/* AFib-specific waveform styling for red scenario */
+.ecg-ai-monitor-frame.scenario-afib { border-color: rgba(220,38,38,0.35); }
+.ecg-ai-monitor-frame.scenario-attention { border-color: rgba(217,119,6,0.35); }
