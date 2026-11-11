@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="apple-touch-fullscreen" content="yes" />
   <title>Jeev One — Live Monitor Dashboard</title>
 
   <!-- Progressive Web App (PWA) Manifest & Meta Tags -->
@@ -21,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=3.7" />
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=3.8" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Default Light-First Colorful Theme; only activate dark if user explicitly chose dark -->
   <script>
@@ -96,6 +98,12 @@
           </div>
 
           <div class="header-meta">
+            <!-- Mobile Install App Action Pill -->
+            <button class="header-install-btn btn-install-pwa" id="header-btn-install-pwa" aria-label="Install App" title="Install Jeev One as PWA">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Install App</span>
+            </button>
+
             <button class="icon-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Dark / Light Theme"><span id="icon-theme"></span></button>
 
             <!-- Notification Center Dropdown Container -->
@@ -1842,6 +1850,23 @@
     </div>
   </div>
 
+  <!-- ══ Floating Mobile PWA Install Banner ═══════════════════════════════════ -->
+  <aside class="mobile-pwa-banner" id="mobile-pwa-banner" aria-label="Install App" style="display: none;">
+    <div class="mobile-pwa-banner-left">
+      <div class="mobile-pwa-banner-icon">
+        <img src="/static/icons/icon-192x192.png" alt="Jeev One" width="28" height="28" />
+      </div>
+      <div class="mobile-pwa-banner-text">
+        <span class="mobile-pwa-banner-title">Install Jeev One App</span>
+        <span class="mobile-pwa-banner-sub">Standalone edge telemetry on your home screen</span>
+      </div>
+    </div>
+    <div class="mobile-pwa-banner-actions">
+      <button type="button" class="btn btn-xs btn-primary btn-install-pwa" id="btn-banner-install">Install</button>
+      <button type="button" class="mobile-pwa-dismiss" id="btn-banner-dismiss" aria-label="Dismiss banner">✕</button>
+    </div>
+  </aside>
+
   <!-- ══ Mobile Bottom Navigation Bar ══════════════════════════════════════════ -->
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile Navigation Bar">
     <button class="bottom-nav-item active" data-tab="live" aria-label="Live Monitor">
@@ -1856,11 +1881,12 @@
       </div>
       <span class="bottom-nav-label">Report</span>
     </button>
-    <button class="bottom-nav-item" data-tab="ecg" aria-label="ECG Diagnostics">
+    <button class="bottom-nav-item" data-tab="ecg" aria-label="AI ECG Diagnostics">
       <div class="bottom-nav-icon-wrap">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 5 12 7 4 9 20 11 12 13 12 15 8 17 16 19 12 22 12"/></svg>
+        <span class="bottom-nav-pulse-dot"></span>
       </div>
-      <span class="bottom-nav-label">ECG</span>
+      <span class="bottom-nav-label">AI ECG</span>
     </button>
     <button class="bottom-nav-item" data-tab="readings" aria-label="Recent Readings">
       <div class="bottom-nav-icon-wrap">
@@ -1880,6 +1906,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="/static/js/icons.js"></script>
-  <script src="/static/js/dashboard.js?v=3.7"></script>
+  <script src="/static/js/dashboard.js?v=3.8"></script>
 </body>
 </html>

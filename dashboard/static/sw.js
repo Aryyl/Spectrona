@@ -1,20 +1,20 @@
 /**
  * Jeev One – Progressive Web App Service Worker
- * Version: 3.6.0
+ * Version: 3.8.0
  * 
  * Provides offline caching, instantaneous launch, network-first live code delivery,
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "jeevone-dashboard-v3.7.0";
+const CACHE_NAME = "jeevone-dashboard-v3.8.0";
 const PRECACHE_ASSETS = [
   "/",
   "/login",
   "/dashboard",
   "/manifest.json",
   "/static/manifest.json",
-  "/static/css/dashboard.css?v=3.7",
-  "/static/js/dashboard.js?v=3.7",
+  "/static/css/dashboard.css?v=3.8",
+  "/static/js/dashboard.js?v=3.8",
   "/static/css/landing.css?v=10.0.0",
   "/static/js/landing.js?v=9.0.0",
   "/static/css/login.css",

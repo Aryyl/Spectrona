@@ -2465,6 +2465,33 @@ function initPWA() {
   const pwaStatusBadge = $("pwa-status-badge");
   const installBtnNav = $("btn-install-pwa");
   const installBtnSettings = $("btn-install-settings-pwa");
+  const installBtnHeader = $("header-btn-install-pwa");
+  const mobilePwaBanner = $("mobile-pwa-banner");
+  const btnBannerInstall = $("btn-banner-install");
+  const btnBannerDismiss = $("btn-banner-dismiss");
+
+  function hideAllInstallPrompts() {
+    if (installBtnNav) installBtnNav.style.display = "none";
+    if (installBtnSettings) installBtnSettings.style.display = "none";
+    if (installBtnHeader) installBtnHeader.style.display = "none";
+    if (mobilePwaBanner) mobilePwaBanner.style.display = "none";
+    const installBtnDrawer = $("mob-btn-install-pwa");
+    if (installBtnDrawer) installBtnDrawer.style.display = "none";
+  }
+
+  function maybeShowMobileBanner() {
+    if (isStandalone) return;
+    try {
+      if (sessionStorage.getItem("jeev_pwa_banner_dismissed") === "true") return;
+    } catch(e) {}
+    if (mobilePwaBanner) {
+      setTimeout(() => {
+        if (!document.body.classList.contains("pwa-standalone")) {
+          mobilePwaBanner.style.display = "flex";
+        }
+      }, 1200);
+    }
+  }
 
   if (isStandalone) {
     document.body.classList.add("pwa-standalone");
@@ -2472,12 +2499,15 @@ function initPWA() {
       pwaStatusBadge.textContent = "STANDALONE ACTIVE";
       pwaStatusBadge.className = "status-badge normal";
     }
-    if (installBtnNav) installBtnNav.style.display = "none";
-    if (installBtnSettings) installBtnSettings.style.display = "none";
+    hideAllInstallPrompts();
     console.log("[PWA] Running as installed standalone app");
   } else {
     if (pwaStatusBadge) {
       pwaStatusBadge.textContent = "STANDALONE READY";
+    }
+    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobileDevice) {
+      maybeShowMobileBanner();
     }
   }
 
@@ -2492,8 +2522,10 @@ function initPWA() {
     if (installBtnSettings) {
       installBtnSettings.style.display = "inline-flex";
     }
+    if (installBtnHeader) installBtnHeader.style.display = "inline-flex";
     const installBtnDrawer = $("mob-btn-install-pwa");
     if (installBtnDrawer) installBtnDrawer.style.display = "inline-flex";
+    maybeShowMobileBanner();
     console.log("[PWA] beforeinstallprompt event captured");
   });
 
@@ -2527,9 +2559,7 @@ function initPWA() {
           showToast("Installing App", "Jeev One is being added to your device.", "success");
         }
         deferredInstallPrompt = null;
-        if (installBtnNav) installBtnNav.style.display = "none";
-        const installBtnDrawer = $("mob-btn-install-pwa");
-        if (installBtnDrawer) installBtnDrawer.style.display = "none";
+        hideAllInstallPrompts();
       });
     } else if (isIOS) {
       openIosModal();
@@ -2544,6 +2574,17 @@ function initPWA() {
 
   if (installBtnNav) installBtnNav.addEventListener("click", triggerInstall);
   if (installBtnSettings) installBtnSettings.addEventListener("click", triggerInstall);
+  if (installBtnHeader) installBtnHeader.addEventListener("click", triggerInstall);
+  if (btnBannerInstall) btnBannerInstall.addEventListener("click", triggerInstall);
+  if (btnBannerDismiss) {
+    btnBannerDismiss.addEventListener("click", () => {
+      if (mobilePwaBanner) mobilePwaBanner.style.display = "none";
+      try {
+        sessionStorage.setItem("jeev_pwa_banner_dismissed", "true");
+      } catch(e) {}
+    });
+  }
+
   const installBtnDrawer = $("mob-btn-install-pwa");
   if (installBtnDrawer) {
     installBtnDrawer.addEventListener("click", () => {
@@ -2557,10 +2598,7 @@ function initPWA() {
     console.log("[PWA] Jeev One was installed successfully");
     deferredInstallPrompt = null;
     document.body.classList.add("pwa-standalone");
-    if (installBtnNav) installBtnNav.style.display = "none";
-    if (installBtnSettings) installBtnSettings.style.display = "none";
-    const installBtnDrawer = $("mob-btn-install-pwa");
-    if (installBtnDrawer) installBtnDrawer.style.display = "none";
+    hideAllInstallPrompts();
     if (pwaStatusBadge) {
       pwaStatusBadge.textContent = "STANDALONE ACTIVE";
       pwaStatusBadge.className = "status-badge normal";
@@ -3956,7 +3994,29 @@ function initAIECGTab() {
   loadECGScenario(0);
   startECGLiveSweep();
   updateECGStepperDone();
+
+  const exportBtn = document.getElementById("btn-ecg-export-csv");
+  if (exportBtn && !exportBtn._hasListener) {
+    exportBtn._hasListener = true;
+    exportBtn.addEventListener("click", exportECGCSV);
+  }
 }
+
+// Auto-adjust ECG canvas on window resize and mobile orientation rotation
+window.addEventListener("resize", () => {
+  const canvas = document.getElementById("ecg-ai-canvas");
+  if (canvas && canvas.offsetParent !== null) {
+    resizeECGCanvas(canvas);
+  }
+});
+window.addEventListener("orientationchange", () => {
+  setTimeout(() => {
+    const canvas = document.getElementById("ecg-ai-canvas");
+    if (canvas && canvas.offsetParent !== null) {
+      resizeECGCanvas(canvas);
+    }
+  }, 150);
+});
 
 // ── Tab switch hook: wire into existing tab-switching ─────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -4416,4 +4476,51 @@ function printECGReport() {
   </body></html>`);
   win.document.close();
   setTimeout(() => win.print(), 400);
+}
+
+// ── Export ECG CSV ─────────────────────────────────────────────────────────────
+function exportECGCSV() {
+  const sc = ECG_DEMO_SCENARIOS[_ecgCurrentScenario];
+  if (!sc) return;
+  const now = new Date().toISOString();
+  let csv = "JeevOne AI-Powered ECG Analysis Studio Export\n";
+  csv += `Export Timestamp,${now}\n`;
+  csv += `Recording ID,${sc.recording_id}\n`;
+  csv += `Patient ID,patient_01\n`;
+  csv += `Primary Rhythm Classification,${sc.primary_rhythm}\n`;
+  csv += `Rhythm Code,${sc.rhythm_code}\n`;
+  csv += `Confidence Pct,${sc.confidence}%\n`;
+  csv += `Severity,${sc.severity}\n`;
+  csv += `Sampling Frequency,250 Hz\n`;
+  csv += `Recording Duration,${sc.duration_sec} seconds\n`;
+  csv += `Signal Quality Score (SQI),${Math.round(sc.signal_quality.sqi_score * 1000) / 10}%\n`;
+  const m = sc.metrics;
+  csv += `Average Heart Rate,${m.avg_hr_bpm} BPM\n`;
+  csv += `Min Heart Rate,${m.min_hr_bpm} BPM\n`;
+  csv += `Max Heart Rate,${m.max_hr_bpm} BPM\n`;
+  csv += `Average RR Interval,${m.avg_rr_ms} ms\n`;
+  csv += `PR Interval,${m.pr_ms ? m.pr_ms + " ms" : "Unavailable"}\n`;
+  csv += `QRS Duration,${m.qrs_ms} ms\n`;
+  csv += `QT Interval,${m.qt_ms ? m.qt_ms + " ms" : "Unavailable"}\n`;
+  csv += `QTc Bazett,${m.qtc_ms ? m.qtc_ms + " ms" : "Unavailable"}\n`;
+  csv += `Detected R-Peaks,${m.r_peaks_detected}\n`;
+  csv += `Abnormal Beats,${m.abnormal_beats}\n`;
+  csv += `Classified Beats Pct,${m.pct_classified}%\n`;
+  csv += `\nTimeline Episodes\n`;
+  csv += `Start (s),End (s),Rhythm,Severity,Description\n`;
+  (sc.timeline_episodes || []).forEach(ep => {
+    csv += `${ep.start_sec},${ep.end_sec},${ep.rhythm},${ep.severity},"${ep.label}"\n`;
+  });
+  csv += `\nDisclaimer,"This data is generated by an algorithmic model for demonstration and clinical monitoring decision-support only. Not a medical diagnosis."\n`;
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `jeev_ecg_${sc.recording_id}_${sc.rhythm_code}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("ECG CSV Exported", `Downloaded analysis for ${sc.recording_id}`, "success");
 }
