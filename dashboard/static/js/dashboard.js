@@ -5168,21 +5168,3 @@ Please dispatch paramedic response to the GPS coordinates above.`;
     }
   }
 }
-
-  if (navigator.share) {
-    navigator.share({
-      title: `Emergency Medical Telemetry — ${patientName}`,
-      text: msg,
-      url: googleMapsUrl
-    }).catch(() => {});
-  } else {
-    // Copy to clipboard
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(msg).then(() => {
-        showToast("Emergency Data Copied", "Vitals & GPS coordinates copied to clipboard for paramedic SMS/chat", "success");
-      });
-    } else {
-      showToast("Emergency Data Ready", "Please share your active location with 108 ambulance.", "info");
-    }
-  }
-}

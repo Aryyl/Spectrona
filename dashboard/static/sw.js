@@ -6,7 +6,7 @@
  * and reliable edge node operation on mobile devices and desktop.
  */
 
-const CACHE_NAME = "jeevone-dashboard-v3.9.0";
+const CACHE_NAME = "jeevone-dashboard-v3.11.0";
 const PRECACHE_ASSETS = [
   "/",
   "/login",
@@ -14,7 +14,7 @@ const PRECACHE_ASSETS = [
   "/manifest.json",
   "/static/manifest.json",
   "/static/css/dashboard.css?v=3.9",
-  "/static/js/dashboard.js?v=3.9",
+  "/static/js/dashboard.js?v=3.11",
   "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
   "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
   "/static/css/landing.css?v=10.0.0",
