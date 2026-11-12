@@ -4571,13 +4571,31 @@ function getCareTileUrl(isDark) {
   return "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 }
 
+// Clean SVG vector icons for Care Studio (no emojis, crisp responsive rendering)
+const CARE_SVGS = {
+  hospital: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/><line x1="10" y1="9" x2="14" y2="9"/><line x1="12" y1="7" x2="12" y2="11"/></svg>`,
+  cardiologist: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h4.27"/></svg>`,
+  doctor: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3v5a4.5 4.5 0 0 0 9 0V3M9 12.5V17a3 3 0 0 0 3 3h1a3 3 0 0 0 3-3v-2.5"/><circle cx="16" cy="14.5" r="1.5"/></svg>`,
+  pharmacy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg>`,
+  ambulance: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="15" height="11" rx="2"/><polygon points="16 8 20 8 23 11 23 17 16 17 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/></svg>`,
+  phone: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+  whatsapp: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+  directions: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
+  pin: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  clock: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  star: `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  stethoscope: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3v5a4.5 4.5 0 0 0 9 0V3M9 12.5V17a3 3 0 0 0 3 3h1a3 3 0 0 0 3-3v-2.5"/><circle cx="16" cy="14.5" r="1.5"/></svg>`,
+  shield: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+  alert: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+};
+
 // Category metadata
 const CARE_CATEGORIES = {
-  hospitals:     { icon: "🏥", label: "Hospital & 24/7 ER",   color: "#DC2626" },
-  cardiologists: { icon: "❤️", label: "Cardiologist",        color: "#9333EA" },
-  doctors:       { icon: "🩺", label: "Clinic / Doctor",      color: "#2563EB" },
-  pharmacies:    { icon: "💊", label: "24/7 Pharmacy",        color: "#059669" },
-  ambulance:     { icon: "🚑", label: "Ambulance Dispatch",   color: "#D97706" }
+  hospitals:     { key: "hospital",     label: "Hospital & 24/7 ER",   color: "#E11D48", bgLight: "rgba(225,29,72,0.10)", border: "rgba(225,29,72,0.28)" },
+  cardiologists: { key: "cardiologist", label: "Cardiologist",        color: "#8B5CF6", bgLight: "rgba(139,92,246,0.10)", border: "rgba(139,92,246,0.28)" },
+  doctors:       { key: "doctor",       label: "Clinic / Doctor",      color: "#2563EB", bgLight: "rgba(37,99,235,0.10)", border: "rgba(37,99,235,0.28)" },
+  pharmacies:    { key: "pharmacy",     label: "24/7 Pharmacy",        color: "#059669", bgLight: "rgba(5,150,105,0.10)", border: "rgba(5,150,105,0.28)" },
+  ambulance:     { key: "ambulance",    label: "Ambulance Dispatch",   color: "#EA580C", bgLight: "rgba(234,88,12,0.10)", border: "rgba(234,88,12,0.28)" }
 };
 
 // ── Initialize Location via HTML5 Geolocation ─────────────────────────────────
@@ -4671,17 +4689,33 @@ function initCareTab() {
 function updateDeviceMarkerAndRadius() {
   if (!_careMap) return;
 
-  // Device beacon marker
+  // Modern device beacon marker with pulse ring
   if (!_careDeviceMarker) {
     const beaconIcon = L.divIcon({
-      className: "care-device-beacon-wrap",
-      html: '<div class="care-device-ring"></div><div class="care-device-core"></div>',
+      className: "care-device-beacon-container",
+      html: `
+        <div class="care-device-beacon-wrap">
+          <div class="care-device-radar-ring"></div>
+          <div class="care-device-core-dot">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+          </div>
+        </div>
+      `,
       iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -18]
     });
     _careDeviceMarker = L.marker([_careDeviceLat, _careDeviceLng], { icon: beaconIcon, zIndexOffset: 2000 })
       .addTo(_careMap)
-      .bindPopup("<strong>📡 JeevOne Telemetry Node</strong><br>Active Patient Coordinates");
+      .bindPopup(`
+        <div style="padding:6px 8px;font-size:0.75rem;">
+          <div style="font-weight:800;color:var(--text);display:flex;align-items:center;gap:5px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#22C55E;display:inline-block;"></span>
+            <span>JeevOne Telemetry Node</span>
+          </div>
+          <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">Patient active coordinates</div>
+        </div>
+      `);
   } else {
     _careDeviceMarker.setLatLng([_careDeviceLat, _careDeviceLng]);
   }
@@ -4736,7 +4770,7 @@ async function fetchAndRenderCareFacilities() {
   }
 }
 
-// ── Render Map Markers ────────────────────────────────────────────────────────
+// ── Render Map Markers (Crisp Vector SVG Teardrop Pins) ────────────────────────
 function renderCareMapMarkers(facilities) {
   if (!_careMap) return;
 
@@ -4745,10 +4779,22 @@ function renderCareMapMarkers(facilities) {
   _careMarkers = [];
 
   facilities.forEach(fac => {
-    const catMeta = CARE_CATEGORIES[fac.category] || { icon: "📍", label: fac.category_label, color: "#4B5563" };
+    const catMeta = CARE_CATEGORIES[fac.category] || {
+      key: "hospital",
+      label: fac.category_label || "Medical",
+      color: "#6B7280",
+      bgLight: "rgba(107,114,128,0.10)",
+      border: "rgba(107,114,128,0.28)"
+    };
+    const catSvg = CARE_SVGS[catMeta.key] || CARE_SVGS.hospital;
+
     const pinIcon = L.divIcon({
-      className: `care-facility-pin pin-${fac.category}`,
-      html: `<span>${catMeta.icon}</span>`,
+      className: "care-leaflet-pin-container",
+      html: `
+        <div class="care-marker-pin pin-${fac.category}">
+          <div class="care-marker-glyph">${catSvg}</div>
+        </div>
+      `,
       iconSize: [34, 34],
       iconAnchor: [17, 34],
       popupAnchor: [0, -32]
@@ -4756,17 +4802,38 @@ function renderCareMapMarkers(facilities) {
 
     const popupHtml = `
       <div class="care-popup-card">
-        <div class="care-popup-cat" style="color:${catMeta.color};">${catMeta.label}</div>
-        <div class="care-popup-title">${fac.name}</div>
-        <div class="care-popup-meta">
-          <strong>${fac.distance_km} km away</strong> (${fac.drive_time_min} min drive)<br>
-          ${fac.is_24_7 ? "🟢 <strong>Open 24/7</strong>" : fac.timings}<br>
-          ${fac.doctor_name ? "<em>" + fac.doctor_name + "</em><br>" : ""}
-          📍 ${fac.address}
+        <div class="care-popup-header">
+          <span class="care-popup-cat-badge" style="color:${catMeta.color};background:${catMeta.bgLight};border:1px solid ${catMeta.border};">
+            ${catSvg}
+            <span>${catMeta.label}</span>
+          </span>
+          ${fac.is_24_7 ? `<span class="care-popup-open-badge">24/7 OPEN</span>` : `<span class="care-popup-hours-badge">${fac.timings}</span>`}
         </div>
+        <div class="care-popup-title">${fac.name}</div>
+        ${fac.doctor_name ? `
+          <div class="care-popup-doctor">
+            ${CARE_SVGS.stethoscope}
+            <span>${fac.doctor_name}</span>
+          </div>
+        ` : ""}
+        <div class="care-popup-spec">${fac.specialty}</div>
+        <div class="care-popup-dist-strip">
+          <span class="care-popup-dist-val">${CARE_SVGS.pin} ${fac.distance_km} km away</span>
+          <span class="care-popup-dist-dot">•</span>
+          <span class="care-popup-drive-val">${CARE_SVGS.clock} ~${fac.drive_time_min}m</span>
+          <span class="care-popup-dist-dot">•</span>
+          <span class="care-popup-rating-val">${CARE_SVGS.star} ${fac.rating}</span>
+        </div>
+        <div class="care-popup-address">${fac.address}${fac.landmark ? ` (${fac.landmark})` : ""}</div>
         <div class="care-popup-actions">
-          <a href="tel:${fac.phone}" class="care-popup-btn care-popup-btn-call">📞 Call</a>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}" target="_blank" rel="noopener" class="care-popup-btn care-popup-btn-dir">🧭 Directions</a>
+          <a href="tel:${fac.phone}" class="care-popup-btn care-popup-btn-call">
+            ${CARE_SVGS.phone}
+            <span>Call ER</span>
+          </a>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}" target="_blank" rel="noopener" class="care-popup-btn care-popup-btn-dir">
+            ${CARE_SVGS.directions}
+            <span>Directions</span>
+          </a>
         </div>
       </div>
     `;
@@ -4780,19 +4847,21 @@ function renderCareMapMarkers(facilities) {
   });
 }
 
-// ── Render Directory Facility Cards ───────────────────────────────────────────
+// ── Render Directory Facility Cards (Medical Bento Aesthetic) ─────────────────
 function renderCareFacilityCards(facilities) {
   const container = document.getElementById("care-facility-list");
   if (!container) return;
 
   if (!facilities || facilities.length === 0) {
     container.innerHTML = `
-      <div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
-        <div style="font-size:2rem;margin-bottom:0.5rem;">🔍</div>
-        <div style="font-weight:700;color:var(--text);font-size:0.95rem;">No medical facilities found</div>
-        <p style="font-size:0.78rem;margin-top:0.3rem;">Try increasing the search radius or clearing search filters.</p>
+      <div class="care-empty-state">
+        <div class="care-empty-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="care-empty-title">No Medical Services Found</div>
+        <p class="care-empty-sub">Try expanding your search radius or clearing query filters.</p>
         <button type="button" class="btn btn-xs btn-primary" onclick="setCareCategory('all');onCareRadiusChange(25);clearCareSearch();" style="margin-top:0.6rem;">
-          Expand to 25 km &amp; Reset Filters
+          Expand Radius to 25 km &amp; Reset Filters
         </button>
       </div>
     `;
@@ -4801,43 +4870,87 @@ function renderCareFacilityCards(facilities) {
 
   let html = "";
   facilities.forEach(fac => {
-    const catMeta = CARE_CATEGORIES[fac.category] || { icon: "📍", label: fac.category_label, color: "#4B5563" };
+    const catMeta = CARE_CATEGORIES[fac.category] || {
+      key: "hospital",
+      label: fac.category_label || "Medical",
+      color: "#6B7280",
+      bgLight: "rgba(107,114,128,0.10)",
+      border: "rgba(107,114,128,0.28)"
+    };
+    const catSvg = CARE_SVGS[catMeta.key] || CARE_SVGS.hospital;
+
     html += `
       <div class="care-card" onclick="focusFacilityOnMap('${fac.id}', ${fac.lat}, ${fac.lng})">
-        <div class="care-card-top">
-          <div class="care-card-title-wrap">
-            <div class="care-card-name">${fac.name}</div>
-            ${fac.doctor_name ? `<div class="care-card-doc">👨‍⚕️ ${fac.doctor_name}</div>` : ""}
-            <div class="care-card-spec">${fac.specialty}</div>
+        <div class="care-card-header">
+          <div class="care-card-meta-tags">
+            <span class="care-cat-chip" style="color:${catMeta.color};background:${catMeta.bgLight};border-color:${catMeta.border};">
+              ${catSvg}
+              <span>${catMeta.label}</span>
+            </span>
+            ${fac.is_24_7 ? `
+              <span class="care-chip-open">
+                <span class="care-open-dot"></span>
+                <span>Open 24/7</span>
+              </span>
+            ` : `
+              <span class="care-chip-hours">
+                ${CARE_SVGS.clock}
+                <span>${fac.timings}</span>
+              </span>
+            `}
+            <span class="care-chip-rating">
+              ${CARE_SVGS.star}
+              <span>${fac.rating}</span>
+              <span class="care-rating-count">(${fac.reviews_count})</span>
+            </span>
           </div>
-          <div class="care-card-dist-badge">
-            ${fac.distance_km} km
-            <div style="font-size:0.6rem;opacity:0.75;font-weight:500;">~${fac.drive_time_min} min</div>
+          <div class="care-card-dist-chip">
+            <span class="care-dist-km">${fac.distance_km} km</span>
+            <span class="care-dist-time">~${fac.drive_time_min}m</span>
           </div>
         </div>
 
-        <div class="care-card-badges-row">
-          <span class="care-pill care-pill-cat" style="color:${catMeta.color};border-color:currentColor;">${catMeta.icon} ${catMeta.label}</span>
-          ${fac.is_24_7 ? `<span class="care-pill care-pill-247">✓ Open 24/7</span>` : `<span class="care-pill care-pill-cat">${fac.timings}</span>`}
-          <span class="care-pill care-pill-rating">★ ${fac.rating} (${fac.reviews_count})</span>
-          ${fac.ambulance_available ? `<span class="care-pill" style="background:rgba(217,119,6,0.15);color:#D97706;">🚑 Ambulance</span>` : ""}
+        <div class="care-card-body">
+          <div class="care-card-title-row">
+            <h4 class="care-facility-name">${fac.name}</h4>
+            ${fac.icu_available ? `<span class="care-badge-icu" title="ICU / Critical Care Equipped">ICU</span>` : ""}
+            ${fac.ambulance_available ? `<span class="care-badge-amb" title="Dedicated Paramedic Ambulance Fleet">AMB</span>` : ""}
+          </div>
+          ${fac.doctor_name ? `
+            <div class="care-doc-row">
+              <span class="care-doc-icon">${CARE_SVGS.stethoscope}</span>
+              <div class="care-doc-details">
+                <span class="care-doc-name">${fac.doctor_name}</span>
+                ${fac.qualifications ? `<span class="care-doc-quals">· ${fac.qualifications}</span>` : ""}
+              </div>
+            </div>
+          ` : ""}
+          <div class="care-spec-desc">${fac.specialty}</div>
+          ${fac.services && fac.services.length > 0 ? `
+            <div class="care-services-pills">
+              ${fac.services.slice(0, 4).map(s => `<span class="care-service-tag">${s}</span>`).join("")}
+            </div>
+          ` : ""}
+          <div class="care-address-row">
+            <span class="care-addr-icon">${CARE_SVGS.pin}</span>
+            <span class="care-addr-text">${fac.address}${fac.landmark ? ` • <span class="care-landmark">${fac.landmark}</span>` : ""}</span>
+          </div>
         </div>
 
-        <div class="care-card-address">
-          📍 ${fac.address} ${fac.landmark ? `• <em>${fac.landmark}</em>` : ""}
-        </div>
-
-        <div class="care-card-actions" onclick="event.stopPropagation()">
-          <a href="tel:${fac.phone}" class="care-act-btn care-act-call" title="Direct Phone Call">
-            📞 <span>Call ${fac.phone}</span>
+        <div class="care-card-footer" onclick="event.stopPropagation()">
+          <a href="tel:${fac.phone}" class="care-btn-call" title="Direct Phone Call">
+            ${CARE_SVGS.phone}
+            <span>Call ${fac.phone}</span>
           </a>
           ${fac.whatsapp ? `
-            <a href="https://wa.me/${fac.whatsapp}?text=Hello%20${encodeURIComponent(fac.name)},%20I%20am%20contacting%20you%20from%20JeevOne%20Health%20Monitor" target="_blank" rel="noopener" class="care-act-btn care-act-wa" title="WhatsApp Message">
-              💬 <span>Chat</span>
+            <a href="https://wa.me/${fac.whatsapp}?text=Hello%20${encodeURIComponent(fac.name)},%20I%20am%20contacting%20you%20from%20JeevOne%20Health%20Monitor" target="_blank" rel="noopener" class="care-btn-wa" title="WhatsApp Clinical Chat">
+              ${CARE_SVGS.whatsapp}
+              <span>Chat</span>
             </a>
           ` : ""}
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}" target="_blank" rel="noopener" class="care-act-btn care-act-nav" title="Get Directions">
-            🧭 <span>Directions</span>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}" target="_blank" rel="noopener" class="care-btn-nav" title="Turn-by-turn Navigation">
+            ${CARE_SVGS.directions}
+            <span>Directions</span>
           </a>
         </div>
       </div>
@@ -4887,7 +5000,7 @@ function updateEmergencySOSNearestHospital() {
     const btnEl = document.getElementById("btn-sos-nearest-hosp");
 
     if (nameEl) nameEl.textContent = nearest.name;
-    if (distEl) distEl.textContent = `Nearest 24/7 ER • ${nearest.distance_km} km (${nearest.drive_time_min} min)`;
+    if (distEl) distEl.textContent = `Nearest 24/7 ER • ${nearest.distance_km} km (~${nearest.drive_time_min}m)`;
     if (btnEl) btnEl.href = `tel:${nearest.phone}`;
   }
 }
@@ -4906,18 +5019,30 @@ async function renderReportCareQuickCard() {
     if (hosps.length === 0) return;
 
     grid.innerHTML = hosps.map(h => `
-      <div style="background:var(--surface2);border:1px solid var(--glass-border);border-radius:12px;padding:0.85rem;display:flex;flex-direction:column;gap:5px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+      <div class="report-care-mini-card">
+        <div class="report-care-mini-header">
           <div>
-            <div style="font-size:0.88rem;font-weight:800;color:var(--text);">${h.name}</div>
-            <div style="font-size:0.72rem;color:#DC2626;font-weight:700;margin-top:2px;">🏥 24/7 Emergency &amp; Trauma Centre</div>
+            <div class="report-care-mini-name">${h.name}</div>
+            <div class="report-care-mini-cat">
+              ${CARE_SVGS.hospital}
+              <span>24/7 Emergency &amp; Trauma Centre</span>
+            </div>
           </div>
-          <span style="font-size:0.72rem;font-weight:800;font-family:var(--font-mono);background:var(--surface);padding:3px 7px;border-radius:7px;border:1px solid var(--glass-border-strong);">${h.distance_km} km</span>
+          <span class="report-care-mini-dist">${h.distance_km} km</span>
         </div>
-        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">📍 ${h.address}</div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <a href="tel:${h.phone}" class="btn btn-xs btn-primary" style="flex:1;justify-content:center;background:#DC2626;border-color:#DC2626;color:#FFF;">📞 Call ER (${h.phone})</a>
-          <button type="button" class="btn btn-xs btn-secondary" onclick="switchTab('care');setTimeout(()=>focusFacilityOnMap('${h.id}', ${h.lat}, ${h.lng}), 200);">🗺 View on Map</button>
+        <div class="report-care-mini-addr">
+          ${CARE_SVGS.pin}
+          <span>${h.address}</span>
+        </div>
+        <div class="report-care-mini-actions">
+          <a href="tel:${h.phone}" class="btn btn-xs btn-primary report-care-btn-call">
+            ${CARE_SVGS.phone}
+            <span>Call ER (${h.phone})</span>
+          </a>
+          <button type="button" class="btn btn-xs btn-secondary" onclick="switchTab('care');setTimeout(()=>focusFacilityOnMap('${h.id}', ${h.lat}, ${h.lng}), 200);">
+            ${CARE_SVGS.directions}
+            <span>View on Map</span>
+          </button>
         </div>
       </div>
     `).join("");
@@ -4944,7 +5069,7 @@ function onCareRadiusChange(radius) {
 function onCareSearchInput(val) {
   _careSearchQuery = val.trim();
   const clearBtn = document.getElementById("btn-care-clear-search");
-  if (clearBtn) clearBtn.style.display = _careSearchQuery ? "inline-block" : "none";
+  if (clearBtn) clearBtn.style.display = _careSearchQuery ? "inline-flex" : "none";
 
   clearTimeout(_careSearchDebounceTimer);
   _careSearchDebounceTimer = setTimeout(() => {
@@ -5012,19 +5137,37 @@ function shareEmergencyLocationVitals() {
   const googleMapsUrl = `https://www.google.com/maps?q=${_careDeviceLat},${_careDeviceLng}`;
   const now = new Date().toLocaleTimeString();
 
-  const msg = `🚨 EMERGENCY MEDICAL TELEMETRY — JeevOne Node
+  const msg = `[EMERGENCY MEDICAL TELEMETRY — JeevOne Node]
 Patient: ${patientName}
 Timestamp: ${now}
-GPS Location: ${googleMapsUrl}
+Location: ${googleMapsUrl}
 Coordinates: ${_careDeviceLat.toFixed(4)}° N, ${_careDeviceLng.toFixed(4)}° E
 
 Current Live Biometrics:
 • Heart Rate: ${hr} bpm
 • Blood Oxygen (SpO2): ${spo2}%
-• Body Temp: ${temp} °C
+• Body Temperature: ${temp} °C
 • Blood Pressure: ${bp}
 
 Please dispatch paramedic response to the GPS coordinates above.`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: `Emergency Medical Telemetry — ${patientName}`,
+      text: msg,
+      url: googleMapsUrl
+    }).catch(() => {});
+  } else {
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(msg).then(() => {
+        showToast("Emergency Data Copied", "Vitals & GPS coordinates copied to clipboard for paramedic SMS/chat", "success");
+      });
+    } else {
+      showToast("Emergency Data Ready", "Please share your active location with 108 ambulance.", "info");
+    }
+  }
+}
 
   if (navigator.share) {
     navigator.share({
