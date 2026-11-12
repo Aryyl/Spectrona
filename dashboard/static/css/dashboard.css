@@ -3525,7 +3525,7 @@ body.pwa-standalone {
 
 
 /* ------------------------------------------------------------------------------
-   AI ECG Analysis Studio — JeevOne v3.7
+   AI ECG Analysis Studio ï¿½ JeevOne v3.7
    ------------------------------------------------------------------------------ */
 
 /* -- ECG Hero Banner ---------------------------------------------------------- */
@@ -4218,6 +4218,9 @@ body.pwa-standalone #mobile-pwa-banner {
 }
 [data-theme="dark"] #care-leaflet-map {
   background: #121614;
+}
+[data-theme="dark"] #care-leaflet-map .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(92%);
 }
 
 /* Map Legend */

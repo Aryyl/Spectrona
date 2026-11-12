@@ -4558,6 +4558,19 @@ let _careFacilities = [];
 let _careInitialized = false;
 let _careSearchDebounceTimer = null;
 
+// Optional CARTO Basemaps API key (from carto.com/basemaps/apikey/)
+// If left blank, automatically uses 100% free OpenStreetMap tiles with zero API key required.
+let CARTO_API_KEY = "";
+
+function getCareTileUrl(isDark) {
+  if (CARTO_API_KEY) {
+    const style = isDark ? "dark_all" : "light_all";
+    return `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
+  }
+  // 100% free OpenStreetMap tiles (no API key required)
+  return "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+}
+
 // Category metadata
 const CARE_CATEGORIES = {
   hospitals:     { icon: "🏥", label: "Hospital & 24/7 ER",   color: "#DC2626" },
@@ -4620,9 +4633,7 @@ function initCareTab() {
 
   if (!_careMap) {
     const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-    const tileUrl = isDark
-      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+    const tileUrl = getCareTileUrl(isDark);
 
     _careMap = L.map("care-leaflet-map", {
       center: [_careDeviceLat, _careDeviceLng],
@@ -4633,17 +4644,14 @@ function initCareTab() {
     _careTileLayer = L.tileLayer(tileUrl, {
       subdomains: "abcd",
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(_careMap);
 
     // Watch for theme changes and swap tiles
     const themeObserver = new MutationObserver(() => {
       if (_careTileLayer) {
         const darkNow = document.documentElement.getAttribute("data-theme") === "dark";
-        const newTileUrl = darkNow
-          ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-        _careTileLayer.setUrl(newTileUrl);
+        _careTileLayer.setUrl(getCareTileUrl(darkNow));
       }
     });
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
