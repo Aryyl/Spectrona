@@ -30,6 +30,7 @@ from flask_cors import CORS
 
 from app.api.routes import api_bp
 from app.api.ecg_routes import ecg_bp
+from app.api.care_routes import care_bp
 from app.api.websocket import notify_update, ws_bp
 from app.alerts.manager import alert_manager
 from app.config_loader import cfg
@@ -85,6 +86,7 @@ def create_app() -> Flask:
     CORS(app)
     app.register_blueprint(api_bp)
     app.register_blueprint(ecg_bp)
+    app.register_blueprint(care_bp)
     app.register_blueprint(ws_bp)
 
     # Initialise database tables (idempotent)

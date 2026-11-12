@@ -4014,3 +4014,596 @@ body.pwa-standalone #mobile-pwa-banner {
     padding: 8px 10px;
   }
 }
+
+
+/* ==============================================================================
+   Nearby Medical Care, Doctor Directory & Leaflet Studio — JeevOne v3.9
+   ============================================================================== */
+
+/* -- Care Hero Banner --------------------------------------------------------- */
+.care-hero-banner {
+  background: linear-gradient(135deg, #0A1C16 0%, #0F2A1E 55%, #162C24 100%);
+  border: 1px solid rgba(74, 222, 128, 0.22);
+}
+.care-hero-banner .welcome-text h2 { color: #E8F7DF; }
+.care-hero-banner .welcome-text p  { color: rgba(232, 247, 223, 0.76); }
+[data-theme="dark"] .care-hero-banner {
+  background: linear-gradient(135deg, #071510 0%, #0C2117 55%, #10221A 100%);
+}
+
+.care-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.care-gps-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.care-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4ADE80;
+  font-family: var(--font-mono);
+}
+.care-coords-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.73rem;
+  color: #E2E8F0;
+  font-family: var(--font-mono);
+}
+.care-pulse-green {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #4ADE80;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #4ADE80;
+  animation: ecgPulse 1.4s ease-in-out infinite;
+}
+.care-hero-btns {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* -- Emergency SOS Quick-Dial Bar --------------------------------------------- */
+.care-sos-card {
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--glass-border-strong);
+}
+.care-sos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.care-sos-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #DC2626;
+  letter-spacing: 0.04em;
+}
+.care-sos-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.care-sos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+@media (max-width: 1024px) { .care-sos-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px)  { .care-sos-grid { grid-template-columns: 1fr; } }
+
+.care-sos-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 0.95rem;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+}
+.care-sos-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+.care-sos-btn.sos-red {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #DC2626;
+}
+.care-sos-btn.sos-red:hover { background: rgba(239, 68, 68, 0.14); }
+.care-sos-btn.sos-amber {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #D97706;
+}
+.care-sos-btn.sos-amber:hover { background: rgba(245, 158, 11, 0.14); }
+.care-sos-btn.sos-purple {
+  background: rgba(147, 51, 234, 0.08);
+  border-color: rgba(147, 51, 234, 0.25);
+  color: #7E22CE;
+}
+.care-sos-btn.sos-purple:hover { background: rgba(147, 51, 234, 0.14); }
+.care-sos-btn.sos-blue {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: #2563EB;
+}
+.care-sos-btn.sos-blue:hover { background: rgba(37, 99, 235, 0.14); }
+
+.care-sos-icon { font-size: 1.5rem; flex-shrink: 0; }
+.care-sos-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.care-sos-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.care-sos-desc {
+  font-size: 0.7rem;
+  opacity: 0.78;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.care-sos-call-pill {
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: currentColor;
+  color: #FFFFFF !important;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.care-sos-btn.sos-red .care-sos-call-pill    { background: #DC2626; color: #FFF !important; }
+.care-sos-btn.sos-amber .care-sos-call-pill  { background: #D97706; color: #FFF !important; }
+.care-sos-btn.sos-purple .care-sos-call-pill { background: #7E22CE; color: #FFF !important; }
+.care-sos-btn.sos-blue .care-sos-call-pill   { background: #2563EB; color: #FFF !important; }
+
+/* -- Care Studio Main 2-Column Grid ------------------------------------------- */
+.care-studio-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1.1rem;
+  align-items: start;
+}
+@media (max-width: 1080px) {
+  .care-studio-grid { grid-template-columns: 1fr; }
+}
+
+/* -- Leaflet Map Container ---------------------------------------------------- */
+.care-map-card {
+  padding: 1.1rem 1.25rem;
+}
+.care-map-wrapper {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border-strong);
+  margin-top: 0.75rem;
+}
+#care-leaflet-map {
+  width: 100%;
+  height: 520px;
+  background: #E8E6DF;
+}
+[data-theme="dark"] #care-leaflet-map {
+  background: #121614;
+}
+
+/* Map Legend */
+.care-map-legend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 12px;
+  padding: 6px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  z-index: 1000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+[data-theme="dark"] .care-map-legend {
+  background: rgba(24, 28, 24, 0.92);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.legend-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.dot-device {
+  width: 8px;
+  height: 8px;
+  background: #22C55E;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #22C55E;
+  display: inline-block;
+}
+
+/* Custom Marker Pins on Leaflet */
+.care-device-beacon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.care-device-core {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22C55E;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 10px rgba(34, 197, 94, 0.6);
+  z-index: 2;
+}
+.care-device-ring {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #22C55E;
+  opacity: 0.8;
+  animation: beaconPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+@keyframes beaconPulse {
+  0%   { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.care-facility-pin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #FFF;
+  border: 2.5px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.care-facility-pin:hover {
+  transform: scale(1.2);
+}
+.care-facility-pin.pin-hospitals     { background: #DC2626; }
+.care-facility-pin.pin-cardiologists { background: #9333EA; }
+.care-facility-pin.pin-doctors       { background: #2563EB; }
+.care-facility-pin.pin-pharmacies    { background: #059669; }
+.care-facility-pin.pin-ambulance     { background: #D97706; }
+
+/* Custom Leaflet Popup */
+.leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+  border: 1px solid var(--glass-border-strong) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+}
+.care-popup-card {
+  padding: 12px 14px;
+  max-width: 260px;
+}
+.care-popup-cat {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.care-popup-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.care-popup-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.care-popup-actions {
+  display: flex;
+  gap: 6px;
+}
+.care-popup-btn {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.care-popup-btn-call { background: #DC2626; color: #FFF !important; }
+.care-popup-btn-dir  { background: var(--surface2); color: var(--text) !important; border: 1px solid var(--glass-border-strong); }
+
+/* -- Searchable Directory Panel ----------------------------------------------- */
+.care-directory-card {
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.care-filter-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.care-search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--glass-border-strong);
+}
+.care-search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.78rem;
+  color: var(--text);
+  font-family: inherit;
+}
+.care-search-box button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.care-radius-select-wrap select {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--glass-border-strong);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Category Filter Tabs */
+.care-category-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 6px;
+  margin-bottom: 0.85rem;
+  scrollbar-width: none;
+}
+.care-category-tabs::-webkit-scrollbar { display: none; }
+.care-cat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.care-cat-btn:hover {
+  background: var(--surface3);
+  color: var(--text);
+}
+.care-cat-btn.active {
+  background: #DFF262;
+  color: #18200B;
+  border-color: #DFF262;
+  font-weight: 800;
+}
+[data-theme="dark"] .care-cat-btn.active {
+  background: #DFF262;
+  color: #0C1F17;
+}
+.care-cat-count {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  font-family: var(--font-mono);
+}
+
+/* Facility Cards List Container */
+.care-facility-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.care-card {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s, transform 0.15s;
+  cursor: pointer;
+}
+.care-card:hover {
+  border-color: var(--accent-lime);
+  transform: translateY(-1px);
+}
+.care-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.care-card-title-wrap {
+  flex: 1;
+}
+.care-card-name {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+}
+.care-card-doc {
+  font-size: 0.76rem;
+  color: var(--accent-purple, #9333EA);
+  font-weight: 700;
+  margin-top: 2px;
+}
+.care-card-spec {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin-top: 1px;
+}
+.care-card-dist-badge {
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--glass-border-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.care-card-badges-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.care-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+.care-pill-247 { background: rgba(34, 197, 94, 0.15); color: #16A34A; }
+.care-pill-cat { background: var(--surface); border: 1px solid var(--glass-border); color: var(--text-muted); }
+.care-pill-rating { background: rgba(245, 158, 11, 0.15); color: #D97706; }
+
+.care-card-address {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.care-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.care-act-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 9px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: opacity 0.15s;
+}
+.care-act-btn:hover { opacity: 0.88; }
+.care-act-call {
+  background: #DC2626;
+  color: #FFFFFF !important;
+}
+.care-act-wa {
+  background: #25D366;
+  color: #FFFFFF !important;
+}
+.care-act-nav {
+  background: var(--surface);
+  border: 1px solid var(--glass-border-strong);
+  color: var(--text) !important;
+}
+
+/* -- Health Report Quick Emergency Card (#tab-report) ------------------------- */
+.report-care-quick-card {
+  padding: 1rem 1.25rem;
+}
+.report-care-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+@media (max-width: 680px) {
+  .report-care-quick-grid { grid-template-columns: 1fr; }
+}

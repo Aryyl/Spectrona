@@ -66,6 +66,13 @@
       "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
+      "name": "Nearby Medical Care & Map",
+      "short_name": "Care Map",
+      "description": "Live GPS locator for hospitals, doctors, 24/7 pharmacies & ambulance",
+      "url": "/dashboard?tab=care",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "Recent Readings Archive",
       "short_name": "Readings",
       "description": "Continuous sequential sensor packets logged locally",

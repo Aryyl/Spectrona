@@ -1861,6 +1861,18 @@ function initTabs() {
           renderArchiveECGStrip();
         }
       }, 50);
+    } else if (tabId === "care") {
+      setTimeout(() => {
+        if (typeof initCareTab === "function") {
+          initCareTab();
+        }
+      }, 60);
+    } else if (tabId === "report") {
+      setTimeout(() => {
+        if (typeof renderReportCareQuickCard === "function") {
+          renderReportCareQuickCard();
+        }
+      }, 60);
     }
 
     try {
@@ -4025,6 +4037,8 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       if (btn.dataset.tab === "ecg") {
         setTimeout(initAIECGTab, 80);
+      } else if (btn.dataset.tab === "care") {
+        setTimeout(initCareTab, 80);
       }
     });
   });
@@ -4523,4 +4537,501 @@ function exportECGCSV() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast("ECG CSV Exported", `Downloaded analysis for ${sc.recording_id}`, "success");
+}
+
+
+// ==============================================================================
+// Nearby Medical Care, Doctor Directory & Leaflet Map Studio — JeevOne v3.9
+// ==============================================================================
+
+let _careMap = null;
+let _careTileLayer = null;
+let _careMarkers = [];
+let _careDeviceMarker = null;
+let _careRadiusCircle = null;
+let _careDeviceLat = 28.6139;
+let _careDeviceLng = 77.2090;
+let _careRadiusKm = 10.0;
+let _careCategory = "all";
+let _careSearchQuery = "";
+let _careFacilities = [];
+let _careInitialized = false;
+let _careSearchDebounceTimer = null;
+
+// Category metadata
+const CARE_CATEGORIES = {
+  hospitals:     { icon: "🏥", label: "Hospital & 24/7 ER",   color: "#DC2626" },
+  cardiologists: { icon: "❤️", label: "Cardiologist",        color: "#9333EA" },
+  doctors:       { icon: "🩺", label: "Clinic / Doctor",      color: "#2563EB" },
+  pharmacies:    { icon: "💊", label: "24/7 Pharmacy",        color: "#059669" },
+  ambulance:     { icon: "🚑", label: "Ambulance Dispatch",   color: "#D97706" }
+};
+
+// ── Initialize Location via HTML5 Geolocation ─────────────────────────────────
+function initCareLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        _careDeviceLat = pos.coords.latitude;
+        _careDeviceLng = pos.coords.longitude;
+        updateCareCoordsDisplay(_careDeviceLat, _careDeviceLng, pos.coords.accuracy, false);
+        if (_careMap) {
+          updateDeviceMarkerAndRadius();
+          _careMap.setView([_careDeviceLat, _careDeviceLng], 14, { animate: true });
+          fetchAndRenderCareFacilities();
+        }
+      },
+      (err) => {
+        console.warn("[Care] Geolocation denied or unavailable:", err.message);
+        updateCareCoordsDisplay(_careDeviceLat, _careDeviceLng, null, true);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  } else {
+    updateCareCoordsDisplay(_careDeviceLat, _careDeviceLng, null, true);
+  }
+}
+
+function updateCareCoordsDisplay(lat, lng, accuracy, isFallback) {
+  const coordsLabel = document.getElementById("care-coords-label");
+  const statusLabel = document.getElementById("care-gps-status-label");
+  if (coordsLabel) {
+    const latStr = Math.abs(lat).toFixed(4) + "° " + (lat >= 0 ? "N" : "S");
+    const lngStr = Math.abs(lng).toFixed(4) + "° " + (lng >= 0 ? "E" : "W");
+    coordsLabel.textContent = `Lat: ${latStr}, Lng: ${lngStr}` + (accuracy ? ` (±${Math.round(accuracy)}m)` : "");
+  }
+  if (statusLabel) {
+    statusLabel.textContent = isFallback ? "Default Medical District" : "Device GPS Active";
+  }
+}
+
+// ── Initialize Care Tab ───────────────────────────────────────────────────────
+function initCareTab() {
+  if (typeof L === "undefined") {
+    console.warn("[Care] Leaflet.js not loaded yet. Retrying in 100ms...");
+    setTimeout(initCareTab, 100);
+    return;
+  }
+
+  initCareLocation();
+
+  const mapContainer = document.getElementById("care-leaflet-map");
+  if (!mapContainer) return;
+
+  if (!_careMap) {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const tileUrl = isDark
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+    _careMap = L.map("care-leaflet-map", {
+      center: [_careDeviceLat, _careDeviceLng],
+      zoom: 14,
+      zoomControl: true
+    });
+
+    _careTileLayer = L.tileLayer(tileUrl, {
+      subdomains: "abcd",
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(_careMap);
+
+    // Watch for theme changes and swap tiles
+    const themeObserver = new MutationObserver(() => {
+      if (_careTileLayer) {
+        const darkNow = document.documentElement.getAttribute("data-theme") === "dark";
+        const newTileUrl = darkNow
+          ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+        _careTileLayer.setUrl(newTileUrl);
+      }
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+    updateDeviceMarkerAndRadius();
+    _careInitialized = true;
+  }
+
+  setTimeout(() => {
+    if (_careMap) _careMap.invalidateSize();
+  }, 100);
+
+  fetchAndRenderCareFacilities();
+}
+
+// ── Update Device Marker and Search Radius on Map ─────────────────────────────
+function updateDeviceMarkerAndRadius() {
+  if (!_careMap) return;
+
+  // Device beacon marker
+  if (!_careDeviceMarker) {
+    const beaconIcon = L.divIcon({
+      className: "care-device-beacon-wrap",
+      html: '<div class="care-device-ring"></div><div class="care-device-core"></div>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+    _careDeviceMarker = L.marker([_careDeviceLat, _careDeviceLng], { icon: beaconIcon, zIndexOffset: 2000 })
+      .addTo(_careMap)
+      .bindPopup("<strong>📡 JeevOne Telemetry Node</strong><br>Active Patient Coordinates");
+  } else {
+    _careDeviceMarker.setLatLng([_careDeviceLat, _careDeviceLng]);
+  }
+
+  // Radius circle
+  if (!_careRadiusCircle) {
+    _careRadiusCircle = L.circle([_careDeviceLat, _careDeviceLng], {
+      radius: _careRadiusKm * 1000,
+      color: "#22C55E",
+      fillColor: "#22C55E",
+      fillOpacity: 0.05,
+      weight: 1.5,
+      dashArray: "4, 6"
+    }).addTo(_careMap);
+  } else {
+    _careRadiusCircle.setLatLng([_careDeviceLat, _careDeviceLng]);
+    _careRadiusCircle.setRadius(_careRadiusKm * 1000);
+  }
+}
+
+// ── Fetch and Render Facilities ───────────────────────────────────────────────
+async function fetchAndRenderCareFacilities() {
+  try {
+    const url = `/api/care/nearby?lat=${_careDeviceLat}&lng=${_careDeviceLng}&radius=${_careRadiusKm}&category=${_careCategory}&q=${encodeURIComponent(_careSearchQuery)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    _careFacilities = data.facilities || [];
+
+    // Update map status badge
+    const badge = document.getElementById("care-map-status-badge");
+    if (badge) badge.textContent = `${_careFacilities.length} PLACES FOUND`;
+    const radiusLabel = document.getElementById("care-meta-radius");
+    if (radiusLabel) radiusLabel.textContent = `${_careRadiusKm} km`;
+
+    // Render Leaflet markers
+    renderCareMapMarkers(_careFacilities);
+
+    // Render directory list cards
+    renderCareFacilityCards(_careFacilities);
+
+    // Update category counts
+    updateCareCategoryCounts();
+
+    // Update emergency SOS bar nearest hospital
+    updateEmergencySOSNearestHospital();
+
+    // Sync Health Report quick card
+    renderReportCareQuickCard();
+  } catch (err) {
+    console.warn("[Care] Failed to load facilities:", err);
+  }
+}
+
+// ── Render Map Markers ────────────────────────────────────────────────────────
+function renderCareMapMarkers(facilities) {
+  if (!_careMap) return;
+
+  // Clear existing markers
+  _careMarkers.forEach(m => _careMap.removeLayer(m));
+  _careMarkers = [];
+
+  facilities.forEach(fac => {
+    const catMeta = CARE_CATEGORIES[fac.category] || { icon: "📍", label: fac.category_label, color: "#4B5563" };
+    const pinIcon = L.divIcon({
+      className: `care-facility-pin pin-${fac.category}`,
+      html: `<span>${catMeta.icon}</span>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 34],
+      popupAnchor: [0, -32]
+    });
+
+    const popupHtml = `
+      <div class="care-popup-card">
+        <div class="care-popup-cat" style="color:${catMeta.color};">${catMeta.label}</div>
+        <div class="care-popup-title">${fac.name}</div>
+        <div class="care-popup-meta">
+          <strong>${fac.distance_km} km away</strong> (${fac.drive_time_min} min drive)<br>
+          ${fac.is_24_7 ? "🟢 <strong>Open 24/7</strong>" : fac.timings}<br>
+          ${fac.doctor_name ? "<em>" + fac.doctor_name + "</em><br>" : ""}
+          📍 ${fac.address}
+        </div>
+        <div class="care-popup-actions">
+          <a href="tel:${fac.phone}" class="care-popup-btn care-popup-btn-call">📞 Call</a>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}" target="_blank" rel="noopener" class="care-popup-btn care-popup-btn-dir">🧭 Directions</a>
+        </div>
+      </div>
+    `;
+
+    const marker = L.marker([fac.lat, fac.lng], { icon: pinIcon })
+      .addTo(_careMap)
+      .bindPopup(popupHtml);
+
+    marker._facilityId = fac.id;
+    _careMarkers.push(marker);
+  });
+}
+
+// ── Render Directory Facility Cards ───────────────────────────────────────────
+function renderCareFacilityCards(facilities) {
+  const container = document.getElementById("care-facility-list");
+  if (!container) return;
+
+  if (!facilities || facilities.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">🔍</div>
+        <div style="font-weight:700;color:var(--text);font-size:0.95rem;">No medical facilities found</div>
+        <p style="font-size:0.78rem;margin-top:0.3rem;">Try increasing the search radius or clearing search filters.</p>
+        <button type="button" class="btn btn-xs btn-primary" onclick="setCareCategory('all');onCareRadiusChange(25);clearCareSearch();" style="margin-top:0.6rem;">
+          Expand to 25 km &amp; Reset Filters
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = "";
+  facilities.forEach(fac => {
+    const catMeta = CARE_CATEGORIES[fac.category] || { icon: "📍", label: fac.category_label, color: "#4B5563" };
+    html += `
+      <div class="care-card" onclick="focusFacilityOnMap('${fac.id}', ${fac.lat}, ${fac.lng})">
+        <div class="care-card-top">
+          <div class="care-card-title-wrap">
+            <div class="care-card-name">${fac.name}</div>
+            ${fac.doctor_name ? `<div class="care-card-doc">👨‍⚕️ ${fac.doctor_name}</div>` : ""}
+            <div class="care-card-spec">${fac.specialty}</div>
+          </div>
+          <div class="care-card-dist-badge">
+            ${fac.distance_km} km
+            <div style="font-size:0.6rem;opacity:0.75;font-weight:500;">~${fac.drive_time_min} min</div>
+          </div>
+        </div>
+
+        <div class="care-card-badges-row">
+          <span class="care-pill care-pill-cat" style="color:${catMeta.color};border-color:currentColor;">${catMeta.icon} ${catMeta.label}</span>
+          ${fac.is_24_7 ? `<span class="care-pill care-pill-247">✓ Open 24/7</span>` : `<span class="care-pill care-pill-cat">${fac.timings}</span>`}
+          <span class="care-pill care-pill-rating">★ ${fac.rating} (${fac.reviews_count})</span>
+          ${fac.ambulance_available ? `<span class="care-pill" style="background:rgba(217,119,6,0.15);color:#D97706;">🚑 Ambulance</span>` : ""}
+        </div>
+
+        <div class="care-card-address">
+          📍 ${fac.address} ${fac.landmark ? `• <em>${fac.landmark}</em>` : ""}
+        </div>
+
+        <div class="care-card-actions" onclick="event.stopPropagation()">
+          <a href="tel:${fac.phone}" class="care-act-btn care-act-call" title="Direct Phone Call">
+            📞 <span>Call ${fac.phone}</span>
+          </a>
+          ${fac.whatsapp ? `
+            <a href="https://wa.me/${fac.whatsapp}?text=Hello%20${encodeURIComponent(fac.name)},%20I%20am%20contacting%20you%20from%20JeevOne%20Health%20Monitor" target="_blank" rel="noopener" class="care-act-btn care-act-wa" title="WhatsApp Message">
+              💬 <span>Chat</span>
+            </a>
+          ` : ""}
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}" target="_blank" rel="noopener" class="care-act-btn care-act-nav" title="Get Directions">
+            🧭 <span>Directions</span>
+          </a>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// ── Focus Marker from Card Click ──────────────────────────────────────────────
+function focusFacilityOnMap(id, lat, lng) {
+  if (!_careMap) return;
+  _careMap.setView([lat, lng], 16, { animate: true });
+  const marker = _careMarkers.find(m => m._facilityId === id);
+  if (marker) {
+    marker.openPopup();
+  }
+}
+
+// ── Update Category Tab Counts ────────────────────────────────────────────────
+async function updateCareCategoryCounts() {
+  try {
+    const res = await fetch(`/api/care/nearby?lat=${_careDeviceLat}&lng=${_careDeviceLng}&radius=${_careRadiusKm}&category=all`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const allFacs = data.facilities || [];
+
+    const counts = { all: allFacs.length, hospitals: 0, cardiologists: 0, doctors: 0, pharmacies: 0, ambulance: 0 };
+    allFacs.forEach(f => {
+      if (counts[f.category] !== undefined) counts[f.category]++;
+    });
+
+    Object.keys(counts).forEach(cat => {
+      const el = document.getElementById(`cat-count-${cat}`);
+      if (el) el.textContent = counts[cat];
+    });
+  } catch(e) {}
+}
+
+// ── Update SOS Bar Nearest Hospital ───────────────────────────────────────────
+function updateEmergencySOSNearestHospital() {
+  const hospitals = _careFacilities.filter(f => f.category === "hospitals" || f.category === "ambulance");
+  if (hospitals.length > 0) {
+    const nearest = hospitals[0];
+    const nameEl = document.getElementById("sos-hosp-name");
+    const distEl = document.getElementById("sos-hosp-dist");
+    const btnEl = document.getElementById("btn-sos-nearest-hosp");
+
+    if (nameEl) nameEl.textContent = nearest.name;
+    if (distEl) distEl.textContent = `Nearest 24/7 ER • ${nearest.distance_km} km (${nearest.drive_time_min} min)`;
+    if (btnEl) btnEl.href = `tel:${nearest.phone}`;
+  }
+}
+
+// ── Health Report Quick Card Sync (#tab-report) ───────────────────────────────
+async function renderReportCareQuickCard() {
+  const grid = document.getElementById("report-care-quick-grid");
+  if (!grid) return;
+
+  try {
+    const res = await fetch(`/api/care/nearby?lat=${_careDeviceLat}&lng=${_careDeviceLng}&radius=10&category=hospitals`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const hosps = (data.facilities || []).slice(0, 2);
+
+    if (hosps.length === 0) return;
+
+    grid.innerHTML = hosps.map(h => `
+      <div style="background:var(--surface2);border:1px solid var(--glass-border);border-radius:12px;padding:0.85rem;display:flex;flex-direction:column;gap:5px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+          <div>
+            <div style="font-size:0.88rem;font-weight:800;color:var(--text);">${h.name}</div>
+            <div style="font-size:0.72rem;color:#DC2626;font-weight:700;margin-top:2px;">🏥 24/7 Emergency &amp; Trauma Centre</div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:800;font-family:var(--font-mono);background:var(--surface);padding:3px 7px;border-radius:7px;border:1px solid var(--glass-border-strong);">${h.distance_km} km</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">📍 ${h.address}</div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <a href="tel:${h.phone}" class="btn btn-xs btn-primary" style="flex:1;justify-content:center;background:#DC2626;border-color:#DC2626;color:#FFF;">📞 Call ER (${h.phone})</a>
+          <button type="button" class="btn btn-xs btn-secondary" onclick="switchTab('care');setTimeout(()=>focusFacilityOnMap('${h.id}', ${h.lat}, ${h.lng}), 200);">🗺 View on Map</button>
+        </div>
+      </div>
+    `).join("");
+  } catch(e) {}
+}
+
+// ── Filter & Search Handlers ──────────────────────────────────────────────────
+function setCareCategory(cat) {
+  _careCategory = cat;
+  document.querySelectorAll(".care-cat-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.cat === cat);
+  });
+  fetchAndRenderCareFacilities();
+}
+
+function onCareRadiusChange(radius) {
+  _careRadiusKm = parseFloat(radius);
+  if (_careRadiusCircle) {
+    _careRadiusCircle.setRadius(_careRadiusKm * 1000);
+  }
+  fetchAndRenderCareFacilities();
+}
+
+function onCareSearchInput(val) {
+  _careSearchQuery = val.trim();
+  const clearBtn = document.getElementById("btn-care-clear-search");
+  if (clearBtn) clearBtn.style.display = _careSearchQuery ? "inline-block" : "none";
+
+  clearTimeout(_careSearchDebounceTimer);
+  _careSearchDebounceTimer = setTimeout(() => {
+    fetchAndRenderCareFacilities();
+  }, 250);
+}
+
+function clearCareSearch() {
+  const input = document.getElementById("care-search-input");
+  if (input) input.value = "";
+  _careSearchQuery = "";
+  const clearBtn = document.getElementById("btn-care-clear-search");
+  if (clearBtn) clearBtn.style.display = "none";
+  fetchAndRenderCareFacilities();
+}
+
+function recenterMapOnDevice() {
+  if (!_careMap) return;
+  _careMap.setView([_careDeviceLat, _careDeviceLng], 14, { animate: true });
+}
+
+function refreshDeviceLocation() {
+  showToast("Locating Device", "Requesting precise GPS coordinates...", "info");
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        _careDeviceLat = pos.coords.latitude;
+        _careDeviceLng = pos.coords.longitude;
+        updateCareCoordsDisplay(_careDeviceLat, _careDeviceLng, pos.coords.accuracy, false);
+        if (_careMap) {
+          updateDeviceMarkerAndRadius();
+          _careMap.setView([_careDeviceLat, _careDeviceLng], 14, { animate: true });
+        }
+        fetchAndRenderCareFacilities();
+        showToast("GPS Locked", `Coordinates updated (±${Math.round(pos.coords.accuracy)}m)`, "success");
+      },
+      (err) => {
+        showToast("GPS Notice", "Using registered medical district coordinates", "warning");
+        updateCareCoordsDisplay(_careDeviceLat, _careDeviceLng, null, true);
+        fetchAndRenderCareFacilities();
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+}
+
+function toggleMapFullscreen() {
+  const wrapper = document.getElementById("care-map-wrapper");
+  if (!wrapper) return;
+  if (!document.fullscreenElement) {
+    wrapper.requestFullscreen && wrapper.requestFullscreen();
+  } else {
+    document.exitFullscreen && document.exitFullscreen();
+  }
+}
+
+// ── Share Location & Vitals to Emergency Paramedics ───────────────────────────
+function shareEmergencyLocationVitals() {
+  const patientName = (document.getElementById("user-name") || {}).textContent || "Aryyaman";
+  const hr = (document.getElementById("val-hr") || {}).textContent || "72";
+  const spo2 = (document.getElementById("val-spo2") || {}).textContent || "98";
+  const temp = (document.getElementById("val-btemp") || {}).textContent || "36.6";
+  const bp = (document.getElementById("sub-bp") || {}).textContent || "118/76 mmHg";
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${_careDeviceLat},${_careDeviceLng}`;
+  const now = new Date().toLocaleTimeString();
+
+  const msg = `🚨 EMERGENCY MEDICAL TELEMETRY — JeevOne Node
+Patient: ${patientName}
+Timestamp: ${now}
+GPS Location: ${googleMapsUrl}
+Coordinates: ${_careDeviceLat.toFixed(4)}° N, ${_careDeviceLng.toFixed(4)}° E
+
+Current Live Biometrics:
+• Heart Rate: ${hr} bpm
+• Blood Oxygen (SpO2): ${spo2}%
+• Body Temp: ${temp} °C
+• Blood Pressure: ${bp}
+
+Please dispatch paramedic response to the GPS coordinates above.`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: `Emergency Medical Telemetry — ${patientName}`,
+      text: msg,
+      url: googleMapsUrl
+    }).catch(() => {});
+  } else {
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(msg).then(() => {
+        showToast("Emergency Data Copied", "Vitals & GPS coordinates copied to clipboard for paramedic SMS/chat", "success");
+      });
+    } else {
+      showToast("Emergency Data Ready", "Please share your active location with 108 ambulance.", "info");
+    }
+  }
 }

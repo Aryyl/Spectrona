@@ -23,8 +23,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/dashboard.css?v=3.8" />
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=3.9" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Leaflet.js Mapping Library & OpenStreetMap / CartoDB Stylesheet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <!-- Default Light-First Colorful Theme; only activate dark if user explicitly chose dark -->
   <script>
     (function() {
@@ -59,6 +63,9 @@
         </button>
         <button type="button" class="rail-nav-btn" data-tab="ecg" id="rail-tab-ecg" data-tooltip="ECG Diagnostics" aria-label="ECG Diagnostics">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 5 12 7 4 9 20 11 12 13 12 15 8 17 16 19 12 22 12"/></svg>
+        </button>
+        <button type="button" class="rail-nav-btn" data-tab="care" id="rail-tab-care" data-tooltip="Nearby Medical Services" aria-label="Nearby Medical Services">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </button>
         <button type="button" class="rail-nav-btn" data-tab="readings" id="rail-tab-readings" data-tooltip="Recent Readings" aria-label="Recent Readings">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
@@ -262,6 +269,16 @@
                 <div class="mobile-nav-tab-text">
                   <span class="mobile-nav-tab-title">ECG Diagnostics</span>
                   <span class="mobile-nav-tab-sub">Lead I strip viewer &amp; interval metrics</span>
+                </div>
+                <span class="mob-tab-arrow">→</span>
+              </button>
+              <button class="mobile-nav-tab-btn" data-tab="care">
+                <div class="mob-tab-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div class="mobile-nav-tab-text">
+                  <span class="mobile-nav-tab-title">Nearby Care &amp; Doctors</span>
+                  <span class="mobile-nav-tab-sub">Live map of hospitals, doctors, chemists &amp; ambulance</span>
                 </div>
                 <span class="mob-tab-arrow">→</span>
               </button>
@@ -927,6 +944,27 @@
             <ul class="report-tips-list" id="report-tips-list"></ul>
           </section>
 
+          <!-- Row 5.5: Nearby Emergency Care & Doctor Quick Card -->
+          <section class="card col-full report-care-quick-card" id="report-care-quick-card">
+            <div class="table-card-header" style="margin-bottom:0.6rem;">
+              <div>
+                <h3 class="card-title" style="margin-bottom:0.12rem;">
+                  <span>Nearest Emergency Care &amp; Medical Facilities</span>
+                  <span class="status-badge normal">GPS LOCATED</span>
+                </h3>
+                <span style="font-size:0.75rem;color:var(--text-muted);">
+                  Quick-access emergency response centers around the patient's active location
+                </span>
+              </div>
+              <button type="button" class="btn btn-sm btn-primary" data-tab="care" id="btn-report-jump-care">
+                <span>View Full Medical Map &amp; Directory →</span>
+              </button>
+            </div>
+            <div class="report-care-quick-grid" id="report-care-quick-grid">
+              <!-- Populated by JS -->
+            </div>
+          </section>
+
           <!-- Row 6: Session Report Snapshots & Medical Disclaimer -->
           <section class="card col-full report-history-card">
             <div class="report-history-header">
@@ -1266,6 +1304,184 @@
                 </tbody>
               </table>
             </div>
+          </section>
+
+        </main>
+      </div>
+
+      <!-- ══ Tab: Nearby Medical Care & Doctor Directory (#tab-care) ══════════════════ -->
+      <div class="tab-pane" id="tab-care">
+        <main class="main-grid">
+
+          <!-- ── Care Studio Hero Banner ─────────────────────────────────────────── -->
+          <section class="welcome-section care-hero-banner col-full">
+            <div class="welcome-text">
+              <h2>Nearby Medical Services &amp; Doctor Directory</h2>
+              <p>GPS-aware medical finder — discover doctors, 24/7 hospitals, cardiologists, chemists &amp; ambulance response with direct contact details.</p>
+            </div>
+            <div class="welcome-actions care-hero-actions">
+              <div class="care-gps-cluster" id="care-gps-cluster">
+                <div class="care-status-chip">
+                  <span class="status-pulse-dot care-pulse-green"></span>
+                  <span id="care-gps-status-label">Device GPS Active</span>
+                </div>
+                <div class="care-coords-chip" id="care-coords-chip">
+                  <span id="care-coords-label">Lat: 28.6139° N, Lng: 77.2090° E</span>
+                </div>
+              </div>
+              <div class="care-hero-btns">
+                <button type="button" class="btn btn-secondary" id="btn-care-locate-me" onclick="refreshDeviceLocation()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/><circle cx="12" cy="12" r="1"/></svg>
+                  <span>Locate Me</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-care-share-sos" onclick="shareEmergencyLocationVitals()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                  <span>Share Vitals &amp; GPS</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Emergency SOS Quick-Dial Bar ───────────────────────────────────── -->
+          <section class="card col-full care-sos-card" id="care-sos-card">
+            <div class="care-sos-header">
+              <span class="care-sos-badge">🚨 EMERGENCY QUICK-DIAL</span>
+              <span class="care-sos-sub">One-tap priority emergency hotlines with active triage</span>
+            </div>
+            <div class="care-sos-grid" id="care-sos-grid">
+              <a href="tel:108" class="care-sos-btn sos-red">
+                <div class="care-sos-icon">🚑</div>
+                <div class="care-sos-info">
+                  <span class="care-sos-title">108 Ambulance</span>
+                  <span class="care-sos-desc">National 24/7 Paramedic Dispatch</span>
+                </div>
+                <span class="care-sos-call-pill">CALL NOW</span>
+              </a>
+              <a href="tel:112" class="care-sos-btn sos-amber">
+                <div class="care-sos-icon">🚨</div>
+                <div class="care-sos-info">
+                  <span class="care-sos-title">112 Unified Emergency</span>
+                  <span class="care-sos-desc">Disaster, Police, Medical Emergency</span>
+                </div>
+                <span class="care-sos-call-pill">CALL NOW</span>
+              </a>
+              <a href="tel:+911126588500" class="care-sos-btn sos-purple" id="btn-sos-nearest-hosp">
+                <div class="care-sos-icon">🏥</div>
+                <div class="care-sos-info">
+                  <span class="care-sos-title" id="sos-hosp-name">Apex Trauma Centre</span>
+                  <span class="care-sos-desc" id="sos-hosp-dist">Nearest 24/7 ER • 0.8 km</span>
+                </div>
+                <span class="care-sos-call-pill">CALL ER</span>
+              </a>
+              <a href="tel:104" class="care-sos-btn sos-blue">
+                <div class="care-sos-icon">🩸</div>
+                <div class="care-sos-info">
+                  <span class="care-sos-title">104 Health Helpline</span>
+                  <span class="care-sos-desc">Blood Bank &amp; Tele-Triage Advice</span>
+                </div>
+                <span class="care-sos-call-pill">CALL NOW</span>
+              </a>
+            </div>
+          </section>
+
+          <!-- ── Care Studio Main 2-Column Grid ─────────────────────────────────── -->
+          <section class="col-full care-studio-grid">
+
+            <!-- Left Column: Leaflet Interactive Map -->
+            <div class="card care-map-card">
+              <div class="table-card-header">
+                <div>
+                  <h3 class="card-title" style="margin-bottom:0.15rem;">
+                    <span>Interactive Medical Map</span>
+                    <span class="status-badge normal" id="care-map-status-badge">25 PLACES FOUND</span>
+                  </h3>
+                  <span style="font-size:0.75rem;color:var(--text-muted);" id="care-map-meta">
+                    Showing verified facilities within <strong id="care-meta-radius">10 km</strong> of device
+                  </span>
+                </div>
+                <div class="care-map-tools">
+                  <button type="button" class="btn btn-xs btn-secondary" onclick="recenterMapOnDevice()" title="Recenter Map on Device">
+                    🎯 Recenter
+                  </button>
+                  <button type="button" class="btn btn-xs btn-secondary" onclick="toggleMapFullscreen()" title="Full Screen Map">
+                    ⛶ Expand
+                  </button>
+                </div>
+              </div>
+
+              <div class="care-map-wrapper" id="care-map-wrapper">
+                <div id="care-leaflet-map"></div>
+                <div class="care-map-legend" id="care-map-legend">
+                  <span class="legend-chip legend-device"><span class="dot-device"></span> Device</span>
+                  <span class="legend-chip legend-hosp">🏥 Hospital / ER</span>
+                  <span class="legend-chip legend-cardio">❤️ Cardiologist</span>
+                  <span class="legend-chip legend-doc">🩺 Clinic / Doc</span>
+                  <span class="legend-chip legend-pharm">💊 Pharmacy</span>
+                  <span class="legend-chip legend-amb">🚑 Ambulance</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Searchable Directory Panel -->
+            <div class="card care-directory-card">
+              <div class="table-card-header" style="margin-bottom:0.75rem;">
+                <div>
+                  <h3 class="card-title" style="margin-bottom:0.15rem;">Medical Directory</h3>
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Direct phone numbers, consultation hours &amp; directions</span>
+                </div>
+              </div>
+
+              <!-- Search and Radius Toolbar -->
+              <div class="care-filter-toolbar">
+                <div class="care-search-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="care-search-input" placeholder="Search doctor, hospital, clinic, pharmacy..." oninput="onCareSearchInput(this.value)" />
+                  <button type="button" id="btn-care-clear-search" onclick="clearCareSearch()" style="display:none;">✕</button>
+                </div>
+                <div class="care-radius-select-wrap">
+                  <select id="care-radius-select" onchange="onCareRadiusChange(this.value)">
+                    <option value="2">Within 2 km</option>
+                    <option value="5">Within 5 km</option>
+                    <option value="10" selected>Within 10 km</option>
+                    <option value="25">Within 25 km</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Category Filter Tabs -->
+              <div class="care-category-tabs" id="care-category-tabs">
+                <button type="button" class="care-cat-btn active" data-cat="all" onclick="setCareCategory('all')">
+                  <span>All</span>
+                  <span class="care-cat-count" id="cat-count-all">25</span>
+                </button>
+                <button type="button" class="care-cat-btn" data-cat="hospitals" onclick="setCareCategory('hospitals')">
+                  <span>🏥 Hospitals / ER</span>
+                  <span class="care-cat-count" id="cat-count-hospitals">5</span>
+                </button>
+                <button type="button" class="care-cat-btn" data-cat="cardiologists" onclick="setCareCategory('cardiologists')">
+                  <span>❤️ Cardiologists</span>
+                  <span class="care-cat-count" id="cat-count-cardiologists">5</span>
+                </button>
+                <button type="button" class="care-cat-btn" data-cat="doctors" onclick="setCareCategory('doctors')">
+                  <span>🩺 Clinics / Doctors</span>
+                  <span class="care-cat-count" id="cat-count-doctors">5</span>
+                </button>
+                <button type="button" class="care-cat-btn" data-cat="pharmacies" onclick="setCareCategory('pharmacies')">
+                  <span>💊 24/7 Pharmacies</span>
+                  <span class="care-cat-count" id="cat-count-pharmacies">5</span>
+                </button>
+                <button type="button" class="care-cat-btn" data-cat="ambulance" onclick="setCareCategory('ambulance')">
+                  <span>🚑 Ambulance</span>
+                  <span class="care-cat-count" id="cat-count-ambulance">5</span>
+                </button>
+              </div>
+
+              <!-- Facility Cards List Container -->
+              <div class="care-facility-list custom-scrollbar" id="care-facility-list">
+                <!-- Dynamically populated by JS -->
+              </div>
+            </div>
+
           </section>
 
         </main>
@@ -1888,6 +2104,12 @@
       </div>
       <span class="bottom-nav-label">AI ECG</span>
     </button>
+    <button class="bottom-nav-item" data-tab="care" aria-label="Nearby Medical Care">
+      <div class="bottom-nav-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <span class="bottom-nav-label">Care</span>
+    </button>
     <button class="bottom-nav-item" data-tab="readings" aria-label="Recent Readings">
       <div class="bottom-nav-icon-wrap">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
@@ -1906,6 +2128,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="/static/js/icons.js"></script>
-  <script src="/static/js/dashboard.js?v=3.8"></script>
+  <script src="/static/js/dashboard.js?v=3.9"></script>
 </body>
 </html>
