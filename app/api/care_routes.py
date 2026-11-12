@@ -846,3 +846,4 @@ def get_facility_detail(facility_id: str):
             return jsonify({"status": "ok", "facility": facility_obj})
 
     return jsonify({"status": "error", "message": "Facility not found"}), 404
+
