@@ -1757,182 +1757,7 @@ body.light-theme {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   8. Embedded & Edge Engineering (Warm Sand #e6e3d2, Zero Pills)
-   ══════════════════════════════════════════════════════════════════════════════ */
-.edge-editorial-section {
-  padding: 5.5rem 0;
-  background-color: var(--bg-page-soft);
-  border-top: 1px solid var(--border-light);
-  border-bottom: 1px solid var(--border-light);
-}
-
-.edge-editorial-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2rem;
-  align-items: stretch;
-}
-
-.edge-editorial-panel {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 2.35rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.edge-card-tag {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent-brand);
-  letter-spacing: 0.06em;
-  display: block;
-  margin-bottom: 0.55rem;
-}
-
-.edge-card-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.48rem, 1.95vw, 1.78rem);
-  font-weight: 400;
-  letter-spacing: -0.018em;
-  line-height: 1.2;
-  color: var(--text-heading);
-  margin-bottom: 0.7rem;
-}
-
-.edge-card-desc {
-  font-size: 0.92rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin-bottom: 1.35rem;
-}
-
-.edge-ledger-list {
-  list-style: none;
-  border-top: 1px solid var(--border-light);
-  margin-bottom: 1.65rem;
-}
-
-.edge-ledger-list li {
-  display: grid;
-  grid-template-columns: 195px 1fr;
-  gap: 1rem;
-  align-items: baseline;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 0.86rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-.edge-ledger-list strong {
-  color: var(--text-heading);
-  font-weight: 700;
-}
-
-.edge-ledger-list code {
-  background-color: var(--bg-page-soft);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--text-heading);
-}
-
-.code-box-clean {
-  margin-top: auto;
-  background-color: var(--bg-card-dark);
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
-  color: var(--bg-page);
-  font-family: var(--font-mono);
-  font-size: 0.81rem;
-}
-
-.code-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(238, 236, 224, 0.14);
-  padding-bottom: 8px;
-  margin-bottom: 10px;
-  font-size: 0.72rem;
-  color: #b4b5a5;
-}
-
-.code-schema-tag {
-  color: #a9d18e;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.code-box-clean pre {
-  overflow-x: auto;
-}
-
-.code-box-clean pre code {
-  font-family: var(--font-mono);
-  line-height: 1.52;
-}
-
-.code-box-clean .k { color: #d9e5c5; }
-.code-box-clean .s { color: #fde68a; }
-.code-box-clean .n { color: #86efac; }
-
-/* Rectangular 3-cell Runtime Status Ledger (Zero Pills) */
-.edge-runtime-strip {
-  margin-top: auto;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  background-color: var(--bg-page);
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.runtime-cell {
-  padding: 0.95rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-right: 1px solid var(--border-light);
-}
-
-.runtime-cell:last-child {
-  border-right: none;
-}
-
-.runtime-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-subtle);
-}
-
-.status-square {
-  width: 6px;
-  height: 6px;
-  background-color: var(--accent-brand);
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.runtime-value {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  color: var(--text-heading);
-}
-
-/* ══════════════════════════════════════════════════════════════════════════════
-   9. Deployment Insights Accordion (Warm Alabaster #eeece0, Hairline, Zero Pills)
+   8. Deployment Insights Accordion (Warm Alabaster #eeece0, Hairline, Zero Pills)
    ══════════════════════════════════════════════════════════════════════════════ */
 .insights-editorial-section {
   padding: 5.5rem 0;
@@ -2678,15 +2503,6 @@ body.light-theme {
     gap: 2rem;
   }
 
-  .edge-editorial-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .edge-ledger-list li {
-    grid-template-columns: 1fr;
-    gap: 0.25rem;
-  }
-
   .insight-two-col {
     grid-template-columns: 1fr;
     gap: 1.75rem;
@@ -2738,7 +2554,6 @@ body.light-theme {
   .capabilities-section,
   .arch-editorial-section,
   .sensors-editorial-section,
-  .edge-editorial-section,
   .insights-editorial-section,
   .video-editorial-section,
   .gallery-editorial-section {
@@ -2782,7 +2597,6 @@ body.light-theme {
   .sensor-takeaways-grid,
   .sensor-simple-takeaways,
   .reassurance-points,
-  .edge-runtime-strip,
   .video-meta-strip {
     grid-template-columns: 1fr;
   }
@@ -2796,10 +2610,6 @@ body.light-theme {
   .runtime-cell:last-child,
   .reassurance-cell:last-child {
     border-bottom: none;
-  }
-
-  .edge-editorial-panel {
-    padding: 1.5rem;
   }
 
   .accordion-trigger {

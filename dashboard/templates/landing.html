@@ -22,7 +22,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css?v=10.2.1" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=10.3.0" />
 </head>
 <body class="light-theme">
 
@@ -39,7 +39,6 @@
           <li><a href="#capabilities" class="nav-item">Capabilities</a></li>
           <li><a href="#architecture" class="nav-item">Architecture</a></li>
           <li><a href="#sensors" class="nav-item">Sensors</a></li>
-          <li><a href="#edge-system" class="nav-item">Edge Node</a></li>
           <li><a href="#insights" class="nav-item">Insights</a></li>
           <li><a href="#gallery" class="nav-item">Hardware</a></li>
         </ul>
@@ -74,10 +73,9 @@
         <li><a href="#capabilities" class="drawer-link">02 // Capabilities</a></li>
         <li><a href="#architecture" class="drawer-link">03 // Architecture</a></li>
         <li><a href="#sensors" class="drawer-link">04 // Sensors &amp; Biometrics</a></li>
-        <li><a href="#edge-system" class="drawer-link">05 // Edge Computing</a></li>
-        <li><a href="#insights" class="drawer-link">06 // Deployment Insights</a></li>
-        <li><a href="#video" class="drawer-link">07 // Demo Video</a></li>
-        <li><a href="#gallery" class="drawer-link">08 // Hardware Gallery</a></li>
+        <li><a href="#insights" class="drawer-link">05 // Deployment Insights</a></li>
+        <li><a href="#video" class="drawer-link">06 // Demo Video</a></li>
+        <li><a href="#gallery" class="drawer-link">07 // Hardware Gallery</a></li>
       </ul>
       <div class="drawer-cta-box">
         <a href="/dashboard" class="btn-pill-dark drawer-cta-btn">
@@ -527,7 +525,7 @@
                   <span class="service-spec-tag">PWA Offline</span>
                 </div>
                 <div class="service-action-links">
-                  <a href="#edge-system" class="editorial-cta-link">INSPECT PI 5 GATEWAY ↗</a>
+                  <a href="#architecture" class="editorial-cta-link">EXPLORE ARCHITECTURE ↗</a>
                   <a href="/dashboard" class="editorial-cta-link">OPEN LIVE DASHBOARD ↗</a>
                 </div>
               </div>
@@ -682,7 +680,7 @@
               <span class="contract-node">SSE /stream &amp; PWA</span>
             </div>
           </div>
-          <a href="#edge-system" class="editorial-cta-link contract-cta">INSPECT FIRMWARE &amp; GATEWAY ↗</a>
+          <a href="#gallery" class="editorial-cta-link contract-cta">INSPECT HARDWARE &amp; SCHEMATICS ↗</a>
         </div>
       </div>
     </section>
@@ -852,120 +850,6 @@
           </div>
         </aside>
 
-      </div>
-    </section>
-
-    <!-- ══ Section: Embedded & Edge Engineering (Warm Sand #e6e3d2) ═══════════ -->
-    <section class="edge-editorial-section" id="edge-system">
-      <div class="section-container">
-        <div class="editorial-section-header">
-          <div class="editorial-header-left">
-            <span class="editorial-micro-heading">Embedded Engineering</span>
-            <h2 class="editorial-display-heading">ESP32 &amp; Raspberry Pi 5 <em>Stack</em></h2>
-          </div>
-          <div class="editorial-header-right">
-            <p class="editorial-header-copy">
-              How microcontroller scheduling on the ESP32 and local edge validation on the Raspberry Pi 5 convert raw sensor voltages into auditable, zero-cloud clinical records.
-            </p>
-          </div>
-        </div>
-
-        <div class="edge-editorial-grid">
-          <!-- Left Panel: ESP32 Controller -->
-          <div class="edge-editorial-panel">
-            <div class="edge-panel-head">
-              <span class="edge-card-tag">01 // WEARABLE CONTROLLER</span>
-              <h3 class="edge-card-title">What We Have Done with the ESP32</h3>
-              <p class="edge-card-desc">
-                The ESP32 serves as the wearable’s real-time acquisition and communication controller between physical transducers and the local Raspberry Pi 5 gateway:
-              </p>
-            </div>
-
-            <ul class="edge-ledger-list">
-              <li>
-                <strong>Timed Polling</strong>
-                <span>Schedules duty-cycled sensor slots to preserve compact wearable battery life.</span>
-              </li>
-              <li>
-                <strong>Payload Packaging</strong>
-                <span>Serializes synchronized multi-parameter readings into clean standardized JSON packets.</span>
-              </li>
-              <li>
-                <strong>NTP Clock Synchronization</strong>
-                <span>Resolves cold-boot <code>timestamp: 0</code> anomalies and publishes valid Unix epochs.</span>
-              </li>
-              <li>
-                <strong>Wi-Fi MQTT Publisher</strong>
-                <span>Streams packets reliably to topic <code>health/sensors</code> with local retry handling.</span>
-              </li>
-            </ul>
-
-            <div class="code-box-clean">
-              <div class="code-header">
-                <span>MQTT PAYLOAD • health/sensors</span>
-                <span class="code-schema-tag">VERIFIED SCHEMA</span>
-              </div>
-              <pre><code>{
-  <span class="k">"device_id"</span>: <span class="s">"patient_01"</span>,
-  <span class="k">"timestamp"</span>: <span class="n">1792414171</span>,
-  <span class="k">"heart_rate"</span>: <span class="n">75</span>,
-  <span class="k">"spo2"</span>: <span class="n">97</span>,
-  <span class="k">"body_temperature"</span>: <span class="n">36.5</span>,
-  <span class="k">"room_temperature"</span>: <span class="n">27.3</span>,
-  <span class="k">"humidity"</span>: <span class="n">52.1</span>
-}</code></pre>
-            </div>
-          </div>
-
-          <!-- Right Panel: Raspberry Pi 5 Gateway -->
-          <div class="edge-editorial-panel">
-            <div class="edge-panel-head">
-              <span class="edge-card-tag">02 // EDGE INTELLIGENCE GATEWAY</span>
-              <h3 class="edge-card-title">What We Have Done with the Raspberry Pi 5</h3>
-              <p class="edge-card-desc">
-                The Raspberry Pi 5 acts as an autonomous local compute node — performing full validation, baseline adaptation, and risk fusion without cloud relays:
-              </p>
-            </div>
-
-            <ul class="edge-ledger-list">
-              <li>
-                <strong>Mosquitto Broker</strong>
-                <span>High-throughput local MQTT messaging bus bound on port 1883 with zero cloud reliance.</span>
-              </li>
-              <li>
-                <strong>Physiological Validation</strong>
-                <span>Verifies epoch timestamps, numeric types, and human anatomical bounds before commits.</span>
-              </li>
-              <li>
-                <strong>Local SQLite WAL Database</strong>
-                <span>High-concurrency Write-Ahead Log retaining continuous local clinical telemetry histories.</span>
-              </li>
-              <li>
-                <strong>Deterministic Risk Engine</strong>
-                <span>Computes vital, thermal, and respiratory strain against slow-EMA personal baselines.</span>
-              </li>
-              <li>
-                <strong>Systemd Auto-Start Daemon</strong>
-                <span>Configured as an enabled system unit that recovers cleanly after any power cycle.</span>
-              </li>
-            </ul>
-
-            <div class="edge-runtime-strip" aria-label="Edge gateway runtime services">
-              <div class="runtime-cell">
-                <span class="runtime-label"><span class="status-square" aria-hidden="true"></span> Local Broker</span>
-                <strong class="runtime-value">Mosquitto :1883</strong>
-              </div>
-              <div class="runtime-cell">
-                <span class="runtime-label"><span class="status-square" aria-hidden="true"></span> Persistence</span>
-                <strong class="runtime-value">SQLite WAL Active</strong>
-              </div>
-              <div class="runtime-cell">
-                <span class="runtime-label"><span class="status-square" aria-hidden="true"></span> Web API</span>
-                <strong class="runtime-value">Port 8000 SSE</strong>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -1250,7 +1134,6 @@
           <div class="editorial-micro-heading footer-col-heading">Hardware</div>
           <ul class="footer-links">
             <li><a href="#sensors">Sensors &amp; Biometrics</a></li>
-            <li><a href="#edge-system">ESP32 &amp; Pi 5</a></li>
             <li><a href="#video">Demo Video</a></li>
             <li><a href="#gallery">Schematics Gallery</a></li>
           </ul>
