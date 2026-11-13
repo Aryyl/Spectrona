@@ -544,42 +544,70 @@ function subscribeToFirestoreReadings() {
     : "patient_01";
   const targetPatient = (activeDev === "patient_02") ? "patient_2" : "patient_1";
 
+  const onSnapshotHandler = (snapshot) => {
+    if (!snapshot || snapshot.empty) {
+      console.log("[Firebase] Snapshot empty in patient_readings");
+      return;
+    }
+
+    _isFirebaseConnected = true;
+
+    const rawList = [];
+    snapshot.forEach(doc => {
+      rawList.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Defensive sort: guarantee newest reading first by record_id, timestamp_epoch, synced_at, or ISO date
+    rawList.sort((a, b) => {
+      const recA = Number(a.record_id) || Number(a.timestamp_epoch) || (a.synced_at ? Number(a.synced_at) : 0) || (a.timestamp ? new Date(a.timestamp).getTime() : 0);
+      const recB = Number(b.record_id) || Number(b.timestamp_epoch) || (b.synced_at ? Number(b.synced_at) : 0) || (b.timestamp ? new Date(b.timestamp).getTime() : 0);
+      return recB - recA;
+    });
+
+    // Match active subject device or patient ID
+    const matching = rawList.filter(r => {
+      const devMatch = r.device_id && r.device_id.toLowerCase() === activeDev.toLowerCase();
+      const patMatch = r.patient_id && (
+        r.patient_id.toLowerCase() === targetPatient.toLowerCase() ||
+        r.patient_id.toLowerCase() === activeDev.toLowerCase()
+      );
+      return devMatch || patMatch;
+    });
+
+    // If new real-time hardware data arrives with a newer record/timestamp, don't hide it behind stale records
+    let candidates = matching.length > 0 ? matching : rawList;
+    if (rawList.length > 0 && matching.length > 0) {
+      const newestRawRec = Number(rawList[0].record_id) || Number(rawList[0].timestamp_epoch) || 0;
+      const newestMatchRec = Number(matching[0].record_id) || Number(matching[0].timestamp_epoch) || 0;
+      if (newestRawRec > newestMatchRec) {
+        candidates = rawList;
+      }
+    }
+
+    const latestDoc = candidates[0];
+    if (latestDoc) {
+      handleIncomingFirebaseReading(latestDoc, candidates);
+    }
+  };
+
   try {
     const collRef = _firestoreDb.collection("patient_readings");
     _firestoreUnsub = collRef
       .orderBy("record_id", "desc")
       .limit(35)
-      .onSnapshot((snapshot) => {
-        if (!snapshot || snapshot.empty) {
-          console.log("[Firebase] Snapshot empty in patient_readings");
-          return;
+      .onSnapshot(onSnapshotHandler, (error) => {
+        console.warn("[Firebase] Primary ordered query error (falling back to unindexed limit):", error);
+        // Fallback: If ordering requires an index or fails, listen to collection with limit and sort in memory
+        try {
+          if (_firestoreUnsub) { try { _firestoreUnsub(); } catch(e) {} }
+          _firestoreUnsub = collRef.limit(40).onSnapshot(onSnapshotHandler, (err2) => {
+            console.error("[Firebase] Fallback listener error:", err2);
+            _isFirebaseConnected = false;
+          });
+        } catch(fallbackErr) {
+          console.error("[Firebase] Query fallback setup error:", fallbackErr);
+          _isFirebaseConnected = false;
         }
-
-        _isFirebaseConnected = true;
-
-        const rawList = [];
-        snapshot.forEach(doc => {
-          rawList.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Defensive sort: guarantee newest reading first by record_id, timestamp_epoch, or synced_at
-        rawList.sort((a, b) => {
-          const recA = Number(a.record_id) || Number(a.timestamp_epoch) || (a.synced_at ? Number(a.synced_at) : 0);
-          const recB = Number(b.record_id) || Number(b.timestamp_epoch) || (b.synced_at ? Number(b.synced_at) : 0);
-          return recB - recA;
-        });
-
-        // Filter for active subject if multiple exist, else use latest
-        const matching = rawList.filter(r => r.device_id === activeDev || r.patient_id === targetPatient);
-        const candidates = matching.length > 0 ? matching : rawList;
-        const latestDoc = candidates[0];
-
-        if (latestDoc) {
-          handleIncomingFirebaseReading(latestDoc, candidates);
-        }
-      }, (error) => {
-        console.warn("[Firebase] Listener error:", error);
-        _isFirebaseConnected = false;
       });
   } catch (err) {
     console.error("[Firebase] Query setup error:", err);
@@ -589,13 +617,21 @@ function subscribeToFirestoreReadings() {
 function handleIncomingFirebaseReading(doc, candidateList) {
   if (!doc) return;
 
-  const hr    = Number(doc.heart_rate) || 0;
-  const spo2  = Number(doc.spo2) || 0;
-  const btemp = Number(doc.body_temperature) || 0;
-  const rtemp = Number(doc.room_temperature) || 0;
-  const hum   = Number(doc.humidity) || 0;
-  const sys   = Number(doc.bp_sys) || 0;
-  const dia   = Number(doc.bp_dia) || 0;
+  // Resilient multi-key extraction for hardware compatibility
+  const hr    = Number(doc.heart_rate ?? doc.heartRate ?? doc.bpm ?? doc.pulse ?? doc.hr) || 0;
+  const spo2  = Number(doc.spo2 ?? doc.spO2 ?? doc.oxygen ?? doc.spo2_pct) || 0;
+  const btemp = Number(doc.body_temperature ?? doc.bodyTemperature ?? doc.body_temp ?? doc.temp ?? doc.temperature) || 0;
+  const rtemp = Number(doc.room_temperature ?? doc.roomTemperature ?? doc.ambient_temperature ?? doc.ambient ?? doc.rtemp) || 0;
+  const hum   = Number(doc.humidity ?? doc.hum) || 0;
+
+  // Blood pressure: supports flat bp_sys/bp_dia and nested blood_pressure.sys / blood_pressure.dia from ESP32
+  let sys = Number(doc.bp_sys ?? doc.systolic ?? doc.sys) || 0;
+  let dia = Number(doc.bp_dia ?? doc.diastolic ?? doc.dia) || 0;
+  if ((!sys || !dia) && doc.blood_pressure && typeof doc.blood_pressure === "object") {
+    sys = Number(doc.blood_pressure.sys ?? doc.blood_pressure.systolic) || sys;
+    dia = Number(doc.blood_pressure.dia ?? doc.blood_pressure.diastolic) || dia;
+  }
+
   const dev   = doc.device_id || "patient_01";
   const patId = doc.patient_id || "patient_1";
   const recId = (doc.record_id !== undefined && doc.record_id !== null) ? doc.record_id : (doc.id || doc.timestamp_epoch || "live");
@@ -613,8 +649,8 @@ function handleIncomingFirebaseReading(doc, candidateList) {
       reasons: doc.risk.reasons || []
     };
   } else {
-    const isHigh = (hr > 120 || hr < 50 || (spo2 > 0 && spo2 < 90) || (btemp > 0 && btemp > 38.5));
-    const isWatch = (hr > 100 || (spo2 > 0 && spo2 < 94) || (btemp > 0 && btemp > 37.8));
+    const isHigh = (hr > 120 || (hr > 0 && hr < 50) || (spo2 > 0 && spo2 < 90) || (btemp > 0 && btemp > 38.5) || (sys >= 140 || dia >= 90));
+    const isWatch = (hr > 100 || (spo2 > 0 && spo2 < 94) || (btemp > 0 && btemp > 37.8) || (sys >= 130 || dia >= 85));
     riskObj = {
       overall_status: isHigh ? "HIGH" : (isWatch ? "WATCH" : "NORMAL"),
       vital_risk: isHigh ? "HIGH" : "NORMAL",
@@ -622,6 +658,34 @@ function handleIncomingFirebaseReading(doc, candidateList) {
       respiratory_risk: (spo2 > 0 && spo2 < 94) ? "WATCH" : "NORMAL",
       recommendation: isHigh ? "Immediate evaluation recommended." : (isWatch ? "Elevated vital detected. Continue monitoring." : "All monitored indicators within normal range.")
     };
+  }
+
+  // Synthesize individual active alerts so cards glow and alert pills reflect real-time warnings
+  const activeAlerts = [];
+  if (hr > 120) {
+    activeAlerts.push({ vital: "heart_rate", severity: "CRITICAL", direction: "HIGH", message: `Tachycardia: ${fmt0(hr)} bpm` });
+  } else if (hr > 100) {
+    activeAlerts.push({ vital: "heart_rate", severity: "WARNING", direction: "HIGH", message: `Elevated Pulse: ${fmt0(hr)} bpm` });
+  } else if (hr > 0 && hr < 50) {
+    activeAlerts.push({ vital: "heart_rate", severity: "CRITICAL", direction: "LOW", message: `Bradycardia: ${fmt0(hr)} bpm` });
+  }
+
+  if (spo2 > 0 && spo2 < 90) {
+    activeAlerts.push({ vital: "spo2", severity: "CRITICAL", direction: "LOW", message: `Severe Hypoxia: ${fmt1(spo2)}%` });
+  } else if (spo2 >= 90 && spo2 < 94) {
+    activeAlerts.push({ vital: "spo2", severity: "WARNING", direction: "LOW", message: `Borderline Low SpO₂: ${fmt1(spo2)}%` });
+  }
+
+  if (btemp > 38.5) {
+    activeAlerts.push({ vital: "body_temperature", severity: "CRITICAL", direction: "HIGH", message: `High Fever: ${fmt1(btemp)}°C` });
+  } else if (btemp > 37.8) {
+    activeAlerts.push({ vital: "body_temperature", severity: "WARNING", direction: "HIGH", message: `Low Grade Fever: ${fmt1(btemp)}°C` });
+  }
+
+  if (sys >= 140 || dia >= 90) {
+    activeAlerts.push({ vital: "blood_pressure", severity: "CRITICAL", direction: "HIGH", message: `Hypertension Stage 2: ${fmt0(sys)}/${fmt0(dia)}` });
+  } else if (sys >= 130 || dia >= 85) {
+    activeAlerts.push({ vital: "blood_pressure", severity: "WARNING", direction: "HIGH", message: `Pre-hypertension: ${fmt0(sys)}/${fmt0(dia)}` });
   }
 
   const payload = {
@@ -639,7 +703,8 @@ function handleIncomingFirebaseReading(doc, candidateList) {
       timestamp: tsIso,
       timestamp_epoch: tsEpoch
     },
-    risk: riskObj
+    risk: riskObj,
+    alerts: activeAlerts
   };
 
   const isNew = (_lastProcessedRecordId === null || String(_lastProcessedRecordId) !== String(recId));
