@@ -1170,74 +1170,6 @@ body.light-theme {
   border-bottom: 1px solid var(--border-light);
 }
 
-/* Wide Engineering Demonstration Banner — Matches About Section Banner */
-.arch-banner-placeholder {
-  width: 100%;
-  height: clamp(300px, 34vw, 440px);
-  border-radius: 20px;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-md);
-  margin-bottom: 3rem;
-  overflow: hidden;
-  position: relative;
-}
-
-.arch-banner-placeholder img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 35%;
-  display: block;
-}
-
-.arch-banner-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(38, 44, 29, 0.05) 0%, rgba(38, 44, 29, 0.6) 100%);
-  display: flex;
-  align-items: flex-end;
-  padding: 2rem 2.25rem;
-}
-
-.arch-banner-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.arch-figure-badge {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-white);
-  background-color: rgba(38, 44, 29, 0.76);
-  padding: 6px 14px;
-  border-radius: 4px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(246, 244, 235, 0.18);
-}
-
-.arch-spec-pill {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 500;
-  color: var(--text-white-translucent);
-  letter-spacing: 0.05em;
-  background-color: rgba(38, 44, 29, 0.58);
-  padding: 6px 14px;
-  border-radius: 4px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(246, 244, 235, 0.14);
-}
-
 /* Asymmetric Split Lead Row — Matches About Section Split */
 .arch-intro-split {
   display: grid;
@@ -2632,7 +2564,6 @@ body.light-theme {
     grid-column: auto;
   }
 
-  .arch-banner-meta,
   .contract-chain {
     flex-direction: column;
     align-items: flex-start;

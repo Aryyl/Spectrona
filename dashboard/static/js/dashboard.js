@@ -163,7 +163,6 @@ function initCharts() {
 }
 
 function updateChartsTheme() {
-  if (!gaugeChart || !trendChart) return;
   const isDark = isDarkTheme();
   const emptyTrackColor = isDark ? "rgba(255, 255, 255, 0.08)" : "#EFEFEA";
   const defaultBarColor = isDark ? "rgba(223, 242, 98, 0.48)" : "#D6E856";
@@ -171,38 +170,43 @@ function updateChartsTheme() {
   const gridColor       = isDark ? "rgba(255, 255, 255, 0.06)" : "#F0EFEA";
   const tickColor       = isDark ? "#7D8478" : "#8B9085";
 
-  gaugeChart.data.datasets[0].backgroundColor[1] = emptyTrackColor;
-  gaugeChart.update();
-
-  trendChart.options.scales.y.grid.color = gridColor;
-  trendChart.options.scales.y.ticks.color = tickColor;
-  if (trendData.length > 0) {
-    trendChart.data.datasets[0].backgroundColor = trendData.map((_, i) =>
-      i === trendData.length - 1 ? activeBarColor : defaultBarColor
-    );
+  if (gaugeChart) {
+    gaugeChart.data.datasets[0].backgroundColor[1] = emptyTrackColor;
+    gaugeChart.update();
   }
-  trendChart.update();
+
+  if (trendChart) {
+    trendChart.options.scales.y.grid.color = gridColor;
+    trendChart.options.scales.y.ticks.color = tickColor;
+    if (trendData.length > 0) {
+      trendChart.data.datasets[0].backgroundColor = trendData.map((_, i) =>
+        i === trendData.length - 1 ? activeBarColor : defaultBarColor
+      );
+    }
+    trendChart.update();
+  }
 }
 
 function updateCharts(latestHr, overall) {
-  if (!gaugeChart || !trendChart) return;
   const isDark = isDarkTheme();
   const emptyTrackColor = isDark ? "rgba(255, 255, 255, 0.08)" : "#EFEFEA";
   const defaultBarColor = isDark ? "rgba(223, 242, 98, 0.48)" : "#D6E856";
   const activeBarColor  = isDark ? "#DFF262" : "#16A34A";
 
   // Update Gauge
-  let color = isDark ? '#4ADE80' : '#16A34A'; // Normal
-  let percentage = 20;
-  if (overall === 'WATCH') { color = '#F59E0B'; percentage = 60; }
-  else if (overall === 'HIGH') { color = '#EF4444'; percentage = 95; }
+  if (gaugeChart) {
+    let color = isDark ? '#4ADE80' : '#16A34A'; // Normal
+    let percentage = 20;
+    if (overall === 'WATCH') { color = '#F59E0B'; percentage = 60; }
+    else if (overall === 'HIGH') { color = '#EF4444'; percentage = 95; }
 
-  gaugeChart.data.datasets[0].data = [percentage, 100 - percentage];
-  gaugeChart.data.datasets[0].backgroundColor = [color, emptyTrackColor];
-  gaugeChart.update();
+    gaugeChart.data.datasets[0].data = [percentage, 100 - percentage];
+    gaugeChart.data.datasets[0].backgroundColor = [color, emptyTrackColor];
+    gaugeChart.update();
+  }
 
-  // Update Trend Chart
-  if (latestHr) {
+  // Update Trend Chart (if active)
+  if (trendChart && latestHr) {
     const now = new Date();
     trendLabels.push(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     trendData.push(latestHr);
