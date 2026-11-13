@@ -22,7 +22,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css?v=10.0.0" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=10.1.0" />
 </head>
 <body class="light-theme">
 
@@ -344,7 +344,7 @@
             <!-- Pane 0: Continuous Vital Telemetry -->
             <div class="service-pane active" id="service-pane-0" role="tabpanel" aria-labelledby="service-tab-0">
               <div class="service-pane-top">
-                <span class="service-pane-badge">01 // BIOMETRIC TELEMETRY</span>
+                <span class="service-pane-eyebrow">01 // BIOMETRIC TELEMETRY</span>
                 <span class="service-pane-tag">5 Synchronized Domains</span>
               </div>
               <h3 class="service-pane-title">Multi-Parameter Surveillance Without Daily Friction</h3>
@@ -374,10 +374,11 @@
               </ul>
 
               <div class="service-pane-footer">
-                <div class="service-chip-row">
-                  <span class="service-chip">Heart Rate (BPM)</span>
-                  <span class="service-chip">Optical SpO₂</span>
-                  <span class="service-chip">IR Thermometry</span>
+                <div class="service-spec-strip">
+                  <span class="service-spec-label">DOMAINS</span>
+                  <span class="service-spec-tag">Heart Rate (BPM)</span>
+                  <span class="service-spec-tag">Optical SpO₂</span>
+                  <span class="service-spec-tag">IR Thermometry</span>
                 </div>
                 <div class="service-action-links">
                   <a href="#sensors" class="editorial-cta-link">INSPECT SENSORS ↗</a>
@@ -389,7 +390,7 @@
             <!-- Pane 1: Level 1 ECG Diagnostics -->
             <div class="service-pane" id="service-pane-1" role="tabpanel" aria-labelledby="service-tab-1" hidden>
               <div class="service-pane-top">
-                <span class="service-pane-badge">02 // ELECTROPHYSIOLOGY</span>
+                <span class="service-pane-eyebrow">02 // ELECTROPHYSIOLOGY</span>
                 <span class="service-pane-tag">250 SPS Lead-I Capture</span>
               </div>
               <h3 class="service-pane-title">Clinical Lead-I Rhythm &amp; Morphological Analysis</h3>
@@ -412,8 +413,8 @@
                   <path
                     d="M 0,58 L 42,58 C 48,58 51,49 58,49 C 65,49 68,58 74,58 L 90,58 L 95,64 L 103,14 L 111,76 L 118,58 L 136,58 C 145,58 152,41 163,41 C 174,41 181,58 190,58 L 242,58 C 248,58 251,49 258,49 C 265,49 268,58 274,58 L 290,58 L 295,64 L 303,14 L 311,76 L 318,58 L 336,58 C 345,58 352,41 363,41 C 374,41 381,58 390,58 L 442,58 C 448,58 451,49 458,49 C 465,49 468,58 474,58 L 490,58 L 495,64 L 503,14 L 511,76 L 518,58 L 536,58 C 545,58 552,41 563,41 C 574,41 581,58 590,58 L 640,58"
                     fill="none"
-                    stroke="#157835"
-                    stroke-width="2.2"
+                    stroke="#262c1d"
+                    stroke-width="1.8"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   />
@@ -427,10 +428,11 @@
               </ul>
 
               <div class="service-pane-footer">
-                <div class="service-chip-row">
-                  <span class="service-chip">AD8232 Lead-I</span>
-                  <span class="service-chip">80 dB CMRR</span>
-                  <span class="service-chip">Canvas Scope</span>
+                <div class="service-spec-strip">
+                  <span class="service-spec-label">HARDWARE</span>
+                  <span class="service-spec-tag">AD8232 Lead-I</span>
+                  <span class="service-spec-tag">80 dB CMRR</span>
+                  <span class="service-spec-tag">Canvas Scope</span>
                 </div>
                 <div class="service-action-links">
                   <a href="#sensors" class="editorial-cta-link">SEE AD8232 SPECS ↗</a>
@@ -442,7 +444,7 @@
             <!-- Pane 2: Deterministic Edge Risk Fusion -->
             <div class="service-pane" id="service-pane-2" role="tabpanel" aria-labelledby="service-tab-2" hidden>
               <div class="service-pane-top">
-                <span class="service-pane-badge">03 // RISK INTELLIGENCE</span>
+                <span class="service-pane-eyebrow">03 // RISK INTELLIGENCE</span>
                 <span class="service-pane-tag">Zero Black-Box AI</span>
               </div>
               <h3 class="service-pane-title">Explainable Tri-Domain Scoring &amp; Personal Baselines</h3>
@@ -472,10 +474,11 @@
               </ul>
 
               <div class="service-pane-footer">
-                <div class="service-chip-row">
-                  <span class="service-chip">Heat Index</span>
-                  <span class="service-chip">EMA Baselines</span>
-                  <span class="service-chip">Hysteresis</span>
+                <div class="service-spec-strip">
+                  <span class="service-spec-label">LOGIC</span>
+                  <span class="service-spec-tag">Heat Index</span>
+                  <span class="service-spec-tag">EMA Baselines</span>
+                  <span class="service-spec-tag">Hysteresis</span>
                 </div>
                 <div class="service-action-links">
                   <a href="#architecture" class="editorial-cta-link">EXPLORE ARCHITECTURE ↗</a>
@@ -487,7 +490,7 @@
             <!-- Pane 3: Zero-Cloud Offline Resilience -->
             <div class="service-pane" id="service-pane-3" role="tabpanel" aria-labelledby="service-tab-3" hidden>
               <div class="service-pane-top">
-                <span class="service-pane-badge">04 // EDGE SOVEREIGNTY</span>
+                <span class="service-pane-eyebrow">04 // EDGE SOVEREIGNTY</span>
                 <span class="service-pane-tag">100% Autonomous LAN</span>
               </div>
               <h3 class="service-pane-title">Private Local Persistence Built for Air-Gapped Care</h3>
@@ -517,10 +520,11 @@
               </ul>
 
               <div class="service-pane-footer">
-                <div class="service-chip-row">
-                  <span class="service-chip">Mosquitto MQTT</span>
-                  <span class="service-chip">SQLite WAL</span>
-                  <span class="service-chip">PWA Offline</span>
+                <div class="service-spec-strip">
+                  <span class="service-spec-label">STACK</span>
+                  <span class="service-spec-tag">Mosquitto MQTT</span>
+                  <span class="service-spec-tag">SQLite WAL</span>
+                  <span class="service-spec-tag">PWA Offline</span>
                 </div>
                 <div class="service-action-links">
                   <a href="#edge-system" class="editorial-cta-link">INSPECT PI 5 GATEWAY ↗</a>
