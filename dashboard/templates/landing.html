@@ -22,7 +22,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css?v=10.4.0" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=10.5.0" />
 </head>
 <body class="light-theme">
 
@@ -40,7 +40,6 @@
           <li><a href="#architecture" class="nav-item">Architecture</a></li>
           <li><a href="#sensors" class="nav-item">Sensors</a></li>
           <li><a href="#insights" class="nav-item">Insights</a></li>
-          <li><a href="#gallery" class="nav-item">Hardware</a></li>
         </ul>
       </nav>
 
@@ -75,7 +74,6 @@
         <li><a href="#sensors" class="drawer-link">04 // Sensors &amp; Biometrics</a></li>
         <li><a href="#insights" class="drawer-link">05 // Deployment Insights</a></li>
         <li><a href="#video" class="drawer-link">06 // Demo Video</a></li>
-        <li><a href="#gallery" class="drawer-link">07 // Hardware Gallery</a></li>
       </ul>
       <div class="drawer-cta-box">
         <a href="/dashboard" class="btn-pill-dark drawer-cta-btn">
@@ -669,7 +667,7 @@
               <span class="contract-node">SSE /stream &amp; PWA</span>
             </div>
           </div>
-          <a href="#gallery" class="editorial-cta-link contract-cta">INSPECT HARDWARE &amp; SCHEMATICS ↗</a>
+          <a href="#sensors" class="editorial-cta-link contract-cta">INSPECT WEARABLE SENSORS ↗</a>
         </div>
       </div>
     </section>
@@ -1029,70 +1027,6 @@
       </div>
     </section>
 
-    <!-- ══ Section: Hardware & Schematics Gallery (Warm Alabaster #eeece0) ═════ -->
-    <section class="gallery-editorial-section" id="gallery">
-      <div class="section-container">
-        <div class="editorial-section-header">
-          <div class="editorial-header-left">
-            <span class="editorial-micro-heading">Hardware Artifacts</span>
-            <h2 class="editorial-display-heading">Prototypes &amp; <em>Schematics</em></h2>
-          </div>
-          <div class="editorial-header-right">
-            <p class="editorial-header-copy">
-              Explore the benchtop dual-processor validation build, forearm wearable field unit, and complete electronic wiring schematic. Select any plate to inspect in full view.
-            </p>
-          </div>
-        </div>
-
-        <div class="gallery-editorial-grid">
-          <!-- Plate 01: Benchtop Assembly -->
-          <article class="gallery-editorial-card" data-full="/static/images/prototype1.webp" data-title="Jeev One Benchtop Validation Assembly" data-desc="Dual-processor edge assembly connecting the ESP32 biometric acquisition node with Raspberry Pi 5 telemetry host and breadboard sensor array." tabindex="0" role="button" aria-label="Expand Benchtop Validation Assembly">
-            <div class="gallery-plate-frame">
-              <img src="/static/images/prototype1.webp" alt="Jeev One Benchtop Validation Assembly" loading="lazy" />
-            </div>
-            <div class="gallery-plate-meta">
-              <span class="gallery-fig-tag">FIG. 01 · BENCHTOP VALIDATION</span>
-              <span class="gallery-expand-cue" aria-hidden="true">EXPAND +</span>
-            </div>
-            <h3 class="gallery-plate-title">Benchtop Validation Assembly</h3>
-            <p class="gallery-plate-desc">
-              Interconnects the ESP32 sensor multiplexer, MLX90614 infrared transducer, DHT22 monitor, and Raspberry Pi 5 edge host.
-            </p>
-          </article>
-
-          <!-- Plate 02: Wearable Arm Integration -->
-          <article class="gallery-editorial-card" data-full="/static/images/prototype3.webp" data-title="Jeev One Wearable Field Demo" data-desc="Forearm-mounted working prototype demonstrating concurrent acquisition of blood pressure, SpO2, heart rate, skin temperature, and environmental heat strain." tabindex="0" role="button" aria-label="Expand Wearable Arm Integration">
-            <div class="gallery-plate-frame">
-              <img src="/static/images/prototype3.webp" alt="Jeev One Wearable Field Demo" loading="lazy" />
-            </div>
-            <div class="gallery-plate-meta">
-              <span class="gallery-fig-tag">FIG. 02 · WORKING DEMO</span>
-              <span class="gallery-expand-cue" aria-hidden="true">EXPAND +</span>
-            </div>
-            <h3 class="gallery-plate-title">Wearable Arm Integration</h3>
-            <p class="gallery-plate-desc">
-              Forearm-mounted working prototype pairing the sensor band, optical PPG probe, MLX90614 thermopile, and wrist BP cuff.
-            </p>
-          </article>
-
-          <!-- Plate 03: System Circuit Wiring Diagram -->
-          <article class="gallery-editorial-card" data-full="/static/images/circuit_diagram.webp?v=3" data-title="Jeev One Circuit &amp; Schematic Diagram" data-desc="Complete electronic schematic depicting I2C, UART, 1-Wire, and GPIO signal routing to ESP32, AD8232 ECG sensor, and Raspberry Pi 5 with 3.5-inch touch LCD." tabindex="0" role="button" aria-label="Expand System Circuit Wiring Diagram">
-            <div class="gallery-plate-frame">
-              <img src="/static/images/circuit_diagram.webp?v=3" alt="Jeev One Circuit Wiring Diagram" loading="lazy" />
-            </div>
-            <div class="gallery-plate-meta">
-              <span class="gallery-fig-tag">FIG. 03 · ELECTRONIC SCHEMATIC</span>
-              <span class="gallery-expand-cue" aria-hidden="true">EXPAND +</span>
-            </div>
-            <h3 class="gallery-plate-title">System Circuit Wiring Diagram</h3>
-            <p class="gallery-plate-desc">
-              Complete wiring schematic detailing I2C pull-ups, UART RX/TX channels, 5V power rails, AD8232 leads, and 3.5&quot; touch display.
-            </p>
-          </article>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <!-- ══ Editorial Footer (Warm Sand #e6e3d2) ════════════════════════════════ -->
@@ -1124,7 +1058,6 @@
           <ul class="footer-links">
             <li><a href="#sensors">Sensors &amp; Biometrics</a></li>
             <li><a href="#video">Demo Video</a></li>
-            <li><a href="#gallery">Schematics Gallery</a></li>
           </ul>
         </div>
 
@@ -1146,21 +1079,6 @@
     </div>
   </footer>
 
-  <!-- ══ Lightbox Modal for Gallery Images ════════════════════════════════════ -->
-  <div id="gallery-lightbox" class="gallery-lightbox" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
-    <div class="lightbox-dialog">
-      <button class="lightbox-close-btn" id="lightbox-close-btn" aria-label="Close expanded view">&times;</button>
-      <div class="lightbox-image-wrap">
-        <img id="lightbox-img" src="" alt="Expanded hardware view">
-      </div>
-      <div class="lightbox-details">
-        <h4 id="lightbox-title" class="lightbox-title"></h4>
-        <p id="lightbox-desc" class="lightbox-desc"></p>
-      </div>
-    </div>
-  </div>
-
-  <script src="/static/js/landing.js?v=9.1.0"></script>
+  <script src="/static/js/landing.js?v=9.2.0"></script>
 </body>
 </html>

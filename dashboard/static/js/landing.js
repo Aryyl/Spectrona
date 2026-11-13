@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initMobileDrawer();
   initServiceShowcase();
   initInsightsAccordion();
-  initGalleryLightbox();
   initPWA();
 });
 
@@ -135,70 +134,6 @@ function initInsightsAccordion() {
         trigger.setAttribute("aria-expanded", "true");
       }
     });
-  });
-}
-
-// ── Interactive Hardware Gallery Lightbox ─────────────────────────────────────
-function initGalleryLightbox() {
-  const lightbox = document.getElementById("gallery-lightbox");
-  const lightboxImg = document.getElementById("lightbox-img");
-  const lightboxTitle = document.getElementById("lightbox-title");
-  const lightboxDesc = document.getElementById("lightbox-desc");
-  const closeBtn = document.getElementById("lightbox-close-btn");
-  const backdrop = document.getElementById("lightbox-backdrop");
-  const cards = document.querySelectorAll(".gallery-editorial-card");
-
-  if (!lightbox || !lightboxImg || !cards.length) return;
-
-  let lastTrigger = null;
-
-  function openLightbox(card) {
-    lastTrigger = card;
-    const fullSrc = card.getAttribute("data-full");
-    const title = card.getAttribute("data-title") || "";
-    const desc = card.getAttribute("data-desc") || "";
-
-    lightboxImg.src = fullSrc;
-    lightboxImg.alt = title;
-    if (lightboxTitle) lightboxTitle.textContent = title;
-    if (lightboxDesc) lightboxDesc.textContent = desc;
-
-    lightbox.classList.add("active");
-    lightbox.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-    if (closeBtn) closeBtn.focus();
-  }
-
-  function closeLightbox() {
-    lightbox.classList.remove("active");
-    lightbox.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-    setTimeout(() => {
-      lightboxImg.src = "";
-    }, 250);
-    if (lastTrigger) {
-      lastTrigger.focus();
-      lastTrigger = null;
-    }
-  }
-
-  cards.forEach((card) => {
-    card.addEventListener("click", () => openLightbox(card));
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openLightbox(card);
-      }
-    });
-  });
-
-  if (closeBtn) closeBtn.addEventListener("click", closeLightbox);
-  if (backdrop) backdrop.addEventListener("click", closeLightbox);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && lightbox.classList.contains("active")) {
-      closeLightbox();
-    }
   });
 }
 
