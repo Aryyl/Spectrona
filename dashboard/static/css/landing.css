@@ -2003,13 +2003,13 @@ body.light-theme {
 
 .editorial-accordion-item.open .accordion-icon {
   transform: rotate(45deg);
-  color: var(--accent-brand);
+  color: var(--text-heading);
 }
 
 .accordion-panel {
   display: none;
   padding: 0 1.75rem 2rem 3.5rem;
-  border-left: 3px solid var(--accent-brand);
+  border-left: 2px solid var(--text-heading);
   margin-left: 0.75rem;
   margin-bottom: 1.25rem;
 }

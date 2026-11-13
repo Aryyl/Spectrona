@@ -136,13 +136,6 @@ function initInsightsAccordion() {
       }
     });
   });
-
-  // Open first item by default for discovery
-  if (items.length > 0) {
-    items[0].classList.add("open");
-    const firstTrigger = items[0].querySelector(".accordion-trigger");
-    if (firstTrigger) firstTrigger.setAttribute("aria-expanded", "true");
-  }
 }
 
 // ── Interactive Hardware Gallery Lightbox ─────────────────────────────────────
