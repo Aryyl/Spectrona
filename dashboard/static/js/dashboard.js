@@ -364,12 +364,21 @@ function applyUpdate(data) {
 
   // Update micro-visual bento meters, card alarm glowing states, and notification drawer
   updateVitalMicroVisuals(latest, overall);
-  updateCardAlarms(_activeAlerts);
+  updateCardAlarms(_activeAlerts); // reset all pills to NORMAL, then apply server-side alert objects
+  updateVitalPills(latest);        // override with direct per-vital threshold evaluation (highest priority)
   renderNotificationList();
 }
 
 function updateVitalMicroVisuals(latest, overall) {
-  // 1. Heart Rate 20-bar Equalizer Meter (40-150 bpm)
+  // ── Clinical thresholds (mirror config/config.yaml) ──────────────────────
+  // HR:   WATCH ≤50 or ≥100 bpm  |  HIGH ≤40 or ≥130 bpm
+  // SpO2: WATCH <95%             |  HIGH <90%
+  // Temp: WATCH ≥37.5°C          |  HIGH ≥38.0°C
+  //       Hypothermia WATCH ≤35.8°C | HIGH ≤35.0°C
+  // BP:   WATCH sys≥130 or dia≥80 | HIGH sys≥140 or dia≥90 | LOW sys<90
+  // Env:  WATCH rtemp>32°C       |  HIGH rtemp>41°C (heat index thresholds)
+
+  // 1. Heart Rate 20-bar Equalizer Meter (40–150 bpm)
   const meter = $("hr-tick-meter");
   if (meter) {
     const ticks = meter.querySelectorAll(".hr-tick");
@@ -377,9 +386,11 @@ function updateVitalMicroVisuals(latest, overall) {
     const filledCount = hr > 0
       ? Math.max(1, Math.min(ticks.length, Math.round(((hr - 40) / 110) * ticks.length)))
       : 0;
-    const stateClass = (hr >= 120 || (hr > 0 && hr <= 45) || overall === "HIGH")
+    // HIGH: ≥130 (tachycardia) or ≤40 (severe bradycardia)
+    // WATCH: ≥100 or ≤50
+    const stateClass = (hr >= 130 || (hr > 0 && hr <= 40))
       ? "crit"
-      : ((hr >= 100 || (hr > 0 && hr <= 55) || overall === "WATCH") ? "warn" : "");
+      : ((hr >= 100 || (hr > 0 && hr <= 50)) ? "warn" : "");
     ticks.forEach((tick, idx) => {
       tick.classList.remove("filled", "warn", "crit");
       if (idx < filledCount) {
@@ -401,6 +412,7 @@ function updateVitalMicroVisuals(latest, overall) {
       spo2Marker.style.left = `clamp(7px, ${pctRounded}%, calc(100% - 7px))`;
       spo2Marker.style.opacity = "1";
 
+      // HIGH <90% | WATCH <95%
       if (spo2 < 90) {
         spo2Fill.style.background = "linear-gradient(90deg, #FCA5A5 0%, #EF4444 100%)";
         spo2Marker.style.borderColor = "#B91C1C";
@@ -417,16 +429,18 @@ function updateVitalMicroVisuals(latest, overall) {
     }
   }
 
-  // 3. Body Temp Warm Honey Progress Track (34.5 C - 40.5 C)
+  // 3. Body Temp Warm Honey Progress Track (34.5°C – 40.5°C)
   const tempFill = $("btemp-scale-fill");
   if (tempFill) {
     const temp = Number(latest.body_temperature) || 0;
     if (temp > 0) {
       const ratio = Math.max(0.08, Math.min(1, (temp - 34.5) / 6.0));
       tempFill.style.width = `${Math.round(ratio * 100)}%`;
-      if (temp >= 38.5 || temp <= 35.0) {
+      // HIGH ≥38.0°C (config: temp_high) or ≤35.0°C (hypothermia)
+      if (temp >= 38.0 || temp <= 35.0) {
         tempFill.style.background = "linear-gradient(90deg, #F87171 0%, #DC2626 100%)";
       } else if (temp >= 37.5 || temp <= 35.8) {
+        // WATCH ≥37.5°C (config: temp_watch) or ≤35.8°C
         tempFill.style.background = "linear-gradient(90deg, #FBBF24 0%, #D97706 100%)";
       } else {
         tempFill.style.background = "linear-gradient(90deg, #FCD34D 0%, #F59E0B 100%)";
@@ -443,6 +457,106 @@ function updateVitalMicroVisuals(latest, overall) {
     const clamped = Math.max(90, Math.min(160, sys));
     const cx = Math.round(55 + ((clamped - 90) / 70) * 110);
     bpDot.setAttribute("cx", String(cx));
+  }
+}
+
+// ── Per-Card Threshold-Based Pill + Glow Updater ─────────────────────────────
+// Called every reading cycle. Evaluates raw vital values directly against
+// config/config.yaml thresholds and sets the status pill + card border glow.
+// Blood Pressure is handled separately in handleIncomingFirebaseReading().
+function updateVitalPills(latest) {
+  const hr    = Number(latest.heart_rate)      || 0;
+  const spo2  = Number(latest.spo2)            || 0;
+  const temp  = Number(latest.body_temperature) || 0;
+  const rtemp = Number(latest.room_temperature) || 0;
+  const hum   = Number(latest.humidity)         || 0;
+
+  // Helper: set pill + card glow
+  function applyState(tagId, cardId, state, label) {
+    const tag  = $(tagId);
+    const card = $(cardId);
+    if (tag) {
+      tag.className = state === "HIGH"  ? "vital-status-pill critical"
+                    : state === "WATCH" ? "vital-status-pill warning"
+                    :                     "vital-status-pill normal";
+      tag.textContent = label;
+    }
+    if (card) {
+      card.classList.remove("card-alarm-critical", "card-alarm-warning");
+      if (state === "HIGH")  card.classList.add("card-alarm-critical");
+      if (state === "WATCH") card.classList.add("card-alarm-warning");
+    }
+  }
+
+  // ── 1. Heart Rate ──────────────────────────────────────────────────────────
+  // HIGH:  ≤40 (severe bradycardia) or ≥130 (tachycardia)   [config: hr_low_high / hr_high_high]
+  // WATCH: ≤50 or ≥100 bpm                                   [config: hr_low_watch / hr_high_watch]
+  if (hr > 0) {
+    if (hr >= 130) {
+      applyState("tag-hr", "card-hr", "HIGH", "TACHY");
+    } else if (hr <= 40) {
+      applyState("tag-hr", "card-hr", "HIGH", "LOW");
+    } else if (hr >= 100) {
+      applyState("tag-hr", "card-hr", "WATCH", "WATCH");
+    } else if (hr <= 50) {
+      applyState("tag-hr", "card-hr", "WATCH", "LOW");
+    } else {
+      applyState("tag-hr", "card-hr", "NORMAL", "NORMAL");
+    }
+  }
+
+  // ── 2. SpO₂ ───────────────────────────────────────────────────────────────
+  // HIGH:  <90%  [config: spo2_high]
+  // WATCH: <95%  [config: spo2_watch]
+  if (spo2 > 0) {
+    if (spo2 < 90) {
+      applyState("tag-spo2", "card-spo2", "HIGH", "CRITICAL");
+    } else if (spo2 < 95) {
+      applyState("tag-spo2", "card-spo2", "WATCH", "WATCH");
+    } else {
+      applyState("tag-spo2", "card-spo2", "NORMAL", "NORMAL");
+    }
+  }
+
+  // ── 3. Body Temperature ───────────────────────────────────────────────────
+  // HIGH:  ≥38.0°C [config: temp_high] or ≤35.0°C (hypothermia)
+  // WATCH: ≥37.5°C [config: temp_watch] or ≤35.8°C
+  if (temp > 0) {
+    if (temp >= 38.0) {
+      applyState("tag-btemp", "card-btemp", "HIGH", "FEVER");
+    } else if (temp <= 35.0) {
+      applyState("tag-btemp", "card-btemp", "HIGH", "LOW");
+    } else if (temp >= 37.5) {
+      applyState("tag-btemp", "card-btemp", "WATCH", "WATCH");
+    } else if (temp <= 35.8) {
+      applyState("tag-btemp", "card-btemp", "WATCH", "LOW");
+    } else {
+      applyState("tag-btemp", "card-btemp", "NORMAL", "NORMAL");
+    }
+  }
+
+  // ── 4. Environment (Heat Index-based) ──────────────────────────────────────
+  // HIGH:  heat index ≥41°C  [config: hi_high_threshold]
+  // WATCH: heat index ≥32°C  [config: hi_watch_threshold]
+  // Also flag if humidity is extreme (>80% or <20%)
+  if (rtemp > 0 || hum > 0) {
+    // Simple JS heat index approximation (Steadman; matches app/processing/features.py)
+    let hi = rtemp;
+    if (rtemp >= 27) {
+      const t = rtemp, r = hum;
+      hi = -8.78469475556 + 1.61139411 * t + 2.33854883889 * r
+           - 0.14611605 * t * r - 0.012308094 * t * t
+           - 0.016424828 * r * r + 0.002211732 * t * t * r
+           + 0.00072546 * t * r * r - 0.000003582 * t * t * r * r;
+      hi = Math.round(hi * 10) / 10;
+    }
+    if (hi >= 41) {
+      applyState("tag-env", "card-env", "HIGH", "HEAT");
+    } else if (hi >= 32 || hum > 80 || hum < 20) {
+      applyState("tag-env", "card-env", "WATCH", "WATCH");
+    } else {
+      applyState("tag-env", "card-env", "NORMAL", "NORMAL");
+    }
   }
 }
 
@@ -649,8 +763,8 @@ function handleIncomingFirebaseReading(doc, candidateList) {
       reasons: doc.risk.reasons || []
     };
   } else {
-    const isHigh = (hr > 120 || (hr > 0 && hr < 50) || (spo2 > 0 && spo2 < 90) || (btemp > 0 && btemp > 38.5) || (sys >= 140 || dia >= 90));
-    const isWatch = (hr > 100 || (spo2 > 0 && spo2 < 94) || (btemp > 0 && btemp > 37.8) || (sys >= 130 || dia >= 85));
+    const isHigh = (hr >= 130 || (hr > 0 && hr <= 40) || (spo2 > 0 && spo2 < 90) || (btemp > 0 && btemp >= 38.0) || (sys >= 140 || dia >= 90) || (sys > 0 && sys < 90));
+    const isWatch = ((hr >= 100 || (hr > 0 && hr <= 50)) || (spo2 > 0 && spo2 < 95) || (btemp > 0 && btemp >= 37.5) || (sys >= 130 || dia >= 80));
     riskObj = {
       overall_status: isHigh ? "HIGH" : (isWatch ? "WATCH" : "NORMAL"),
       vital_risk: isHigh ? "HIGH" : "NORMAL",
@@ -661,31 +775,45 @@ function handleIncomingFirebaseReading(doc, candidateList) {
   }
 
   // Synthesize individual active alerts so cards glow and alert pills reflect real-time warnings
+  // Thresholds mirror config/config.yaml risk.vital & risk.respiratory sections exactly.
   const activeAlerts = [];
-  if (hr > 120) {
-    activeAlerts.push({ vital: "heart_rate", severity: "CRITICAL", direction: "HIGH", message: `Tachycardia: ${fmt0(hr)} bpm` });
-  } else if (hr > 100) {
-    activeAlerts.push({ vital: "heart_rate", severity: "WARNING", direction: "HIGH", message: `Elevated Pulse: ${fmt0(hr)} bpm` });
-  } else if (hr > 0 && hr < 50) {
-    activeAlerts.push({ vital: "heart_rate", severity: "CRITICAL", direction: "LOW", message: `Bradycardia: ${fmt0(hr)} bpm` });
+
+  // Heart Rate — config: hr_high_high=130, hr_low_high=40, hr_high_watch=100, hr_low_watch=50
+  if (hr >= 130) {
+    activeAlerts.push({ vital: "heart_rate", severity: "CRITICAL", direction: "HIGH", message: `Tachycardia: ${fmt0(hr)} bpm`, value: `${fmt0(hr)} bpm`, title: "Heart Rate High" });
+  } else if (hr > 0 && hr <= 40) {
+    activeAlerts.push({ vital: "heart_rate", severity: "CRITICAL", direction: "LOW",  message: `Severe Bradycardia: ${fmt0(hr)} bpm`, value: `${fmt0(hr)} bpm`, title: "Heart Rate Low" });
+  } else if (hr >= 100) {
+    activeAlerts.push({ vital: "heart_rate", severity: "WARNING",  direction: "HIGH", message: `Elevated Pulse: ${fmt0(hr)} bpm`, value: `${fmt0(hr)} bpm`, title: "Heart Rate Elevated" });
+  } else if (hr > 0 && hr <= 50) {
+    activeAlerts.push({ vital: "heart_rate", severity: "WARNING",  direction: "LOW",  message: `Low Pulse: ${fmt0(hr)} bpm`, value: `${fmt0(hr)} bpm`, title: "Heart Rate Low" });
   }
 
+  // SpO₂ — config: spo2_high=90, spo2_watch=95
   if (spo2 > 0 && spo2 < 90) {
-    activeAlerts.push({ vital: "spo2", severity: "CRITICAL", direction: "LOW", message: `Severe Hypoxia: ${fmt1(spo2)}%` });
-  } else if (spo2 >= 90 && spo2 < 94) {
-    activeAlerts.push({ vital: "spo2", severity: "WARNING", direction: "LOW", message: `Borderline Low SpO₂: ${fmt1(spo2)}%` });
+    activeAlerts.push({ vital: "spo2", severity: "CRITICAL", direction: "LOW", message: `Severe Hypoxia: ${fmt1(spo2)}%`, value: `${fmt1(spo2)}%`, title: "SpO₂ Critical" });
+  } else if (spo2 >= 90 && spo2 < 95) {
+    activeAlerts.push({ vital: "spo2", severity: "WARNING",  direction: "LOW", message: `Low SpO₂: ${fmt1(spo2)}%`, value: `${fmt1(spo2)}%`, title: "SpO₂ Watch" });
   }
 
-  if (btemp > 38.5) {
-    activeAlerts.push({ vital: "body_temperature", severity: "CRITICAL", direction: "HIGH", message: `High Fever: ${fmt1(btemp)}°C` });
-  } else if (btemp > 37.8) {
-    activeAlerts.push({ vital: "body_temperature", severity: "WARNING", direction: "HIGH", message: `Low Grade Fever: ${fmt1(btemp)}°C` });
+  // Body Temperature — config: temp_high=38.0, temp_watch=37.5
+  if (btemp >= 38.0) {
+    activeAlerts.push({ vital: "body_temperature", severity: "CRITICAL", direction: "HIGH", message: `Fever: ${fmt1(btemp)}°C`, value: `${fmt1(btemp)}°C`, title: "Body Temp High" });
+  } else if (btemp > 0 && btemp <= 35.0) {
+    activeAlerts.push({ vital: "body_temperature", severity: "CRITICAL", direction: "LOW",  message: `Hypothermia: ${fmt1(btemp)}°C`, value: `${fmt1(btemp)}°C`, title: "Body Temp Low" });
+  } else if (btemp >= 37.5) {
+    activeAlerts.push({ vital: "body_temperature", severity: "WARNING",  direction: "HIGH", message: `Low-Grade Fever: ${fmt1(btemp)}°C`, value: `${fmt1(btemp)}°C`, title: "Body Temp Watch" });
+  } else if (btemp > 0 && btemp <= 35.8) {
+    activeAlerts.push({ vital: "body_temperature", severity: "WARNING",  direction: "LOW",  message: `Subnormal Temp: ${fmt1(btemp)}°C`, value: `${fmt1(btemp)}°C`, title: "Body Temp Low" });
   }
 
+  // Blood Pressure — config: bp_sys_high_high=140, bp_dia_high_high=90, bp_sys_high_watch=130, bp_dia_high_watch=80, bp_sys_low_high=90
   if (sys >= 140 || dia >= 90) {
-    activeAlerts.push({ vital: "blood_pressure", severity: "CRITICAL", direction: "HIGH", message: `Hypertension Stage 2: ${fmt0(sys)}/${fmt0(dia)}` });
-  } else if (sys >= 130 || dia >= 85) {
-    activeAlerts.push({ vital: "blood_pressure", severity: "WARNING", direction: "HIGH", message: `Pre-hypertension: ${fmt0(sys)}/${fmt0(dia)}` });
+    activeAlerts.push({ vital: "blood_pressure", severity: "CRITICAL", direction: "HIGH", message: `Hypertension Stage 2: ${fmt0(sys)}/${fmt0(dia)} mmHg`, value: `${fmt0(sys)}/${fmt0(dia)}`, title: "BP Stage 2" });
+  } else if (sys > 0 && sys < 90) {
+    activeAlerts.push({ vital: "blood_pressure", severity: "CRITICAL", direction: "LOW",  message: `Hypotension: ${fmt0(sys)}/${fmt0(dia)} mmHg`, value: `${fmt0(sys)}/${fmt0(dia)}`, title: "BP Low" });
+  } else if (sys >= 130 || dia >= 80) {
+    activeAlerts.push({ vital: "blood_pressure", severity: "WARNING",  direction: "HIGH", message: `Elevated BP (Stage 1): ${fmt0(sys)}/${fmt0(dia)} mmHg`, value: `${fmt0(sys)}/${fmt0(dia)}`, title: "BP Elevated" });
   }
 
   const payload = {
@@ -727,17 +855,21 @@ function handleIncomingFirebaseReading(doc, candidateList) {
   }
 
   // Live Pill & Card Status for Blood Pressure
+  // Thresholds: config bp_sys_high_high=140, bp_dia_high_high=90, bp_sys_high_watch=130, bp_dia_high_watch=80, bp_sys_low_high=90
   const bpTag = $("tag-bp");
   const bpCard = $("card-bp");
   if (sys > 0 && dia > 0) {
     if (sys >= 140 || dia >= 90) {
       if (bpTag) { bpTag.className = "vital-status-pill critical"; bpTag.textContent = "STAGE 2"; }
       if (bpCard) { bpCard.classList.remove("card-alarm-warning"); bpCard.classList.add("card-alarm-critical"); }
-    } else if (sys >= 130 || dia >= 85) {
+    } else if (sys < 90) {
+      if (bpTag) { bpTag.className = "vital-status-pill critical"; bpTag.textContent = "LOW BP"; }
+      if (bpCard) { bpCard.classList.remove("card-alarm-warning"); bpCard.classList.add("card-alarm-critical"); }
+    } else if (sys >= 130 || dia >= 80) {
       if (bpTag) { bpTag.className = "vital-status-pill warning"; bpTag.textContent = "ELEVATED"; }
       if (bpCard) { bpCard.classList.remove("card-alarm-critical"); bpCard.classList.add("card-alarm-warning"); }
-    } else if (sys < 90 || dia < 60) {
-      if (bpTag) { bpTag.className = "vital-status-pill warning"; bpTag.textContent = "LOW BP"; }
+    } else if (dia < 60) {
+      if (bpTag) { bpTag.className = "vital-status-pill warning"; bpTag.textContent = "LOW DIA"; }
       if (bpCard) { bpCard.classList.remove("card-alarm-critical"); bpCard.classList.add("card-alarm-warning"); }
     } else {
       if (bpTag) { bpTag.className = "vital-status-pill normal"; bpTag.textContent = "NORMAL"; }
