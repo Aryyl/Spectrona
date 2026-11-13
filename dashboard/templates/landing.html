@@ -22,7 +22,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
   <link rel="icon" type="image/png" href="/static/images/favicon.png" />
 
-  <link rel="stylesheet" href="/static/css/landing.css?v=10.1.0" />
+  <link rel="stylesheet" href="/static/css/landing.css?v=10.2.0" />
 </head>
 <body class="light-theme">
 
@@ -35,7 +35,7 @@
 
       <nav class="center-nav" aria-label="Main Navigation">
         <ul class="nav-menu">
-          <li><a href="#about" class="nav-item">About Us</a></li>
+          <li><a href="#about" class="nav-item">About</a></li>
           <li><a href="#capabilities" class="nav-item">Capabilities</a></li>
           <li><a href="#architecture" class="nav-item">Architecture</a></li>
           <li><a href="#sensors" class="nav-item">Sensors</a></li>
@@ -540,6 +540,8 @@
     <!-- ══ Section: Complete System Architecture (Warm Sand #e6e3d2) ══════════ -->
     <section class="arch-editorial-section" id="architecture">
       <div class="section-container">
+        
+        <!-- 1. Editorial Section Header -->
         <div class="editorial-section-header">
           <div class="editorial-header-left">
             <span class="editorial-micro-heading">System Architecture</span>
@@ -552,104 +554,124 @@
           </div>
         </div>
 
+        <!-- 2. Wide Architectural Demonstration Banner (Matches About Section Banner) -->
+        <div class="arch-banner-placeholder">
+          <img src="/static/images/architecture-editorial-banner.jpg?v=1" alt="Jeev One Five-Stage Edge Computing Pipeline Architecture Diagram" loading="lazy" />
+          <div class="arch-banner-overlay">
+            <div class="arch-banner-meta">
+              <span class="arch-figure-badge">FIG. ARCH-01 // AIR-GAPPED DUAL-PROCESSOR BUS TOPOLOGY</span>
+              <span class="arch-spec-pill">ESP32 ➔ Mosquitto:1883 ➔ SQLite WAL ➔ SSE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Asymmetric Split Lead Row (Matches About Section Split) -->
+        <div class="arch-intro-split">
+          <div class="arch-intro-left">
+            <p class="arch-lead-statement">
+              Engineered so no patient reading ever stalls on cloud outages, network drops, or remote third-party servers.
+            </p>
+          </div>
+          <div class="arch-intro-right">
+            <p class="arch-side-note">
+              From physical skin-contact biopotentials to real-time clinical dials, every stage executes locally on private hardware with guaranteed deterministic timestamps.
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. Five Architectural Stage Cards (Clean Architectural Warm Ivory Cards) -->
         <ol class="arch-flow-grid">
           <!-- Stage 01 -->
-          <li class="arch-stage-col">
-            <div class="arch-stage-top">
-              <span class="arch-stage-num">01</span>
+          <li class="arch-stage-card">
+            <div class="arch-stage-header">
+              <span class="arch-stage-eyebrow">01 // TRANSDUCER LAYER</span>
               <span class="arch-stage-arrow" aria-hidden="true">→</span>
             </div>
-            <span class="arch-stage-tag">TRANSDUCER LAYER</span>
-            <h3 class="arch-stage-title">Wearable Sensing</h3>
+            <h3 class="arch-stage-title">Wearable Sensing Stack</h3>
             <p class="arch-stage-desc">
               Captures simultaneous Lead-I cardiac biopotentials, optical pulse oximetry, IR core temperature, and room humidity.
             </p>
-            <div class="arch-chips-wrap">
-              <span class="arch-chip">AD8232</span>
-              <span class="arch-chip">MAX30102</span>
-              <span class="arch-chip">MLX90614</span>
-              <span class="arch-chip">DHT22</span>
+            <div class="arch-spec-wrap">
+              <span class="arch-spec-tag">AD8232 ECG</span>
+              <span class="arch-spec-tag">MAX30102 PPG</span>
+              <span class="arch-spec-tag">MLX90614 IR</span>
+              <span class="arch-spec-tag">DHT22</span>
             </div>
           </li>
 
           <!-- Stage 02 -->
-          <li class="arch-stage-col">
-            <div class="arch-stage-top">
-              <span class="arch-stage-num">02</span>
+          <li class="arch-stage-card">
+            <div class="arch-stage-header">
+              <span class="arch-stage-eyebrow">02 // MICROCONTROLLER</span>
               <span class="arch-stage-arrow" aria-hidden="true">→</span>
             </div>
-            <span class="arch-stage-tag">MICROCONTROLLER</span>
             <h3 class="arch-stage-title">ESP32 Controller</h3>
             <p class="arch-stage-desc">
               Samples sensors on timed duty cycles, synchronizes Unix epochs via NTP, and serializes structured JSON payloads over Wi-Fi.
             </p>
-            <div class="arch-chips-wrap">
-              <span class="arch-chip">NTP Sync</span>
-              <span class="arch-chip">Timed Slots</span>
-              <span class="arch-chip">MQTT JSON</span>
+            <div class="arch-spec-wrap">
+              <span class="arch-spec-tag">NTP Sync</span>
+              <span class="arch-spec-tag">Timed Slots</span>
+              <span class="arch-spec-tag">MQTT JSON</span>
             </div>
           </li>
 
           <!-- Stage 03 -->
-          <li class="arch-stage-col">
-            <div class="arch-stage-top">
-              <span class="arch-stage-num">03</span>
+          <li class="arch-stage-card">
+            <div class="arch-stage-header">
+              <span class="arch-stage-eyebrow">03 // EDGE GATEWAY</span>
               <span class="arch-stage-arrow" aria-hidden="true">→</span>
             </div>
-            <span class="arch-stage-tag">EDGE GATEWAY</span>
             <h3 class="arch-stage-title">Raspberry Pi 5</h3>
             <p class="arch-stage-desc">
               Mosquitto broker receives port 1883 frames; ingestion validates bounds and persists durable records in SQLite WAL.
             </p>
-            <div class="arch-chips-wrap">
-              <span class="arch-chip">Mosquitto :1883</span>
-              <span class="arch-chip">Validator</span>
-              <span class="arch-chip">SQLite WAL</span>
+            <div class="arch-spec-wrap">
+              <span class="arch-spec-tag">Mosquitto :1883</span>
+              <span class="arch-spec-tag">Validator</span>
+              <span class="arch-spec-tag">SQLite WAL</span>
             </div>
           </li>
 
           <!-- Stage 04 -->
-          <li class="arch-stage-col">
-            <div class="arch-stage-top">
-              <span class="arch-stage-num">04</span>
+          <li class="arch-stage-card">
+            <div class="arch-stage-header">
+              <span class="arch-stage-eyebrow">04 // RISK ENGINE</span>
               <span class="arch-stage-arrow" aria-hidden="true">→</span>
             </div>
-            <span class="arch-stage-tag">RISK ENGINE</span>
             <h3 class="arch-stage-title">Risk &amp; Baselines</h3>
             <p class="arch-stage-desc">
               Evaluates Vital, Thermal, and Respiratory strain against slow-EMA personal baselines with clinical hysteresis debouncing.
             </p>
-            <div class="arch-chips-wrap">
-              <span class="arch-chip">Vital</span>
-              <span class="arch-chip">Thermal</span>
-              <span class="arch-chip">Respiratory</span>
-              <span class="arch-chip">EMA</span>
+            <div class="arch-spec-wrap">
+              <span class="arch-spec-tag">Vital Score</span>
+              <span class="arch-spec-tag">Thermal Strain</span>
+              <span class="arch-spec-tag">EMA Baseline</span>
             </div>
           </li>
 
           <!-- Stage 05 -->
-          <li class="arch-stage-col arch-stage-terminal">
-            <div class="arch-stage-top">
-              <span class="arch-stage-num">05</span>
+          <li class="arch-stage-card arch-stage-terminal">
+            <div class="arch-stage-header">
+              <span class="arch-stage-eyebrow">05 // CLIENT ACCESS</span>
               <span class="arch-stage-end" aria-hidden="true">●</span>
             </div>
-            <span class="arch-stage-tag">CLIENT ACCESS</span>
             <h3 class="arch-stage-title">Web &amp; PWA Client</h3>
             <p class="arch-stage-desc">
               Renders zero-latency dials, smooth Lead-I canvas oscilloscope traces, alert chimes, and historical clinician exports.
             </p>
-            <div class="arch-chips-wrap">
-              <span class="arch-chip">SSE /stream</span>
-              <span class="arch-chip">Canvas Scope</span>
-              <span class="arch-chip">Alerts</span>
+            <div class="arch-spec-wrap">
+              <span class="arch-spec-tag">SSE /stream</span>
+              <span class="arch-spec-tag">Canvas Scope</span>
+              <span class="arch-spec-tag">Auditable Alerts</span>
             </div>
           </li>
         </ol>
 
-        <!-- End-to-End Transport Contract Ribbon -->
+        <!-- 5. End-to-End Transport Contract Ribbon (Clean Flat Tags, No Green Pills) -->
         <div class="arch-contract-bar">
           <div class="contract-chain">
-            <span class="contract-label">LIVE TRANSPORT CONTRACT</span>
+            <span class="editorial-micro-heading contract-micro-heading">Live Transport Contract</span>
             <div class="contract-nodes">
               <span class="contract-node">I2C / 1-Wire / UART</span>
               <span class="contract-sep" aria-hidden="true">→</span>
@@ -665,9 +687,11 @@
       </div>
     </section>
 
-    <!-- ══ Section: Inside the Wearable / Sensors (Warm Alabaster #eeece0, Simple & Zero Pills) ══ -->
+    <!-- ══ Section: Inside the Wearable / Sensors (Warm Alabaster #eeece0) ══════ -->
     <section class="sensors-editorial-section" id="sensors">
       <div class="section-container">
+        
+        <!-- 1. Editorial Section Header -->
         <div class="editorial-section-header">
           <div class="editorial-header-left">
             <span class="editorial-micro-heading">Inside the Wearable</span>
@@ -680,105 +704,130 @@
           </div>
         </div>
 
-        <!-- 1. Primary Heart & Breathing Pair -->
-        <div class="sensors-simple-featured">
-          <!-- Heart & Rhythm: Deep Olive-Charcoal -->
-          <article class="sensor-simple-card dark">
-            <div class="sensor-simple-top">
-              <span class="sensor-step-label">01 · HEART &amp; RHYTHM</span>
-              <span class="sensor-ready-mark dark">
-                <span class="ready-square active" aria-hidden="true"></span>Active in Wearable
-              </span>
-            </div>
-            <h3 class="sensor-simple-title">Heart Rate &amp; Rhythm Check</h3>
-            <p class="sensor-simple-desc">
-              Follows every beat and checks your heart’s natural electrical rhythm, so irregular heartbeats or sudden pulse changes are spotted early without a hospital wire setup.
-            </p>
-            <div class="sensor-simple-takeaways">
-              <div class="takeaway-cell">
-                <span>Checks</span>
-                <strong>Beats &amp; rhythm</strong>
-              </div>
-              <div class="takeaway-cell">
-                <span>Feel</span>
-                <strong>Light daily wear</strong>
-              </div>
-              <div class="takeaway-cell">
-                <span>Sensor inside</span>
-                <strong>AD8232 ECG</strong>
+        <!-- 2. Featured Sensor Showcase with Demo Image Holder & Primary Vitals -->
+        <div class="sensors-showcase-split">
+          
+          <!-- Left: Lifestyle & Wearable Photography Demo Holder -->
+          <div class="sensor-showcase-media">
+            <div class="sensor-banner-frame">
+              <img src="/static/images/sensor-editorial-banner.jpg?v=1" alt="Jeev One comfortable wearable monitoring vitals peacefully in everyday living" loading="lazy" />
+              <div class="sensor-banner-overlay">
+                <span class="sensor-fig-badge">FIG. SENS-01 // WEARABLE TRANSDUCER ARRAY</span>
+                <p class="sensor-fig-note">Engineered for gentle, continuous daily skin contact with medical-grade non-invasive precision.</p>
               </div>
             </div>
-          </article>
+          </div>
 
-          <!-- Blood Oxygen: Warm Ivory -->
-          <article class="sensor-simple-card light">
-            <div class="sensor-simple-top">
-              <span class="sensor-step-label">02 · BREATHING &amp; OXYGEN</span>
-              <span class="sensor-ready-mark light">
-                <span class="ready-square active" aria-hidden="true"></span>Ready &amp; Verified
-              </span>
-            </div>
-            <h3 class="sensor-simple-title">Blood Oxygen Level (SpO₂)</h3>
-            <p class="sensor-simple-desc">
-              Shines a gentle, painless light onto the skin to measure how well oxygen moves through your bloodstream—helping catch shallow breathing or quiet drops while resting.
-            </p>
-            <div class="sensor-simple-takeaways">
-              <div class="takeaway-cell">
-                <span>Checks</span>
-                <strong>Oxygen % in blood</strong>
+          <!-- Right: Primary Heart & Breathing Cards Stack -->
+          <div class="sensor-featured-stack">
+            <!-- Heart & Rhythm Check -->
+            <article class="sensor-featured-card">
+              <div class="sensor-card-top">
+                <span class="sensor-card-eyebrow">01 // HEART &amp; RHYTHM</span>
+                <span class="sensor-status-indicator">Active in Wearable</span>
               </div>
-              <div class="takeaway-cell">
-                <span>How it feels</span>
-                <strong>Painless optical light</strong>
+              <h3 class="sensor-card-title">Heart Rate &amp; Continuous Rhythm Check</h3>
+              <p class="sensor-card-desc">
+                Follows every beat and checks your heart’s natural electrical rhythm, so irregular heartbeats or sudden pulse changes are spotted early without hospital wires.
+              </p>
+              <div class="sensor-takeaways-grid">
+                <div class="takeaway-item">
+                  <span class="takeaway-label">Checks</span>
+                  <strong class="takeaway-val">Beats &amp; Rhythm</strong>
+                </div>
+                <div class="takeaway-item">
+                  <span class="takeaway-label">Feel</span>
+                  <strong class="takeaway-val">Light Daily Wear</strong>
+                </div>
+                <div class="takeaway-item">
+                  <span class="takeaway-label">Hardware Inside</span>
+                  <strong class="takeaway-val">AD8232 ECG</strong>
+                </div>
               </div>
-              <div class="takeaway-cell">
-                <span>Sensor inside</span>
-                <strong>MAX30102</strong>
+            </article>
+
+            <!-- Blood Oxygen (SpO2) Check -->
+            <article class="sensor-featured-card">
+              <div class="sensor-card-top">
+                <span class="sensor-card-eyebrow">02 // BREATHING &amp; OXYGEN</span>
+                <span class="sensor-status-indicator">Ready &amp; Verified</span>
               </div>
-            </div>
-          </article>
+              <h3 class="sensor-card-title">Blood Oxygen Level (SpO₂)</h3>
+              <p class="sensor-card-desc">
+                Shines a gentle, painless light onto the skin to measure how well oxygen moves through your bloodstream—helping catch shallow breathing or quiet drops while resting.
+              </p>
+              <div class="sensor-takeaways-grid">
+                <div class="takeaway-item">
+                  <span class="takeaway-label">Checks</span>
+                  <strong class="takeaway-val">Oxygen % in Blood</strong>
+                </div>
+                <div class="takeaway-item">
+                  <span class="takeaway-label">How it Feels</span>
+                  <strong class="takeaway-val">Painless Optical Light</strong>
+                </div>
+                <div class="takeaway-item">
+                  <span class="takeaway-label">Hardware Inside</span>
+                  <strong class="takeaway-val">MAX30102 PPG</strong>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
 
-        <!-- 2. Everyday Body, Pressure & Room Trio (Open Editorial Columns) -->
-        <div class="sensors-simple-trio">
-          <article class="sensor-trio-col">
-            <div class="trio-head-row">
-              <span class="sensor-step-label">03 · BODY HEAT</span>
-              <span class="sensor-ready-mark light"><span class="ready-square active" aria-hidden="true"></span>Calibrated</span>
+        <!-- 3. Calm 3-Column Editorial Grid for Contextual Sensors (Matches About Grid) -->
+        <div class="sensors-contextual-grid">
+          
+          <!-- Column 03: Body Heat -->
+          <article class="sensor-context-card">
+            <div class="context-card-top">
+              <span class="sensor-card-eyebrow">03 // CORE TEMPERATURE</span>
+              <span class="sensor-status-indicator">Calibrated</span>
             </div>
-            <h3 class="trio-title">Touch-Free Temperature</h3>
-            <p class="trio-desc">
+            <h3 class="context-card-title">Touch-Free Temperature</h3>
+            <p class="context-card-desc">
               Watches if your body temperature starts rising toward a fever—without needing a thermometer under your tongue or sticky skin patches.
             </p>
-            <div class="trio-foot-note">Accurate to ±0.2 °C · MLX90614</div>
+            <div class="context-card-footer">
+              <span class="sensor-micro-tag">Accurate to ±0.2 °C</span>
+              <span class="sensor-micro-tag">MLX90614 Non-Contact</span>
+            </div>
           </article>
 
-          <article class="sensor-trio-col">
-            <div class="trio-head-row">
-              <span class="sensor-step-label">04 · BLOOD PRESSURE</span>
-              <span class="sensor-ready-mark warn"><span class="ready-square warn" aria-hidden="true"></span>In Testing</span>
+          <!-- Column 04: Blood Pressure -->
+          <article class="sensor-context-card">
+            <div class="context-card-top">
+              <span class="sensor-card-eyebrow">04 // BLOOD PRESSURE</span>
+              <span class="sensor-status-indicator">Scheduled Rest</span>
             </div>
-            <h3 class="trio-title">Resting Blood Pressure</h3>
-            <p class="trio-desc">
+            <h3 class="context-card-title">Resting Blood Pressure</h3>
+            <p class="context-card-desc">
               Gently checks your upper and lower blood pressure numbers at quiet scheduled times so doctors and family can see long-term heart trends.
             </p>
-            <div class="trio-foot-note">Scheduled rest checks · Wrist Cuff</div>
+            <div class="context-card-footer">
+              <span class="sensor-micro-tag">Quiet Scheduled Rest</span>
+              <span class="sensor-micro-tag">UART Serial Wrist Cuff</span>
+            </div>
           </article>
 
-          <article class="sensor-trio-col">
-            <div class="trio-head-row">
-              <span class="sensor-step-label">05 · ROOM COMFORT</span>
-              <span class="sensor-ready-mark light"><span class="ready-square active" aria-hidden="true"></span>Active</span>
+          <!-- Column 05: Room Comfort -->
+          <article class="sensor-context-card">
+            <div class="context-card-top">
+              <span class="sensor-card-eyebrow">05 // ROOM COMFORT</span>
+              <span class="sensor-status-indicator">Environmental Guard</span>
             </div>
-            <h3 class="trio-title">Room Heat &amp; Humidity</h3>
-            <p class="trio-desc">
+            <h3 class="context-card-title">Room Heat &amp; Humidity</h3>
+            <p class="context-card-desc">
               Checks how warm or muggy your bedroom feels, helping Jeev One tell the difference between a warm afternoon and a real fever or health strain.
             </p>
-            <div class="trio-foot-note">Smart indoor context · DHT22</div>
+            <div class="context-card-footer">
+              <span class="sensor-micro-tag">Smart Indoor Context</span>
+              <span class="sensor-micro-tag">DHT22 Digital Transducer</span>
+            </div>
           </article>
+
         </div>
 
-        <!-- 3. Everyday Reassurance Strip -->
+        <!-- 4. Everyday Reassurance Strip -->
         <aside class="battery-reassurance-banner" aria-label="Automatic battery-friendly sensing note">
           <div class="reassurance-copy">
             <span class="editorial-micro-heading">Built for Everyday Comfort</span>
@@ -789,19 +838,20 @@
           </div>
           <div class="reassurance-points">
             <div class="reassurance-cell">
-              <span>Effortless</span>
-              <strong>Hands-free schedule</strong>
+              <span class="reassurance-label">Effortless</span>
+              <strong class="reassurance-val">Hands-Free Schedule</strong>
             </div>
             <div class="reassurance-cell">
-              <span>Longer Wear</span>
-              <strong>Saves battery life</strong>
+              <span class="reassurance-label">Longer Wear</span>
+              <strong class="reassurance-val">Saves Battery Life</strong>
             </div>
             <div class="reassurance-cell">
-              <span>Peace of Mind</span>
-              <strong>Instant alert on spikes</strong>
+              <span class="reassurance-label">Peace of Mind</span>
+              <strong class="reassurance-val">Instant Alert on Spikes</strong>
             </div>
           </div>
         </aside>
+
       </div>
     </section>
 

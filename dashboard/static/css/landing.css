@@ -1161,7 +1161,7 @@ body.light-theme {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   6. Complete System Architecture (Warm Sand #e6e3d2, 5-Col Flow)
+   6. Complete System Architecture (Warm Sand #e6e3d2, Warm Editorial Showcase)
    ══════════════════════════════════════════════════════════════════════════════ */
 .arch-editorial-section {
   padding: 5.5rem 0;
@@ -1170,106 +1170,216 @@ body.light-theme {
   border-bottom: 1px solid var(--border-light);
 }
 
+/* Wide Engineering Demonstration Banner — Matches About Section Banner */
+.arch-banner-placeholder {
+  width: 100%;
+  height: clamp(300px, 34vw, 440px);
+  border-radius: 20px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 3rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.arch-banner-placeholder img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  display: block;
+}
+
+.arch-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(38, 44, 29, 0.05) 0%, rgba(38, 44, 29, 0.6) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem 2.25rem;
+}
+
+.arch-banner-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.arch-figure-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-white);
+  background-color: rgba(38, 44, 29, 0.76);
+  padding: 6px 14px;
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(246, 244, 235, 0.18);
+}
+
+.arch-spec-pill {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-white-translucent);
+  letter-spacing: 0.05em;
+  background-color: rgba(38, 44, 29, 0.58);
+  padding: 6px 14px;
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(246, 244, 235, 0.14);
+}
+
+/* Asymmetric Split Lead Row — Matches About Section Split */
+.arch-intro-split {
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 3.5rem;
+  align-items: start;
+  margin-bottom: 3.5rem;
+}
+
+.arch-lead-statement {
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 2.45vw, 2.3rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.26;
+  color: var(--text-heading);
+  max-width: 680px;
+}
+
+.arch-side-note {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 360px;
+  margin-left: auto;
+  padding-top: 0.35rem;
+}
+
+/* Five Architectural Stage Cards (Clean Warm Ivory Cards) */
 .arch-flow-grid {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1.75rem;
-  margin-bottom: 2.75rem;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
-.arch-stage-col {
-  border-top: 2px solid var(--text-main);
-  padding-top: 1.25rem;
+.arch-stage-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 1.75rem 1.45rem;
   display: flex;
   flex-direction: column;
   transition: var(--transition-smooth);
+  box-shadow: var(--shadow-sm);
 }
 
-.arch-stage-col:hover {
-  border-top-color: var(--accent-brand);
+.arch-stage-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--text-subtle);
 }
 
-.arch-stage-top {
+.arch-stage-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.arch-stage-num {
+.arch-stage-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-mono);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent-brand);
-  line-height: 1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .arch-stage-arrow,
 .arch-stage-end {
+  font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-subtle);
+  transition: var(--transition-fast);
+}
+
+.arch-stage-card:hover .arch-stage-arrow {
+  color: var(--text-heading);
+  transform: translateX(3px);
 }
 
 .arch-stage-end {
-  font-size: 0.65rem;
-  color: var(--accent-brand);
-}
-
-.arch-stage-tag {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-subtle);
-  margin-bottom: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--text-heading);
 }
 
 .arch-stage-title {
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-weight: 600;
   letter-spacing: -0.015em;
   color: var(--text-heading);
   line-height: 1.3;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.65rem;
 }
 
 .arch-stage-desc {
   font-size: 0.86rem;
-  line-height: 1.58;
+  line-height: 1.6;
   color: var(--text-muted);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.35rem;
 }
 
-.arch-chips-wrap {
+.arch-spec-wrap {
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-subtle);
 }
 
-.arch-chip {
-  font-size: 0.73rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  background-color: var(--bg-page);
+.arch-spec-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  background-color: var(--bg-card-inner);
   border: 1px solid var(--border-light);
-  border-radius: 6px;
-  color: var(--text-muted);
+  border-radius: 4px;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
 }
 
-/* End-to-End Transport Contract Ribbon */
+/* End-to-End Transport Contract Ribbon (Flat Tags, No Green Pills) */
 .arch-contract-bar {
   background-color: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 18px;
-  padding: 1.35rem 1.75rem;
+  padding: 1.5rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.25rem;
+  gap: 1.5rem;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1277,18 +1387,11 @@ body.light-theme {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.85rem 1.25rem;
+  gap: 1rem 1.35rem;
 }
 
-.contract-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-brand);
-  background-color: var(--accent-brand-soft);
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
+.contract-micro-heading {
+  margin-bottom: 0;
 }
 
 .contract-nodes {
@@ -1297,16 +1400,18 @@ body.light-theme {
   flex-wrap: wrap;
   gap: 0.5rem 0.65rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-heading);
 }
 
 .contract-node {
   padding: 4px 10px;
-  background-color: var(--bg-page);
+  background-color: var(--bg-card-inner);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 4px;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
 }
 
 .contract-sep {
@@ -1319,222 +1424,262 @@ body.light-theme {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   7. Sensors & Daily Health Checks (Warm Alabaster #eeece0, Simple, Zero Pills)
+   7. Sensors & Daily Health Checks (Warm Alabaster #eeece0, Editorial Showcase)
    ══════════════════════════════════════════════════════════════════════════════ */
 .sensors-editorial-section {
   padding: 5.5rem 0;
   background-color: var(--bg-page);
 }
 
-/* 1. Primary Heart & Breathing Pair */
-.sensors-simple-featured {
+/* 1. Asymmetric Showcase Split with Demo Image Holder */
+.sensors-showcase-split {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: 1.05fr 1.15fr;
+  gap: 2.75rem;
+  align-items: stretch;
   margin-bottom: 3.25rem;
 }
 
-.sensor-simple-card {
-  border-radius: 22px;
-  padding: 2.35rem;
+.sensor-showcase-media {
+  display: flex;
+  flex-direction: column;
+}
+
+.sensor-banner-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  border-radius: 20px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sensor-banner-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+
+.sensor-banner-overlay {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(38, 44, 29, 0.05) 0%, rgba(38, 44, 29, 0.78) 100%);
+  padding: 2rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sensor-fig-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-white);
+  background-color: rgba(38, 44, 29, 0.85);
+  padding: 5px 12px;
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(246, 244, 235, 0.18);
+  align-self: flex-start;
+}
+
+.sensor-fig-note {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-white-translucent);
+  max-width: 440px;
+}
+
+.sensor-featured-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.sensor-featured-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  padding: 2.25rem 2.35rem;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: var(--transition-smooth);
 }
 
-.sensor-simple-card.dark {
-  background-color: var(--bg-card-dark);
-  color: var(--text-white);
-  border: 1px solid rgba(246, 244, 235, 0.12);
-  box-shadow: var(--shadow-lg);
+.sensor-featured-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.sensor-simple-card.light {
-  background-color: var(--bg-card);
-  color: var(--text-main);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-card);
-}
-
-.sensor-simple-top {
+.sensor-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.15rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.sensor-step-label {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--text-subtle);
-}
-
-.sensor-simple-card.dark .sensor-step-label {
-  color: rgba(246, 244, 235, 0.65);
-}
-
-.sensor-ready-mark {
+.sensor-card-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 600;
-  white-space: nowrap;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.sensor-ready-mark.dark {
-  color: #cfe0c2;
+.sensor-status-indicator {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-subtle);
+  text-transform: uppercase;
 }
 
-.sensor-ready-mark.light {
-  color: var(--accent-brand);
-}
-
-.sensor-ready-mark.warn {
-  color: var(--accent-amber-ink);
-}
-
-.ready-square {
-  width: 6px;
-  height: 6px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.ready-square.active {
-  background-color: var(--accent-brand);
-}
-
-.sensor-ready-mark.dark .ready-square.active {
-  background-color: #a9d18e;
-}
-
-.ready-square.warn {
-  background-color: var(--accent-amber-ink);
-}
-
-.sensor-simple-title {
+.sensor-card-title {
   font-family: var(--font-display);
-  font-size: clamp(1.55rem, 2.05vw, 1.85rem);
+  font-size: clamp(1.55rem, 2.1vw, 1.95rem);
   font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--text-heading);
   margin-bottom: 0.7rem;
-  line-height: 1.2;
+  line-height: 1.22;
 }
 
-.sensor-simple-card.dark .sensor-simple-title {
-  color: var(--text-white);
-}
-
-.sensor-simple-desc {
-  font-size: 0.94rem;
+.sensor-card-desc {
+  font-size: 0.92rem;
   line-height: 1.66;
   color: var(--text-muted);
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
-.sensor-simple-card.dark .sensor-simple-desc {
-  color: rgba(246, 244, 235, 0.84);
-}
-
-.sensor-simple-takeaways {
-  margin-top: auto;
+.sensor-takeaways-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  padding-top: 1.15rem;
-  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-card-inner);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
 }
 
-.sensor-simple-card.dark .sensor-simple-takeaways {
-  border-top-color: rgba(246, 244, 235, 0.16);
-}
-
-.takeaway-cell {
+.takeaway-item {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.takeaway-cell span {
-  font-size: 0.7rem;
+.takeaway-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--text-subtle);
 }
 
-.sensor-simple-card.dark .takeaway-cell span {
-  color: rgba(246, 244, 235, 0.6);
-}
-
-.takeaway-cell strong {
-  font-size: 0.86rem;
-  font-weight: 700;
+.takeaway-val {
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--text-heading);
+  letter-spacing: -0.01em;
 }
 
-.sensor-simple-card.dark .takeaway-cell strong {
-  color: var(--text-white);
-}
-
-/* 2. Body Heat, Blood Pressure & Room Comfort Trio */
-.sensors-simple-trio {
+/* 2. Calm 3-Column Editorial Grid for Contextual Sensors (Matches About Grid) */
+.sensors-contextual-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2.25rem;
-  margin-bottom: 3rem;
+  gap: 2rem;
+  margin-bottom: 3.25rem;
 }
 
-.sensor-trio-col {
-  border-top: 2px solid var(--text-main);
-  padding-top: 1.35rem;
+.sensor-context-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 2rem 1.85rem;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-sm);
   transition: var(--transition-smooth);
 }
 
-.sensor-trio-col:hover {
-  border-top-color: var(--accent-brand);
+.sensor-context-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--text-subtle);
 }
 
-.trio-head-row {
+.context-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.trio-title {
-  font-size: 1.22rem;
-  font-weight: 600;
+.context-card-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
   letter-spacing: -0.015em;
   color: var(--text-heading);
-  margin-bottom: 0.55rem;
-  line-height: 1.28;
+  margin-bottom: 0.65rem;
+  line-height: 1.26;
 }
 
-.trio-desc {
-  font-size: 0.9rem;
+.context-card-desc {
+  font-size: 0.88rem;
   line-height: 1.62;
   color: var(--text-muted);
-  margin-bottom: 1.35rem;
+  margin-bottom: 1.5rem;
 }
 
-.trio-foot-note {
+.context-card-footer {
   margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   padding-top: 0.85rem;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sensor-micro-tag {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  color: var(--text-subtle);
+  padding: 4px 8px;
+  background-color: var(--bg-card-inner);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
 }
 
 /* 3. Everyday Reassurance Strip */
@@ -1542,10 +1687,10 @@ body.light-theme {
   background-color: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 18px;
-  padding: 2rem 2.25rem;
+  padding: 2.25rem 2.5rem;
   display: grid;
   grid-template-columns: 1.35fr 1fr;
-  gap: 2.25rem;
+  gap: 2.5rem;
   align-items: center;
   box-shadow: var(--shadow-sm);
 }
@@ -1556,31 +1701,31 @@ body.light-theme {
 
 .reassurance-title {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 1.9vw, 1.72rem);
+  font-size: clamp(1.45rem, 2vw, 1.8rem);
   font-weight: 400;
   letter-spacing: -0.018em;
   line-height: 1.22;
   color: var(--text-heading);
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.6rem;
 }
 
 .reassurance-desc {
   font-size: 0.92rem;
-  line-height: 1.64;
+  line-height: 1.65;
   color: var(--text-muted);
 }
 
 .reassurance-points {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  background-color: var(--bg-page);
+  background-color: var(--bg-card-inner);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .reassurance-cell {
-  padding: 1rem;
+  padding: 1.15rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1591,17 +1736,20 @@ body.light-theme {
   border-right: none;
 }
 
-.reassurance-cell span {
+.reassurance-label {
+  font-family: var(--font-mono);
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-subtle);
 }
 
-.reassurance-cell strong {
-  font-size: 0.84rem;
+.reassurance-val {
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--text-heading);
+  line-height: 1.3;
 }
 
 .header-cta-inline {
@@ -2491,8 +2639,35 @@ body.light-theme {
     gap: 2rem;
   }
 
-  .sensors-simple-featured,
-  .sensors-simple-trio,
+  .arch-intro-split {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .arch-side-note {
+    margin-left: 0;
+    max-width: 540px;
+  }
+
+  .arch-flow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .arch-stage-terminal {
+    grid-column: 1 / -1;
+  }
+
+  .sensors-showcase-split {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .sensors-contextual-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
   .battery-reassurance-banner {
     grid-template-columns: 1fr;
     gap: 1.75rem;
@@ -2604,6 +2779,7 @@ body.light-theme {
   }
 
   .service-metric-strip,
+  .sensor-takeaways-grid,
   .sensor-simple-takeaways,
   .reassurance-points,
   .edge-runtime-strip,
@@ -2636,21 +2812,29 @@ body.light-theme {
     padding: 0 1rem 1.5rem 1rem;
   }
 
-  .arch-flow-grid {
+  .arch-flow-grid,
+  .sensors-contextual-grid {
     grid-template-columns: 1fr;
-    gap: 1.75rem;
+    gap: 1.5rem;
   }
 
   .arch-stage-terminal {
     grid-column: auto;
   }
 
-  .arch-contract-bar {
-    padding: 1.25rem;
+  .arch-banner-meta,
+  .contract-chain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
-  .sensor-simple-card {
-    padding: 1.65rem;
+  .sensor-banner-frame {
+    min-height: 320px;
+  }
+
+  .arch-contract-bar {
+    padding: 1.25rem;
   }
 
   .battery-reassurance-banner {
