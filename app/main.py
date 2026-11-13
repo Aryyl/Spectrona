@@ -22,8 +22,16 @@ or:
 from __future__ import annotations
 
 import logging
+import os
+import sys
 import threading
 from pathlib import Path
+
+# Ensure project root is on sys.path so 'app' package is resolvable whether running
+# via `python -m app.main` or directly as `python app/main.py`
+_ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(_ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(_ROOT_DIR))
 
 from flask import Flask
 from flask_cors import CORS
@@ -31,27 +39,14 @@ from flask_cors import CORS
 from app.api.routes import api_bp
 from app.api.ecg_routes import ecg_bp
 from app.api.care_routes import care_bp
-from app.api.websocket import notify_update, ws_bp
-from app.alerts.manager import alert_manager
+from app.api.websocket import ws_bp
 from app.config_loader import cfg
-from app.ingestion.processor import process_raw
 from app.logger import configure_logging
 from app.mqtt.client import HealthMQTTClient
-from app.pipeline_state import state_store
-from app.processing.baseline import baseline_engine
-from app.processing.features import compute_features
-from app.processing.windows import sensor_windows
-from app.risk.fusion import fuse_risks
-from app.risk.heat import assess_heat_risk
-from app.risk.respiratory import respiratory_risk_engine
-from app.risk.vital import vital_risk_engine
+from app.pipeline_runner import process_sensor_payload
 from app.storage.database import init_db
-from app.storage.repository import insert_reading, insert_risk_state
 
 _log = logging.getLogger(__name__)
-
-
-from app.pipeline_runner import process_sensor_payload
 
 # ── Pipeline callback (called by MQTT client on every message) ───────────────
 
